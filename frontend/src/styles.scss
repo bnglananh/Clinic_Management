@@ -1,0 +1,317 @@
+@use 'sass:color';
+@use 'styles/variables' as *;
+@use 'styles/tokens';
+@use 'styles/typography';
+@use 'styles/animations';
+
+// CSS Reset & Base Rules
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 86px;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100%;
+  font-family: $font-sans;
+  font-size: 14.5px;
+  font-weight: 450;
+  line-height: 1.55;
+  background-color: $color-ivory-bg;
+  color: $color-text-primary;
+  text-rendering: optimizeLegibility;
+}
+
+// Global text legibility enhancements
+button, input, optgroup, select, textarea {
+  font-family: inherit;
+}
+
+b, strong {
+  font-weight: 650;
+}
+
+// Global High Contrast Text Utilities for light backgrounds
+p {
+  color: $color-text-secondary;
+}
+
+.text-muted {
+  color: $color-text-secondary !important;
+}
+
+.text-secondary {
+  color: $color-text-secondary !important;
+}
+
+// Spacing for clinic icons so text and icons NEVER collide across all pages
+app-clinic-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+  line-height: 1;
+
+  & + span,
+  & + strong,
+  & + b,
+  & + small {
+    margin-left: 8px;
+  }
+}
+
+span + app-clinic-icon,
+strong + app-clinic-icon,
+b + app-clinic-icon,
+small + app-clinic-icon {
+  margin-left: 8px;
+}
+
+// Spacing for clinic icons inside buttons, links, pills, tags
+button, a.btn, a.btn-book-new, .pill-item, .chip-btn, .nav-link, .btn, .ant-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  & > app-clinic-icon:first-child:not(:only-child) {
+    margin-right: 0;
+  }
+  & > app-clinic-icon:last-child:not(:only-child) {
+    margin-left: 0;
+  }
+
+  & > app-clinic-icon + span,
+  & > app-clinic-icon + strong {
+    margin-left: 0;
+  }
+}
+
+// Custom Scrollbar
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(28, 39, 51, 0.15);
+  border-radius: 999px;
+  &:hover {
+    background: rgba(28, 39, 51, 0.28);
+  }
+}
+
+// Global Luxury Card Utility
+.clinic-card {
+  background: $color-surface;
+  border-radius: $radius-lg;
+  border: 1px solid $color-border-subtle;
+  box-shadow: $shadow-card;
+  transition: box-shadow 0.25s ease, transform 0.25s ease;
+  overflow: hidden;
+
+  &.clickable:hover {
+    box-shadow: $shadow-card-hover;
+    transform: translateY(-2px);
+    cursor: pointer;
+  }
+}
+
+// Glassmorphism Header
+.glass-header {
+  background: rgba(255, 255, 255, 0.88) !important;
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  border-bottom: 1px solid rgba(228, 222, 210, 0.7);
+}
+
+// NG-ZORRO Overrides (Refined without breaking tokens)
+.ant-btn {
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border-radius: $radius-md;
+  box-shadow: none;
+
+  &.ant-btn-primary {
+    background: $color-teal-primary;
+    border-color: $color-teal-primary;
+    &:hover, &:focus {
+      background: color.adjust($color-teal-primary, $lightness: 5%);
+      border-color: color.adjust($color-teal-primary, $lightness: 5%);
+    }
+  }
+
+  &.ant-btn-default {
+    border-color: $color-border;
+    color: $color-text-primary;
+    background: $color-surface;
+    &:hover, &:focus {
+      border-color: $color-teal-primary;
+      color: $color-teal-primary;
+    }
+  }
+}
+
+.ant-tag {
+  border-radius: $radius-full;
+  font-weight: 500;
+  padding: 2px 10px;
+  border-width: 1px;
+}
+
+// ========================================================
+// Soft & Gently Rounded Search Bars & Form Controls (Global)
+// ========================================================
+
+// 1. Search Bars (Thanh tìm kiếm mềm mại, bo tròn thanh thoát)
+.search-box, .search-input-box, .quick-search, .search-bar, .search-wrap, .ant-input-search {
+  border-radius: $radius-search !important;
+  background: #FFFFFF;
+  border: 1px solid #E2DCD0;
+  box-shadow: 0 2px 6px rgba(28, 39, 51, 0.03);
+  transition: all 0.25s ease;
+
+  input, .search-input, .s-input, .input-search {
+    border-radius: $radius-search !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+  }
+
+  &:hover {
+    border-color: #C8BFB0;
+    box-shadow: 0 3px 8px rgba(28, 39, 51, 0.05);
+  }
+
+  &:focus-within {
+    border-color: $color-teal-primary;
+    box-shadow: 0 0 0 3.5px rgba(14, 74, 85, 0.12), 0 3px 10px rgba(14, 74, 85, 0.06);
+  }
+}
+
+.input-search, .search-input, .s-input {
+  border-radius: $radius-search !important;
+}
+
+// 2. Form Inputs, Selects, Textareas (Form điền mềm mại, bo tròn nhẹ)
+input[type="text"],
+input[type="date"],
+input[type="number"],
+input[type="password"],
+input[type="email"],
+input[type="search"],
+input[type="tel"],
+select,
+textarea,
+.clinic-input,
+.clinic-select,
+.clinic-textarea,
+.clinic-input-full,
+.clinic-select-full,
+.form-input,
+.form-textarea,
+.f-input,
+.f-select,
+.ant-input,
+.ant-select-selector {
+  border-radius: $radius-md !important;
+  border: 1px solid #E2DCD0 !important;
+  background-color: #FFFFFF !important;
+  color: $color-text-primary !important;
+  font-family: inherit;
+  font-size: 0.9rem;
+  transition: border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s ease !important;
+
+  &:hover:not(:disabled):not(:focus) {
+    border-color: #C8BFB0 !important;
+  }
+
+  &:focus, &:focus-visible, &:focus-within {
+    outline: none !important;
+    border-color: $color-teal-primary !important;
+    box-shadow: 0 0 0 3.5px rgba(14, 74, 85, 0.12) !important;
+  }
+
+  &::placeholder {
+    color: #8C96A2 !important;
+  }
+
+  &:disabled, &[disabled] {
+    background-color: #F8F5EE !important;
+    color: #8C96A2 !important;
+    border-color: #E8E2D5 !important;
+    cursor: not-allowed;
+  }
+}
+
+textarea, .clinic-textarea {
+  border-radius: $radius-md !important;
+  padding: 10px 14px !important;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+select, .clinic-select {
+  border-radius: $radius-md !important;
+  cursor: pointer;
+  padding: 0 14px !important;
+}
+
+// Form Labels & Groups
+.form-group, .ant-form-item {
+  label, .ant-form-item-label > label {
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: #1C2733;
+    margin-bottom: 6px;
+    display: inline-block;
+  }
+}
+
+// Dark Sidebar Menu Overrides
+.clinic-sidebar {
+  background: $color-ink-slate !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+
+  .ant-menu-dark {
+    background: transparent;
+
+    .ant-menu-item {
+      margin: 4px 8px;
+      width: calc(100% - 16px);
+      border-radius: $radius-md;
+      color: rgba(255, 255, 255, 0.75);
+      transition: all 0.2s ease;
+
+      &:hover {
+        color: #FFFFFF;
+        background: rgba(255, 255, 255, 0.06);
+      }
+
+      &.ant-menu-item-selected {
+        background: rgba(14, 74, 85, 0.35) !important;
+        color: #FFFFFF !important;
+        position: relative;
+        font-weight: 600;
+
+        &::before {
+          content: '';
+          position: absolute;
+          left: 0;
+          top: 15%;
+          bottom: 15%;
+          width: 3.5px;
+          background-color: $color-champagne-gold;
+          border-radius: 0 4px 4px 0;
+        }
+      }
+    }
+  }
+}

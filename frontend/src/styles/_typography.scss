@@ -1,0 +1,79 @@
+// Smart Clinic EMR - Typography Styles
+@use 'variables' as *;
+
+.font-serif {
+  font-family: $font-serif;
+  letter-spacing: -0.01em;
+  font-weight: 650;
+}
+
+.font-sans {
+  font-family: $font-sans;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+// Brand Heading Styles
+h1.clinic-title, .clinic-title {
+  font-family: $font-serif;
+  color: $color-ink-slate;
+  font-weight: 700;
+  font-size: 2rem;
+  line-height: 1.25;
+  margin-bottom: 0.5rem;
+  position: relative;
+  display: inline-block;
+
+  &.with-gold-accent::after {
+    content: '';
+    display: block;
+    width: 48px;
+    height: 3px;
+    background: linear-gradient(90deg, $color-champagne-gold, rgba(184, 149, 90, 0.2));
+    border-radius: 2px;
+    margin-top: 8px;
+  }
+}
+
+h2.clinic-subtitle, .clinic-subtitle {
+  font-family: $font-serif;
+  color: $color-ink-slate;
+  font-weight: 700;
+  font-size: 1.5rem;
+  line-height: 1.3;
+}
+
+h3.clinic-section-title, .clinic-section-title {
+  font-family: $font-sans;
+  color: $color-ink-slate;
+  font-weight: 650;
+  font-size: 1.125rem;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+}
+
+.text-secondary-slate {
+  color: $color-text-secondary;
+}
+
+.text-muted-slate {
+  color: $color-text-muted;
+}
+
+.text-gold {
+  color: $color-champagne-gold;
+}
+
+.text-teal {
+  color: $color-teal-primary;
+}
+
+.text-burgundy {
+  color: $color-burgundy-danger;
+}
+
+.text-sage {
+  color: $color-sage-success;
+}
