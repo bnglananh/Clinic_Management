@@ -120,64 +120,74 @@ import { ClinicIconComponent } from '../../../shared/components/clinic-icon/clin
         <table class="clinic-data-table">
           <thead>
             <tr>
-              <th>Mã hóa đơn</th>
-              <th>STT khám</th>
-              <th>Bệnh nhân</th>
-              <th>Phòng khám</th>
-              <th class="text-right">Tiền khám</th>
-              <th class="text-right">Tiền kỹ thuật</th>
-              <th class="text-right">Tiền thuốc</th>
-              <th class="text-right">Tổng thanh toán</th>
-              <th>Hình thức</th>
-              <th>Trạng thái</th>
-              <th class="text-right">Thao tác</th>
+              <th class="col-code">Mã hóa đơn</th>
+              <th class="col-stt text-center">STT khám</th>
+              <th class="col-patient">Bệnh nhân</th>
+              <th class="col-room">Phòng khám</th>
+              <th class="col-fee text-right">Tiền khám</th>
+              <th class="col-fee text-right">Tiền kỹ thuật</th>
+              <th class="col-fee text-right">Tiền thuốc</th>
+              <th class="col-total text-right">Tổng thanh toán</th>
+              <th class="col-method text-center">Hình thức</th>
+              <th class="col-status text-center">Trạng thái</th>
+              <th class="col-actions text-center">Thao tác</th>
             </tr>
           </thead>
           <tbody>
             @for (bill of filteredBills(); track bill.id) {
               <tr [class.unpaid-row]="bill.paymentStatus === 'UNPAID'">
-                <td class="font-bold text-teal font-mono">{{ bill.billCode }}</td>
-                <td>
-                  <span class="stt-badge font-serif">{{ bill.ticketNumber }}</span>
+                <td class="col-code">
+                  <span class="bill-code-badge">{{ bill.billCode }}</span>
                 </td>
-                <td>
+                <td class="col-stt text-center">
+                  <span class="stt-badge">{{ bill.ticketNumber }}</span>
+                </td>
+                <td class="col-patient">
                   <div class="patient-name-box">
-                    <span class="p-name font-bold">{{ bill.patientName }}</span>
-                    <span class="p-code text-secondary-slate">{{ bill.patientCode }}</span>
+                    <span class="p-name">{{ bill.patientName }}</span>
+                    <span class="p-code">{{ bill.patientCode }}</span>
                   </div>
                 </td>
-                <td>
-                  <span class="room-title">{{ bill.roomName }}</span>
+                <td class="col-room">
+                  <div class="room-box">
+                    <span class="room-title">{{ bill.roomName }}</span>
+                    @if (bill.doctorName) {
+                      <span class="doc-name">{{ bill.doctorName }}</span>
+                    }
+                  </div>
                 </td>
-                <td class="text-right tabular-nums">{{ bill.consultationFee | vndCurrency }}</td>
-                <td class="text-right tabular-nums">{{ bill.serviceFee | vndCurrency }}</td>
-                <td class="text-right tabular-nums">{{ bill.medicineFee | vndCurrency }}</td>
-                <td class="text-right tabular-nums font-bold text-teal font-size-lg">
-                  {{ bill.totalAmount | vndCurrency }}
+                <td class="col-fee text-right tabular-nums">{{ bill.consultationFee | vndCurrency }}</td>
+                <td class="col-fee text-right tabular-nums">{{ bill.serviceFee | vndCurrency }}</td>
+                <td class="col-fee text-right tabular-nums">{{ bill.medicineFee | vndCurrency }}</td>
+                <td class="col-total text-right tabular-nums">
+                  <span class="total-amount-val">{{ bill.totalAmount | vndCurrency }}</span>
                 </td>
-                <td>
+                <td class="col-method text-center">
                   @if (bill.paymentMethod === 'VIETQR') {
                     <span class="method-tag method-vietqr">
-                      <app-clinic-icon name="credit-card" [size]="13"></app-clinic-icon> VietQR
+                      <app-clinic-icon name="credit-card" [size]="13"></app-clinic-icon>
+                      <span>VietQR</span>
                     </span>
                   } @else if (bill.paymentMethod === 'CASH') {
                     <span class="method-tag method-cash">
-                      <app-clinic-icon name="wallet" [size]="13"></app-clinic-icon> Tiền mặt
+                      <app-clinic-icon name="wallet" [size]="13"></app-clinic-icon>
+                      <span>Tiền mặt</span>
                     </span>
                   } @else {
-                    <span class="text-muted-slate">--</span>
+                    <span class="text-muted-slate font-medium">--</span>
                   }
                 </td>
-                <td>
+                <td class="col-status text-center">
                   <app-status-tag [status]="bill.paymentStatus"></app-status-tag>
                 </td>
-                <td class="text-right">
+                <td class="col-actions text-center">
                   @if (bill.paymentStatus === 'UNPAID') {
                     <button
                       (click)="openPaymentPanel(bill)"
                       class="btn-pay-now"
                     >
-                      <app-clinic-icon name="credit-card" [size]="14"></app-clinic-icon> Thu tiền
+                      <app-clinic-icon name="credit-card" [size]="14"></app-clinic-icon>
+                      <span>Thu tiền</span>
                     </button>
                   } @else {
                     <button
@@ -185,9 +195,19 @@ import { ClinicIconComponent } from '../../../shared/components/clinic-icon/clin
                       class="btn-print-receipt"
                       title="In biên lai điện tử"
                     >
-                      <app-clinic-icon name="receipt" [size]="14"></app-clinic-icon> In biên lai
+                      <app-clinic-icon name="receipt" [size]="14"></app-clinic-icon>
+                      <span>In biên lai</span>
                     </button>
                   }
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="11" class="empty-cell text-center">
+                  <div class="empty-state-box">
+                    <app-clinic-icon name="receipt" [size]="32" color="#94A3B8"></app-clinic-icon>
+                    <p class="empty-text">Không có hóa đơn viện phí nào trong danh mục này.</p>
+                  </div>
                 </td>
               </tr>
             }
@@ -221,6 +241,9 @@ import { ClinicIconComponent } from '../../../shared/components/clinic-icon/clin
   styles: [
     `
       .btn-export-excel {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
         background: #FFFFFF;
         color: #1C2733;
         border: 1px solid #E4DED2;
@@ -230,6 +253,7 @@ import { ClinicIconComponent } from '../../../shared/components/clinic-icon/clin
         font-size: 0.88rem;
         cursor: pointer;
         transition: all 0.2s ease;
+        white-space: nowrap;
 
         &:hover {
           border-color: #0E4A55;
@@ -251,17 +275,23 @@ import { ClinicIconComponent } from '../../../shared/components/clinic-icon/clin
       }
 
       .bills-table-card {
-        padding: 24px;
+        padding: 0;
         background: #FFFFFF;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px -2px rgba(28, 39, 51, 0.05);
+        border: 1px solid #E8E2D8;
+        overflow: hidden;
       }
 
       .filter-header-bar {
         display: flex;
         justify-content: space-between;
-        align-items: flex-start;
-        margin-bottom: 20px;
+        align-items: center;
+        padding: 20px 24px;
+        border-bottom: 1.5px solid #E8E2D8;
         flex-wrap: wrap;
         gap: 16px;
+        background: #FFFFFF;
       }
 
       .section-sub {
@@ -301,114 +331,277 @@ import { ClinicIconComponent } from '../../../shared/components/clinic-icon/clin
       }
 
       .table-responsive {
+        width: 100%;
         overflow-x: auto;
       }
 
       .clinic-data-table {
         width: 100%;
+        min-width: 1240px;
         border-collapse: collapse;
         font-size: 0.86rem;
 
         th {
           background: #FAF8F5;
-          color: #5B6672;
-          font-weight: 600;
+          color: #475569;
+          font-weight: 700;
+          font-size: 0.77rem;
+          text-transform: uppercase;
+          letter-spacing: 0.04em;
           text-align: left;
-          padding: 12px 14px;
+          padding: 14px 16px;
           border-bottom: 1.5px solid #E4DED2;
           white-space: nowrap;
+
+          &.text-center {
+            text-align: center;
+          }
+
+          &.text-right {
+            text-align: right;
+          }
         }
 
         td {
-          padding: 14px 14px;
-          border-bottom: 1px solid #F0EAE1;
+          padding: 13px 16px;
+          border-bottom: 1px solid #F1ECE3;
           vertical-align: middle;
+          color: #1E293B;
+
+          &.text-center {
+            text-align: center;
+          }
+
+          &.text-right {
+            text-align: right;
+          }
         }
 
-        tr.unpaid-row td {
-          background: rgba(184, 149, 90, 0.03);
+        tbody tr {
+          transition: background-color 0.15s ease;
+
+          &:hover {
+            background-color: #FAF8F5;
+          }
+
+          &.unpaid-row {
+            background-color: rgba(184, 149, 90, 0.04);
+            &:hover {
+              background-color: rgba(184, 149, 90, 0.08);
+            }
+          }
+
+          &:last-child td {
+            border-bottom: none;
+          }
+        }
+
+        .col-code {
+          width: 135px;
+          white-space: nowrap;
+        }
+
+        .col-stt {
+          width: 90px;
+          white-space: nowrap;
+        }
+
+        .col-patient {
+          min-width: 175px;
+        }
+
+        .col-room {
+          min-width: 145px;
+        }
+
+        .col-fee {
+          width: 110px;
+          white-space: nowrap;
+          font-variant-numeric: tabular-nums;
+          color: #334155;
+        }
+
+        .col-total {
+          width: 135px;
+          white-space: nowrap;
+          font-variant-numeric: tabular-nums;
+        }
+
+        .col-method {
+          width: 115px;
+          white-space: nowrap;
+        }
+
+        .col-status {
+          width: 140px;
+          white-space: nowrap;
+        }
+
+        .col-actions {
+          width: 125px;
+          white-space: nowrap;
         }
       }
 
-      .stt-badge {
-        font-size: 1.05rem;
-        font-weight: 700;
+      .bill-code-badge {
+        display: inline-block;
+        padding: 4px 9px;
         background: rgba(14, 74, 85, 0.08);
         color: #0E4A55;
-        padding: 3px 8px;
+        border: 1px solid rgba(14, 74, 85, 0.18);
         border-radius: 6px;
+        font-family: 'JetBrains Mono', 'Roboto Mono', monospace;
+        font-weight: 700;
+        font-size: 0.82rem;
+        letter-spacing: 0.02em;
+        white-space: nowrap;
+      }
+
+      .stt-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-family: 'JetBrains Mono', 'Roboto Mono', monospace;
+        font-size: 0.88rem;
+        font-weight: 700;
+        background: rgba(14, 74, 85, 0.07);
+        color: #0E4A55;
+        border: 1px solid rgba(14, 74, 85, 0.18);
+        padding: 3px 10px;
+        border-radius: 6px;
+        white-space: nowrap;
+        letter-spacing: 0.02em;
       }
 
       .patient-name-box {
         display: flex;
         flex-direction: column;
+        gap: 2px;
       }
 
       .p-name {
-        color: #1C2733;
+        color: #1E293B;
+        font-weight: 600;
+        font-size: 0.88rem;
       }
 
       .p-code {
+        font-family: 'JetBrains Mono', 'Roboto Mono', monospace;
         font-size: 0.75rem;
+        color: #64748B;
+      }
+
+      .room-box {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
       }
 
       .room-title {
-        font-weight: 500;
-        color: #1C2733;
+        font-weight: 600;
+        color: #1E293B;
+        font-size: 0.86rem;
       }
 
-      .font-size-lg {
-        font-size: 1rem;
+      .doc-name {
+        font-size: 0.75rem;
+        color: #64748B;
+      }
+
+      .total-amount-val {
+        color: #0E4A55;
+        font-weight: 700;
+        font-size: 0.95rem;
       }
 
       .method-tag {
-        font-size: 0.76rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        font-size: 0.78rem;
         font-weight: 600;
-        padding: 3px 8px;
+        padding: 4px 10px;
         border-radius: 6px;
+        white-space: nowrap;
       }
 
       .method-vietqr {
-        background: rgba(14, 74, 85, 0.1);
+        background: rgba(14, 74, 85, 0.09);
         color: #0E4A55;
+        border: 1px solid rgba(14, 74, 85, 0.2);
       }
 
       .method-cash {
         background: rgba(94, 139, 126, 0.12);
-        color: #3A6357;
+        color: #2D6A5B;
+        border: 1px solid rgba(94, 139, 126, 0.22);
       }
 
       .btn-pay-now {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
         background: #0E4A55;
         color: #FFFFFF;
         border: none;
-        padding: 7px 16px;
+        padding: 7px 14px;
         border-radius: 8px;
-        font-size: 0.84rem;
+        font-size: 0.82rem;
         font-weight: 600;
+        white-space: nowrap;
         cursor: pointer;
         transition: all 0.2s ease;
-        box-shadow: 0 2px 8px rgba(14, 74, 85, 0.2);
+        box-shadow: 0 2px 6px rgba(14, 74, 85, 0.2);
 
         &:hover {
           background: #135d6b;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 10px rgba(14, 74, 85, 0.28);
         }
       }
 
       .btn-print-receipt {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
         background: #FFFFFF;
-        border: 1px solid #E4DED2;
-        color: #5B6672;
+        border: 1px solid #D8D1C5;
+        color: #475569;
         padding: 6px 12px;
         border-radius: 8px;
-        font-size: 0.8rem;
+        font-size: 0.82rem;
+        font-weight: 500;
+        white-space: nowrap;
         cursor: pointer;
         transition: all 0.2s ease;
 
         &:hover {
           border-color: #0E4A55;
           color: #0E4A55;
+          background: #F8FAFC;
+          transform: translateY(-1px);
         }
+      }
+
+      .empty-cell {
+        padding: 48px 16px;
+      }
+
+      .empty-state-box {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+      }
+
+      .empty-text {
+        color: #64748B;
+        font-size: 0.9rem;
+        margin: 0;
       }
 
       // Success Toast

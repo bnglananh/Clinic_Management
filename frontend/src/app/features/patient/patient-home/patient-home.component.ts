@@ -28,6 +28,10 @@ import { ClinicIconComponent } from '../../../shared/components/clinic-icon/clin
             <app-clinic-icon name="clipboard" [size]="15"></app-clinic-icon>
             <span>Xem hồ sơ bệnh án cũ</span>
           </a>
+          <a routerLink="/patient/profile" class="btn-book-secondary">
+            <app-clinic-icon name="user" [size]="15"></app-clinic-icon>
+            <span>Cập nhật thông tin cá nhân</span>
+          </a>
         </div>
       </div>
     </div>

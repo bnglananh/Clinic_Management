@@ -39,12 +39,31 @@ p {
 }
 
 .text-muted {
-  color: $color-text-secondary !important;
+  color: $color-text-secondary;
 }
 
 .text-secondary {
-  color: $color-text-secondary !important;
+  color: $color-text-secondary;
 }
+
+// Global High-Contrast Support for dark containers & dark themes (never drowned out)
+.dark-theme,
+.bg-dark-slate,
+.dark-section,
+[data-theme='dark'] {
+  color: #FFFFFF;
+
+  p {
+    color: #E2E8F0;
+  }
+
+  .text-muted,
+  .text-secondary,
+  .section-subheading {
+    color: #CBD5E1 !important;
+  }
+}
+
 
 // Spacing for clinic icons so text and icons NEVER collide across all pages
 app-clinic-icon {

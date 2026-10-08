@@ -13,6 +13,6 @@ export class VndCurrencyPipe implements PipeTransform {
     if (isNaN(num)) {
       return '0 ₫';
     }
-    return new Intl.NumberFormat('vi-VN').format(num) + ' ₫';
+    return new Intl.NumberFormat('vi-VN').format(num) + '\u00A0₫';
   }
 }

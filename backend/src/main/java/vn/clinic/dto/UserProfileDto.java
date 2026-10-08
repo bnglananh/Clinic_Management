@@ -29,6 +29,9 @@ public class UserProfileDto {
     private String avatarUrl;
     private UserRole role;
     private String membershipTier;
+    private String emergencyContactName;
+    private String emergencyContactPhone;
+    private Integer totalVisits;
     private String createdAt;
     private String updatedAt;
 
@@ -52,6 +55,9 @@ public class UserProfileDto {
                 .avatarUrl(entity.getAvatarUrl())
                 .role(entity.getRole())
                 .membershipTier(entity.getMembershipTier())
+                .emergencyContactName(entity.getEmergencyContactName())
+                .emergencyContactPhone(entity.getEmergencyContactPhone())
+                .totalVisits(entity.getTotalVisits())
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
                 .build();

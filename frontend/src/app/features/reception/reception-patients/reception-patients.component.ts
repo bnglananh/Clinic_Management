@@ -63,33 +63,39 @@ import { ClinicIconComponent } from '../../../shared/components/clinic-icon/clin
         <table class="clinic-data-table">
           <thead>
             <tr>
-              <th>Mã bệnh nhân</th>
-              <th>Họ và tên</th>
-              <th>CCCD (Định danh)</th>
-              <th>Giới tính / Ngày sinh</th>
-              <th>Số điện thoại</th>
-              <th>Tiền sử dị ứng</th>
-              <th>Nhóm máu</th>
-              <th>Số lượt khám</th>
-              <th class="text-right">Thao tác</th>
+              <th class="col-code">Mã bệnh nhân</th>
+              <th class="col-name">Họ và tên</th>
+              <th class="col-cccd">CCCD (Định danh)</th>
+              <th class="col-demographic">Giới tính / Ngày sinh</th>
+              <th class="col-phone">Số điện thoại</th>
+              <th class="col-allergy">Tiền sử dị ứng</th>
+              <th class="col-blood text-center">Nhóm máu</th>
+              <th class="col-visits text-center">Số lượt khám</th>
+              <th class="col-actions text-right">Thao tác</th>
             </tr>
           </thead>
           <tbody>
             @for (p of filteredPatients(); track p.id) {
               <tr>
-                <td class="font-bold text-teal">{{ p.patientCode }}</td>
-                <td>
+                <td class="col-code">
+                  <span class="patient-code-badge font-mono">{{ p.patientCode }}</span>
+                </td>
+                <td class="col-name">
                   <div class="patient-name-wrap">
                     <span class="p-fullname font-bold">{{ p.fullName }}</span>
-                    <span class="p-address-sub">{{ p.address }}</span>
+                    <span class="p-address-sub" [title]="p.address">{{ p.address }}</span>
                   </div>
                 </td>
-                <td class="tabular-nums font-mono">{{ p.cccd }}</td>
-                <td>{{ p.gender === 'NAM' ? 'Nam' : 'Nữ' }} • {{ p.dateOfBirth | viDate }}</td>
-                <td class="tabular-nums font-bold">{{ p.phone }}</td>
-                <td>
+                <td class="col-cccd tabular-nums font-mono">{{ p.cccd }}</td>
+                <td class="col-demographic">
+                  <span class="demo-gender font-medium">{{ p.gender === 'NAM' ? 'Nam' : 'Nữ' }}</span>
+                  <span class="demo-separator">•</span>
+                  <span class="demo-dob">{{ p.dateOfBirth | viDate }}</span>
+                </td>
+                <td class="col-phone tabular-nums font-bold text-teal">{{ p.phone }}</td>
+                <td class="col-allergy">
                   @if (p.allergyHistory && p.allergyHistory !== 'Không có tiền sử dị ứng' && !p.allergyHistory.toLowerCase().includes('không')) {
-                    <span class="badge-allergy-alert" title="{{ p.allergyHistory }}">
+                    <span class="badge-allergy-alert" [title]="p.allergyHistory">
                       <app-clinic-icon name="alert-triangle" [size]="13" color="#9B3D45"></app-clinic-icon>
                       <span>Có dị ứng</span>
                     </span>
@@ -97,11 +103,13 @@ import { ClinicIconComponent } from '../../../shared/components/clinic-icon/clin
                     <span class="badge-no-allergy">Bình thường</span>
                   }
                 </td>
-                <td>
+                <td class="col-blood text-center">
                   <span class="blood-type-badge">{{ p.bloodType || 'Chưa XN' }}</span>
                 </td>
-                <td class="tabular-nums font-bold text-center">{{ p.totalVisits }} lượt</td>
-                <td class="text-right">
+                <td class="col-visits text-center">
+                  <span class="visit-count-badge tabular-nums">{{ p.totalVisits }} lượt</span>
+                </td>
+                <td class="col-actions text-right">
                   <div class="actions-cell">
                     <button
                       (click)="viewPatientDetails(p)"
@@ -388,108 +396,269 @@ import { ClinicIconComponent } from '../../../shared/components/clinic-icon/clin
       }
 
       .table-card {
-        padding: 20px;
+        padding: 0;
         background: #FFFFFF;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px -2px rgba(28, 39, 51, 0.05);
+        border: 1px solid #E8E2D8;
+        overflow: hidden;
       }
 
       .table-responsive {
+        width: 100%;
         overflow-x: auto;
       }
 
       .clinic-data-table {
         width: 100%;
+        min-width: 1140px;
         border-collapse: collapse;
         font-size: 0.86rem;
 
         th {
           background: #FAF8F5;
-          color: #5B6672;
-          font-weight: 600;
+          color: #475569;
+          font-weight: 700;
+          font-size: 0.77rem;
+          text-transform: uppercase;
+          letter-spacing: 0.04em;
           text-align: left;
-          padding: 12px 14px;
+          padding: 14px 16px;
           border-bottom: 1.5px solid #E4DED2;
           white-space: nowrap;
+
+          &.text-center {
+            text-align: center;
+          }
+
+          &.text-right {
+            text-align: right;
+          }
         }
 
         td {
-          padding: 14px 14px;
-          border-bottom: 1px solid #F0EAE1;
+          padding: 13px 16px;
+          border-bottom: 1px solid #F1ECE3;
           vertical-align: middle;
+          color: #1E293B;
+
+          &.text-center {
+            text-align: center;
+          }
+
+          &.text-right {
+            text-align: right;
+          }
         }
+
+        tbody tr {
+          transition: background-color 0.15s ease;
+
+          &:hover {
+            background-color: #FAF8F5;
+          }
+
+          &:last-child td {
+            border-bottom: none;
+          }
+        }
+
+        .col-code {
+          width: 140px;
+          white-space: nowrap;
+        }
+
+        .col-name {
+          min-width: 210px;
+        }
+
+        .col-cccd {
+          width: 140px;
+          white-space: nowrap;
+          letter-spacing: 0.02em;
+          color: #334155;
+        }
+
+        .col-demographic {
+          width: 165px;
+          white-space: nowrap;
+        }
+
+        .col-phone {
+          width: 130px;
+          white-space: nowrap;
+        }
+
+        .col-allergy {
+          width: 140px;
+          white-space: nowrap;
+        }
+
+        .col-blood {
+          width: 95px;
+          white-space: nowrap;
+        }
+
+        .col-visits {
+          width: 115px;
+          white-space: nowrap;
+        }
+
+        .col-actions {
+          width: 130px;
+          white-space: nowrap;
+        }
+      }
+
+      .patient-code-badge {
+        display: inline-block;
+        padding: 3px 8px;
+        background: rgba(14, 74, 85, 0.08);
+        color: #0E4A55;
+        border: 1px solid rgba(14, 74, 85, 0.18);
+        border-radius: 6px;
+        font-family: 'JetBrains Mono', 'Roboto Mono', monospace;
+        font-size: 0.82rem;
+        font-weight: 700;
+        white-space: nowrap;
+        letter-spacing: 0.02em;
       }
 
       .patient-name-wrap {
         display: flex;
         flex-direction: column;
-      }
+        gap: 2px;
 
-      .p-fullname {
-        color: #1C2733;
-      }
+        .p-fullname {
+          color: #0F172A;
+          font-size: 0.88rem;
+          font-weight: 700;
+          line-height: 1.35;
+        }
 
-      .p-address-sub {
-        font-size: 0.75rem;
-        color: #8C96A2;
-      }
-
-      .badge-allergy-alert {
-        background: rgba(155, 61, 69, 0.12);
-        color: #9B3D45;
-        border: 1px solid rgba(155, 61, 69, 0.3);
-        padding: 3px 8px;
-        border-radius: 999px;
-        font-size: 0.75rem;
-        font-weight: 700;
-      }
-
-      .badge-no-allergy {
-        color: #5B6672;
-        font-size: 0.78rem;
-      }
-
-      .blood-type-badge {
-        background: rgba(14, 74, 85, 0.08);
-        color: #0E4A55;
-        font-weight: 700;
-        padding: 2px 8px;
-        border-radius: 6px;
-        font-size: 0.78rem;
-      }
-
-      .actions-cell {
-        display: flex;
-        align-items: center;
-        justify-content: flex-end;
-        gap: 8px;
-      }
-
-      .btn-action-view {
-        background: rgba(14, 74, 85, 0.08);
-        border: 1px solid rgba(14, 74, 85, 0.25);
-        color: #0E4A55;
-        padding: 6px 12px;
-        border-radius: 8px;
-        font-size: 0.8rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s ease;
-
-        &:hover {
-          background: #0E4A55;
-          color: #FFFFFF;
+        .p-address-sub {
+          font-size: 0.76rem;
+          color: #64748B;
+          line-height: 1.35;
+          display: -webkit-box;
+          -webkit-line-clamp: 1;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          max-width: 250px;
         }
       }
 
-      .btn-action-edit {
-        background: #FFFFFF;
-        border: 1px solid #E4DED2;
-        padding: 6px 10px;
-        border-radius: 8px;
-        cursor: pointer;
+      .demo-gender {
+        font-weight: 600;
+        color: #334155;
+      }
 
-        &:hover {
-          border-color: #0E4A55;
+      .demo-separator {
+        color: #CBD5E1;
+        margin: 0 4px;
+      }
+
+      .demo-dob {
+        color: #475569;
+      }
+
+      .badge-allergy-alert {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        background: rgba(155, 61, 69, 0.1);
+        color: #9B3D45;
+        border: 1px solid rgba(155, 61, 69, 0.28);
+        padding: 3px 9px;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        white-space: nowrap;
+        line-height: 1.2;
+
+        span {
+          white-space: nowrap;
+        }
+      }
+
+      .badge-no-allergy {
+        color: #64748B;
+        font-size: 0.78rem;
+        font-weight: 500;
+        white-space: nowrap;
+      }
+
+      .blood-type-badge {
+        display: inline-block;
+        background: rgba(14, 74, 85, 0.08);
+        color: #0E4A55;
+        border: 1px solid rgba(14, 74, 85, 0.2);
+        font-weight: 700;
+        padding: 3px 8px;
+        border-radius: 6px;
+        font-size: 0.78rem;
+        white-space: nowrap;
+      }
+
+      .visit-count-badge {
+        display: inline-block;
+        background: #F1F5F9;
+        color: #334155;
+        font-weight: 650;
+        padding: 3px 9px;
+        border-radius: 6px;
+        font-size: 0.78rem;
+        white-space: nowrap;
+        border: 1px solid #E2E8F0;
+      }
+
+      .actions-cell {
+        display: inline-flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 8px;
+        white-space: nowrap;
+
+        .btn-action-view {
+          display: inline-flex;
+          align-items: center;
+          background: rgba(14, 74, 85, 0.08);
+          border: 1px solid rgba(14, 74, 85, 0.25);
           color: #0E4A55;
+          padding: 6px 12px;
+          border-radius: 8px;
+          font-size: 0.8rem;
+          font-weight: 650;
+          cursor: pointer;
+          white-space: nowrap;
+          transition: all 0.2s ease;
+
+          &:hover {
+            background: #0E4A55;
+            color: #FFFFFF;
+            border-color: #0E4A55;
+          }
+        }
+
+        .btn-action-edit {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 32px;
+          height: 32px;
+          background: #FFFFFF;
+          border: 1px solid #E2DCD0;
+          color: #475569;
+          border-radius: 8px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+
+          &:hover {
+            border-color: #0E4A55;
+            color: #0E4A55;
+            background: rgba(14, 74, 85, 0.05);
+          }
         }
       }
 
