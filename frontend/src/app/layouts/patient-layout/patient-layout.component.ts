@@ -65,6 +65,14 @@ import { ClinicIconComponent } from '../../shared/components/clinic-icon/clinic-
               <app-clinic-icon name="credit-card" [size]="15"></app-clinic-icon>
               <span>Hóa đơn viện phí</span>
             </a>
+            <a
+              routerLink="/patient/profile"
+              routerLinkActive="active"
+              class="nav-link"
+            >
+              <app-clinic-icon name="user" [size]="15"></app-clinic-icon>
+              <span>Hồ sơ cá nhân</span>
+            </a>
           </nav>
 
           <!-- Right Controls -->
@@ -72,15 +80,17 @@ import { ClinicIconComponent } from '../../shared/components/clinic-icon/clinic-
 
             <!-- Patient Avatar & Info -->
             <div class="patient-profile">
-              <img
-                [src]="currentUser()?.avatarUrl"
-                [alt]="currentUser()?.fullName"
-                class="patient-avatar"
-              />
-              <div class="patient-name-box">
-                <span class="p-name">{{ currentUser()?.fullName }}</span>
-                <span class="p-type">Hạng Vàng VIP</span>
-              </div>
+              <a routerLink="/patient/profile" class="patient-profile-link" title="Quản lý hồ sơ & thông tin cá nhân">
+                <img
+                  [src]="currentUser()?.avatarUrl"
+                  [alt]="currentUser()?.fullName"
+                  class="patient-avatar"
+                />
+                <div class="patient-name-box">
+                  <span class="p-name">{{ currentUser()?.fullName }}</span>
+                  <span class="p-type">Hạng Vàng VIP</span>
+                </div>
+              </a>
               <button (click)="logout()" class="logout-link" title="Đăng xuất">
                 <app-clinic-icon name="logout" [size]="16"></app-clinic-icon>
               </button>
@@ -233,6 +243,24 @@ import { ClinicIconComponent } from '../../shared/components/clinic-icon/clinic-
         padding-left: 12px;
         border-left: 1px solid rgba(228, 222, 210, 0.7);
 
+        .patient-profile-link {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          text-decoration: none;
+          cursor: pointer;
+          border-radius: 8px;
+          padding: 3px 6px;
+          transition: background-color 0.15s ease;
+
+          &:hover {
+            background-color: rgba(14, 74, 85, 0.06);
+            .p-name {
+              color: #0E4A55;
+            }
+          }
+        }
+
         .patient-avatar {
           width: 38px;
           height: 38px;
@@ -250,6 +278,7 @@ import { ClinicIconComponent } from '../../shared/components/clinic-icon/clinic-
           font-size: 0.875rem;
           font-weight: 600;
           color: #1C2733;
+          transition: color 0.15s ease;
         }
 
         .p-type {

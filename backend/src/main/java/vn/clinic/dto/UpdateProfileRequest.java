@@ -44,5 +44,9 @@ public class UpdateProfileRequest {
 
     private String medicalNotes;
 
+    private String emergencyContactName;
+
+    private String emergencyContactPhone;
+
     private String avatarUrl;
 }

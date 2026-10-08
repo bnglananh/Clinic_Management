@@ -62,6 +62,8 @@ public class UserProfileServiceImpl implements UserProfileService {
         profile.setBloodType(request.getBloodType());
         profile.setAllergies(request.getAllergies());
         profile.setMedicalNotes(request.getMedicalNotes());
+        profile.setEmergencyContactName(request.getEmergencyContactName() != null ? request.getEmergencyContactName().trim() : null);
+        profile.setEmergencyContactPhone(request.getEmergencyContactPhone() != null ? request.getEmergencyContactPhone().trim() : null);
 
         if (request.getAvatarUrl() != null && !request.getAvatarUrl().isBlank()) {
             profile.setAvatarUrl(request.getAvatarUrl());

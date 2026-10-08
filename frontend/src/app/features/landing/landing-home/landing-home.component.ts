@@ -466,7 +466,7 @@ interface PublicDoctor {
         <div class="section-header-center dark-theme">
           <span class="section-tag gold-tag">CÔNG NGHỆ EMR THẾ HỆ MỚI</span>
           <h2 class="section-heading font-serif text-white">Lợi Ích Vượt Trội Dành Cho Bạn</h2>
-          <p class="section-subheading text-muted">
+          <p class="section-subheading text-light-lead">
             Trải nghiệm y tế chuẩn quốc tế, xóa bỏ hoàn toàn cảnh chen lấn, sổ khám giấy rách nát và thất lạc kết quả.
           </p>
         </div>
@@ -1382,6 +1382,11 @@ interface PublicDoctor {
           max-width: 100%;
           background: #1C2733;
           color: #FFFFFF;
+
+          .section-subheading,
+          p {
+            color: #E2E8F0 !important;
+          }
         }
       }
 
@@ -1389,6 +1394,20 @@ interface PublicDoctor {
         text-align: center;
         max-width: 720px;
         margin: 0 auto 50px auto;
+
+        &.dark-theme {
+          .section-tag {
+            color: #E6CE9F;
+          }
+
+          .section-heading {
+            color: #FFFFFF !important;
+          }
+
+          .section-subheading {
+            color: #E2E8F0 !important;
+          }
+        }
 
         .section-tag {
           font-size: 0.78rem;
@@ -1420,8 +1439,9 @@ interface PublicDoctor {
           font-weight: 450;
           line-height: 1.6;
 
-          &.text-muted {
-            color: rgba(255, 255, 255, 0.85);
+          &.text-muted,
+          &.text-light-lead {
+            color: #E2E8F0 !important;
           }
         }
       }

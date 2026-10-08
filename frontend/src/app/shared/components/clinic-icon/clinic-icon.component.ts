@@ -2,6 +2,7 @@ import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 export type ClinicIconName =
+  | 'home'
   | 'medical-cross'
   | 'stethoscope'
   | 'pill'
@@ -66,6 +67,10 @@ export type ClinicIconName =
       [style.color]="color || 'inherit'"
     >
       @switch (name) {
+        @case ('home') {
+          <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+          <polyline points="9 22 9 12 15 12 15 22" />
+        }
         @case ('medical-cross') {
           <path d="M12 4v16M4 12h16" />
         }

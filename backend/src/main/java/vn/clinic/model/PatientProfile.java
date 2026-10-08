@@ -28,6 +28,10 @@ public class PatientProfile {
     private String avatarUrl;              // Ảnh đại diện
     private UserRole role;                 // Vai trò (PATIENT)
     private String membershipTier;         // Hạng thành viên (Vàng, Bạc, Tiêu chuẩn)
+    private String emergencyContactName;   // Tên người thân liên hệ khẩn cấp
+    private String emergencyContactPhone;  // SĐT người thân liên hệ khẩn cấp
+    private Integer totalVisits;           // Tổng số lượt khám tại phòng khám
     private String createdAt;              // Ngày tạo tài khoản
     private String updatedAt;              // Ngày cập nhật gần nhất
 }
+

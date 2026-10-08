@@ -127,6 +127,14 @@ export class AuthService {
     this.router.navigate(['/']);
   }
 
+  public updateCurrentUser(updates: Partial<User>): void {
+    const current = this.currentUserSignal();
+    if (current) {
+      const updated = { ...current, ...updates };
+      this.setUser(updated);
+    }
+  }
+
   private setUser(user: User): void {
     this.currentUserSignal.set(user);
     localStorage.setItem('smart_clinic_user', JSON.stringify(user));

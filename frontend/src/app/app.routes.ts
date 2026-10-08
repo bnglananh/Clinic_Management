@@ -208,6 +208,13 @@ export const routes: Routes = [
             (m) => m.PatientBillingComponent
           ),
       },
+      {
+        path: 'profile',
+        loadComponent: () =>
+          import('./features/patient/patient-profile/patient-profile.component').then(
+            (m) => m.PatientProfileComponent
+          ),
+      },
     ],
   },
 
