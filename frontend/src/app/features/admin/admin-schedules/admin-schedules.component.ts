@@ -12,7 +12,7 @@ import { ClinicIconComponent } from '../../../shared/components/clinic-icon/clin
   imports: [CommonModule, FormsModule, PageHeaderComponent, ClinicIconComponent],
   template: `
     <app-page-header
-      badgeText="PHÂN CA & LỊCH TRỰC BÁC SĨ • UC023"
+      badgeText="PHÂN CA & LỊCH TRỰC BÁC SĨ"
       title="Lập Lịch Trực & Phân Bổ Phòng Khám Bác Sĩ"
       subtitle="Quản lý ca khám bệnh sáng/chiều/tối, phân bổ buồng khám chuyên khoa và kiểm soát giới hạn lượt bệnh nhân."
     >
@@ -176,7 +176,7 @@ import { ClinicIconComponent } from '../../../shared/components/clinic-icon/clin
       <div class="modal-backdrop" (click)="closeAssignModal()">
         <div class="modal-card" (click)="$event.stopPropagation()">
           <div class="modal-header">
-            <h3 class="modal-title font-serif">Phân Lịch Trực Cho Bác Sĩ (UC023)</h3>
+            <h3 class="modal-title font-serif">Phân Lịch Trực Cho Bác Sĩ</h3>
             <button class="modal-close" (click)="closeAssignModal()" aria-label="Đóng">
               <app-clinic-icon name="close" [size]="14"></app-clinic-icon>
             </button>

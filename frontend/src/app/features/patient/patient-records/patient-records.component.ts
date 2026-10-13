@@ -113,7 +113,7 @@ interface PatientRecordItem {
               <div class="v-status-block">
                 <span class="emr-locked-pill">
                   <app-clinic-icon name="lock" [size]="14"></app-clinic-icon>
-                  EMR Khóa v{{ record.version }}.0 (BR-23)
+                  EMR Khóa v{{ record.version }}.0
                 </span>
                 <span class="visit-code">{{ record.visitCode }}</span>
               </div>

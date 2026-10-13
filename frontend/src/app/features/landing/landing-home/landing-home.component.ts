@@ -1,19 +1,24 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal, computed, OnInit, AfterViewInit, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { NzInputModule } from 'ng-zorro-antd/input';
+import { NzEmptyModule } from 'ng-zorro-antd/empty';
+import { NzSkeletonModule } from 'ng-zorro-antd/skeleton';
+import { NzSegmentedModule } from 'ng-zorro-antd/segmented';
 import { AuthService } from '../../../core/services/auth.service';
 import { ClinicIconComponent, ClinicIconName } from '../../../shared/components/clinic-icon/clinic-icon.component';
 
 interface PublicService {
   code: string;
   name: string;
-  category: string;
+  category: 'KHÁM BỆNH' | 'CẬN LÂM SÀNG' | 'CHẨN ĐOÁN HÌNH ẢNH' | 'XÉT NGHIỆM';
   price: number;
   duration: string;
   room: string;
   icon: ClinicIconName;
   description: string;
+  isPopular?: boolean;
 }
 
 interface PublicDoctor {
@@ -30,7 +35,16 @@ interface PublicDoctor {
 @Component({
   selector: 'app-landing-home',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule, ClinicIconComponent],
+  imports: [
+    CommonModule,
+    RouterModule,
+    FormsModule,
+    ClinicIconComponent,
+    NzInputModule,
+    NzEmptyModule,
+    NzSkeletonModule,
+    NzSegmentedModule,
+  ],
   template: `
     <div class="landing-container">
       <!-- 1. Sticky Transparent Glass Header -->
@@ -38,7 +52,7 @@ interface PublicDoctor {
         <div class="header-inner">
           <a routerLink="/" class="logo-group">
             <span class="logo-symbol">
-              <app-clinic-icon name="medical-cross" [size]="20" color="#B8955A"></app-clinic-icon>
+              <app-clinic-icon name="medical-cross" [size]="20" color="#ECC880"></app-clinic-icon>
             </span>
             <div class="logo-text">
               <span class="logo-title font-serif">SMART CLINIC</span>
@@ -252,105 +266,197 @@ interface PublicDoctor {
       </section>
 
       <!-- 4. Services & Specialties Section -->
-      <section id="services" class="section-container">
-        <div class="section-header-center">
-          <span class="section-tag">DANH MỤC DỊCH VỤ Y TẾ • SRS 3.3.1</span>
-          <h2 class="section-heading font-serif">Dịch Vụ Khám Bệnh & Bảng Giá Công Khai</h2>
-          <p class="section-subheading">
+      <section id="services" class="section-container services-luxury-section" [class.services-visible]="servicesInView()">
+        <!-- 1. Tiêu đề khu vực (Eyebrow Gold, Serif title, mô tả, gạch Gold 48px) -->
+        <div class="services-header-zone">
+          <span class="services-eyebrow">DỊCH VỤ Y TẾ</span>
+          <h2 class="services-main-title font-serif">Dịch Vụ Khám Bệnh & Bảng Giá Công Khai</h2>
+          <p class="services-lead-desc">
             Bệnh nhân hoàn toàn chủ động tra cứu chi tiết giá khám, xét nghiệm và kỹ thuật cận lâm sàng trước khi đến phòng khám.
           </p>
+          <div class="services-gold-divider" aria-hidden="true"></div>
         </div>
 
-        <!-- Service Search & Filter Toolbar -->
-        <div class="service-search-bar">
-          <div class="search-input-box">
-            <app-clinic-icon name="search" [size]="18" class="search-icon"></app-clinic-icon>
-            <input
-              type="text"
-              placeholder="Nhập tên dịch vụ, xét nghiệm hoặc kỹ thuật cần tìm (vd: tim mạch, ECG, siêu âm, máu)..."
-              [(ngModel)]="serviceSearchQuery"
-              class="clinic-input search-input"
-            />
+        <!-- Thanh lọc danh mục & Tìm kiếm -->
+        <div class="services-filter-toolbar">
+          <div class="category-pill-nav" role="tablist" aria-label="Lọc theo danh mục dịch vụ">
+            @for (cat of serviceCategories; track cat.key) {
+              <button
+                type="button"
+                role="tab"
+                [attr.aria-selected]="selectedServiceCategory() === cat.key"
+                class="category-pill-btn"
+                [class.active]="selectedServiceCategory() === cat.key"
+                (click)="setCategory(cat.key)"
+              >
+                @if (cat.key !== 'ALL') {
+                  <span class="pill-dot" [class]="getCategoryDotClass(cat.key)"></span>
+                }
+                <span class="pill-label">{{ cat.label }}</span>
+                <span class="pill-badge">({{ getCategoryCount(cat.key) }})</span>
+              </button>
+            }
           </div>
 
-          <div class="category-filter-chips">
-            <button
-              type="button"
-              class="chip-btn"
-              [class.active]="selectedServiceCategory === 'ALL'"
-              (click)="selectedServiceCategory = 'ALL'"
-            >
-              Tất cả ({{ publicServices.length }})
-            </button>
-            <button
-              type="button"
-              class="chip-btn"
-              [class.active]="selectedServiceCategory === 'KHÁM BỆNH'"
-              (click)="selectedServiceCategory = 'KHÁM BỆNH'"
-            >
-              Khám Bệnh
-            </button>
-            <button
-              type="button"
-              class="chip-btn"
-              [class.active]="selectedServiceCategory === 'CHẨN ĐOÁN HÌNH ẢNH'"
-              (click)="selectedServiceCategory = 'CHẨN ĐOÁN HÌNH ẢNH'"
-            >
-              CĐ Hình Ảnh
-            </button>
-            <button
-              type="button"
-              class="chip-btn"
-              [class.active]="selectedServiceCategory === 'XÉT NGHIỆM'"
-              (click)="selectedServiceCategory = 'XÉT NGHIỆM'"
-            >
-              Xét Nghiệm
-            </button>
-            <button
-              type="button"
-              class="chip-btn"
-              [class.active]="selectedServiceCategory === 'CẬN LÂM SÀNG'"
-              (click)="selectedServiceCategory = 'CẬN LÂM SÀNG'"
-            >
-              Cận Lâm Sàng
-            </button>
-          </div>
-        </div>
-
-        <!-- Services Grid -->
-        <div class="services-grid">
-          @for (svc of filteredPublicServices(); track svc.code) {
-            <div class="service-card animate-card-pop">
-              <div class="card-top">
-                <span class="svc-icon">
-                  <app-clinic-icon [name]="svc.icon" [size]="24" color="#0E4A55"></app-clinic-icon>
-                </span>
-                <span class="svc-cat">{{ svc.category }}</span>
-              </div>
-              <h3 class="svc-title font-bold">{{ svc.name }}</h3>
-              <p class="svc-desc">{{ svc.description }}</p>
-              
-              <div class="svc-meta">
-                <span class="meta-item">
-                  <app-clinic-icon name="map-pin" [size]="14" color="#5E8B7E"></app-clinic-icon> {{ svc.room }}
-                </span>
-                <span class="meta-item">
-                  <app-clinic-icon name="clock" [size]="14" color="#5E8B7E"></app-clinic-icon> {{ svc.duration }}
-                </span>
-              </div>
-
-              <div class="svc-footer">
-                <div class="svc-price-box">
-                  <span class="price-label">Giá niêm yết:</span>
-                  <span class="price-val font-bold text-teal">{{ svc.price | number }} đ</span>
-                </div>
-                <button (click)="goToBooking(svc.name)" class="btn-book-service">
-                  Đặt khám
+          <div class="service-search-box">
+            <div class="luxury-search-input-wrapper">
+              <span class="search-prefix-icon">
+                <app-clinic-icon name="search" [size]="16"></app-clinic-icon>
+              </span>
+              <input
+                type="text"
+                class="luxury-search-native-input"
+                [ngModel]="serviceSearchQuery()"
+                (ngModelChange)="onSearchChange($event)"
+                placeholder="Tìm tên dịch vụ, kỹ thuật (tim mạch, ECG, siêu âm)..."
+                aria-label="Tìm kiếm dịch vụ y tế"
+              />
+              @if (serviceSearchQuery()) {
+                <button
+                  type="button"
+                  class="search-clear-inline-btn"
+                  (click)="clearSearch()"
+                  aria-label="Xóa từ khóa tìm kiếm"
+                >
+                  <app-clinic-icon name="x" [size]="14"></app-clinic-icon>
                 </button>
-              </div>
+              }
             </div>
-          }
+          </div>
         </div>
+
+        <!-- Skeleton Loading State (nz-skeleton) -->
+        @if (isLoadingServices()) {
+          <div class="services-grid">
+            @for (sk of [1, 2, 3]; track sk) {
+              <article class="service-luxury-card skeleton-card">
+                <div class="card-header-row">
+                  <nz-skeleton-element nzType="avatar" [nzActive]="true" [nzSize]="52" [nzShape]="'square'"></nz-skeleton-element>
+                  <nz-skeleton-element nzType="button" [nzActive]="true" [nzSize]="'small'" [nzShape]="'round'"></nz-skeleton-element>
+                </div>
+                <div style="margin: 18px 0;">
+                  <nz-skeleton [nzActive]="true" [nzParagraph]="{ rows: 2 }" [nzTitle]="true"></nz-skeleton>
+                </div>
+                <div class="svc-card-divider"></div>
+                <div class="svc-meta-chips">
+                  <nz-skeleton-element nzType="button" [nzActive]="true" [nzSize]="'small'"></nz-skeleton-element>
+                  <nz-skeleton-element nzType="button" [nzActive]="true" [nzSize]="'small'"></nz-skeleton-element>
+                </div>
+                <div class="card-footer-row">
+                  <nz-skeleton-element nzType="input" [nzActive]="true" style="width: 110px; height: 32px;"></nz-skeleton-element>
+                  <nz-skeleton-element nzType="button" [nzActive]="true" [nzSize]="'default'" style="width: 120px; height: 44px;"></nz-skeleton-element>
+                </div>
+              </article>
+            }
+          </div>
+        }
+
+        <!-- Empty State (nz-empty tối giản với câu tiếng Việt thân thiện) -->
+        @if (!isLoadingServices() && filteredPublicServices().length === 0) {
+          <div class="services-empty-state">
+            <nz-empty
+              [nzNotFoundImage]="'simple'"
+              [nzNotFoundContent]="emptyContentTpl"
+            >
+              <ng-template #emptyContentTpl>
+                <div class="empty-inner-msg">
+                  <p class="empty-title font-serif">Không tìm thấy dịch vụ y tế phù hợp</p>
+                  <p class="empty-desc">
+                    Không có kết quả nào cho từ khóa "{{ serviceSearchQuery() }}". Vui lòng thử từ khóa khác hoặc xóa bộ lọc để xem toàn bộ bảng giá.
+                  </p>
+                  <button type="button" class="btn-reset-filters" (click)="resetFilters()">
+                    Xem tất cả dịch vụ
+                  </button>
+                </div>
+              </ng-template>
+            </nz-empty>
+          </div>
+        }
+
+        <!-- Services Grid (3 cột >=1200px, 2 cột 768-1199px, 1 cột <768px) -->
+        @if (!isLoadingServices() && filteredPublicServices().length > 0) {
+          <div
+            class="services-grid"
+            [class.fade-stagger-active]="!isFilterTransitioning()"
+          >
+            @for (svc of filteredPublicServices(); track svc.code; let idx = $index) {
+              <article
+                class="service-luxury-card"
+                [class]="getCategoryClass(svc.category)"
+                [style.--stagger-index]="idx"
+                [attr.aria-label]="'Dịch vụ: ' + svc.name"
+              >
+                <!-- Top Row: Icon 52x52 & Category / Popular Tag -->
+                <div class="card-header-row">
+                  <div class="svc-icon-box" aria-hidden="true">
+                    <app-clinic-icon [name]="svc.icon" [size]="24"></app-clinic-icon>
+                  </div>
+
+                  <div class="card-tag-cluster">
+                    @if (svc.isPopular) {
+                      <span class="badge-popular">
+                        <app-clinic-icon name="sparkle" [size]="11"></app-clinic-icon>
+                        <span>PHỔ BIẾN</span>
+                      </span>
+                    }
+                    <span class="svc-category-pill">
+                      <span class="cat-dot"></span>
+                      <span class="cat-text">{{ svc.category }}</span>
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Body Content: Serif Title (2-line clamp) & Description (2-line clamp) -->
+                <div class="card-body-content">
+                  <h3 class="svc-card-title font-serif">{{ svc.name }}</h3>
+                  <p class="svc-card-desc">{{ svc.description }}</p>
+                </div>
+
+                <!-- Gradient Gold Divider (Gold 40% -> transparent) -->
+                <div class="svc-card-divider" aria-hidden="true"></div>
+
+                <!-- Meta Row: Room & Duration Chips -->
+                <div class="svc-meta-chips">
+                  <div class="meta-chip" title="Phòng khám thực hiện">
+                    <app-clinic-icon name="map-pin" [size]="14" class="meta-icon"></app-clinic-icon>
+                    <span class="meta-text">{{ svc.room }}</span>
+                  </div>
+                  <div class="meta-chip duration-chip" title="Thời lượng ước tính">
+                    <app-clinic-icon name="clock" [size]="14" class="meta-icon"></app-clinic-icon>
+                    <span class="meta-text tabular-nums">{{ svc.duration }}</span>
+                  </div>
+                </div>
+
+                <!-- Footer: Price Block & Luxury Action Button -->
+                <div class="card-footer-row">
+                  <div class="svc-price-block">
+                    <span class="price-eyebrow-label">GIÁ NIÊM YẾT</span>
+                    <div class="price-amount-group font-serif">
+                      <span class="price-digits">{{ formatVndNumber(svc.price) }}</span>
+                      <span class="price-currency-unit">₫</span>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    class="btn-luxury-book"
+                    [class.btn-loading]="bookingLoadingCode() === svc.code"
+                    (click)="handleBookService(svc)"
+                    [attr.aria-label]="'Đặt khám: ' + svc.name"
+                  >
+                    @if (bookingLoadingCode() === svc.code) {
+                      <span class="btn-spinner"></span>
+                      <span>Đang mở...</span>
+                    } @else {
+                      <span>Đặt khám</span>
+                      <app-clinic-icon name="arrow-right" [size]="16" class="btn-arrow-icon"></app-clinic-icon>
+                    }
+                  </button>
+                </div>
+              </article>
+            }
+          </div>
+        }
       </section>
 
       <!-- 5. Doctor Team Showcase -->
@@ -596,7 +702,7 @@ interface PublicDoctor {
           <div class="footer-top">
             <div class="footer-brand">
               <div class="f-logo">
-                <app-clinic-icon name="medical-cross" [size]="20" color="#B8955A"></app-clinic-icon>
+                <app-clinic-icon name="medical-cross" [size]="20" color="#ECC880"></app-clinic-icon>
                 SMART CLINIC
               </div>
               <p class="f-desc">
@@ -689,8 +795,8 @@ interface PublicDoctor {
           width: 38px;
           height: 38px;
           background: #0E4A55;
-          color: #B8955A;
-          border: 1px solid #B8955A;
+          color: #ECC880;
+          border: 1px solid #ECC880;
           border-radius: 10px;
           display: flex;
           align-items: center;
@@ -714,8 +820,8 @@ interface PublicDoctor {
         .logo-sub {
           font-size: 0.65rem;
           letter-spacing: 0.1em;
-          color: #B8955A;
-          font-weight: 600;
+          color: #7A571B;
+          font-weight: 700;
         }
       }
 
@@ -1446,192 +1552,669 @@ interface PublicDoctor {
         }
       }
 
-      // 4. Services Section
-      .service-search-bar {
-        max-width: 900px;
+      // 4. Services Section (Luxury Refinement)
+      .services-luxury-section {
+        position: relative;
+        padding-top: 64px;
+        padding-bottom: 72px;
+      }
+
+      .services-header-zone {
+        text-align: center;
+        max-width: 760px;
         margin: 0 auto 36px auto;
         display: flex;
         flex-direction: column;
-        gap: 16px;
-      }
+        align-items: center;
 
-      .search-input-box {
-        position: relative;
-        width: 100%;
-
-        .search-icon {
-          position: absolute;
-          left: 16px;
-          top: 50%;
-          transform: translateY(-50%);
-          font-size: 1rem;
-          color: #8C96A2;
+        .services-eyebrow {
+          font-size: 0.75rem;
+          font-weight: 700;
+          color: #B8955A;
+          letter-spacing: 0.18em;
+          text-transform: uppercase;
+          margin-bottom: 8px;
+          display: inline-block;
         }
 
-        .search-input {
-          padding: 14px 20px 14px 46px;
-          border-radius: 16px;
-          border: 1px solid #E2DCD0;
-          font-size: 0.92rem;
-          width: 100%;
-          background: #FFFFFF;
-          box-shadow: 0 4px 14px rgba(28, 39, 51, 0.04);
-          transition: all 0.2s ease;
+        .services-main-title {
+          font-size: 2.35rem;
+          color: #1C2733;
+          margin: 0 0 12px 0;
+          line-height: 1.25;
+          font-weight: 600;
 
-          &:hover {
-            border-color: #C8BFB0;
+          @media (max-width: 767px) {
+            font-size: 1.85rem;
           }
+        }
 
-          &:focus {
-            outline: none;
-            border-color: #0E4A55;
-            box-shadow: 0 0 0 3.5px rgba(14, 74, 85, 0.12), 0 4px 16px rgba(14, 74, 85, 0.06);
-          }
+        .services-lead-desc {
+          font-size: 0.96rem;
+          color: #5B6672;
+          line-height: 1.6;
+          margin: 0 0 16px 0;
+        }
+
+        .services-gold-divider {
+          width: 48px;
+          height: 2px;
+          background: #B8955A;
+          border-radius: 2px;
         }
       }
 
-      .category-filter-chips {
+      .services-filter-toolbar {
+        max-width: 1240px;
+        margin: 0 auto 36px auto;
         display: flex;
-        gap: 8px;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
         flex-wrap: wrap;
-        justify-content: center;
+
+        @media (max-width: 991px) {
+          flex-direction: column;
+          align-items: stretch;
+        }
       }
 
-      .chip-btn {
-        background: #FFFFFF;
-        border: 1.5px solid #D2CABA;
-        padding: 8px 18px;
+      .category-pill-nav {
+        display: inline-flex;
+        background: #F6F3EC;
+        border: 1px solid #E4DED2;
         border-radius: 999px;
-        font-size: 0.84rem;
+        padding: 5px;
+        gap: 4px;
+        box-shadow: inset 0 1px 3px rgba(28, 39, 51, 0.04);
+        overflow-x: auto;
+        max-width: 100%;
+        scrollbar-width: none;
+
+        &::-webkit-scrollbar {
+          display: none;
+        }
+      }
+
+      .category-pill-btn {
+        border: none;
+        background: transparent;
+        padding: 8px 16px;
+        border-radius: 999px;
+        font-size: 0.8125rem;
         font-weight: 600;
-        color: #1A2834;
+        color: #5B6672;
         cursor: pointer;
-        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        transition: all 250ms cubic-bezier(0.2, 0.8, 0.2, 1);
+        white-space: nowrap;
 
         &:hover {
-          border-color: #0E4A55;
-          color: #0E4A55;
-          background: #F4FAF9;
+          color: #1C2733;
         }
 
         &.active {
           background: #0E4A55;
-          border-color: #0E4A55;
           color: #FFFFFF;
-          font-weight: 700;
+          box-shadow: 0 2px 10px rgba(14, 74, 85, 0.25);
+
+          .pill-badge {
+            opacity: 0.9;
+          }
+        }
+
+        .pill-dot {
+          width: 7px;
+          height: 7px;
+          border-radius: 50%;
+          display: inline-block;
+          transition: transform 200ms ease;
+
+          &.dot-khambenh { background: #0E4A55; }
+          &.dot-canlamsang { background: #B8955A; }
+          &.dot-cdha { background: #1C2733; }
+          &.dot-xetnghiem { background: #5E8B7E; }
+        }
+
+        &.active .pill-dot {
+          &.dot-khambenh { background: #A0D7D0; }
+          &.dot-canlamsang { background: #F2D59B; }
+          &.dot-cdha { background: #CBD5E1; }
+          &.dot-xetnghiem { background: #A7D7C5; }
+        }
+
+        .pill-label {
+          line-height: 1;
+        }
+
+        .pill-badge {
+          font-size: 0.75rem;
+          font-weight: 500;
+          opacity: 0.75;
+        }
+      }
+
+      .service-search-box {
+        min-width: 340px;
+
+        @media (max-width: 991px) {
+          width: 100%;
+          min-width: 100%;
+        }
+
+        .luxury-search-input-wrapper {
+          background: #FFFFFF;
+          border: 1px solid #E4DED2;
+          border-radius: 999px;
+          padding: 6px 16px;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          box-shadow: 0 2px 8px rgba(28, 39, 51, 0.03);
+          transition: all 250ms cubic-bezier(0.2, 0.8, 0.2, 1);
+          width: 100%;
+          box-sizing: border-box;
+
+          &:hover {
+            border-color: #B8955A;
+            box-shadow: 0 3px 12px rgba(184, 149, 90, 0.08);
+          }
+
+          &:focus-within {
+            border-color: #0E4A55;
+            box-shadow: 0 0 0 3px rgba(14, 74, 85, 0.12), 0 4px 14px rgba(14, 74, 85, 0.04);
+          }
+
+          .search-prefix-icon {
+            color: #8C96A2;
+            display: inline-flex;
+            align-items: center;
+            flex-shrink: 0;
+            transition: color 200ms ease;
+          }
+
+          &:focus-within .search-prefix-icon {
+            color: #0E4A55;
+          }
+
+          input,
+          .luxury-search-native-input {
+            border: none !important;
+            outline: none !important;
+            background: transparent !important;
+            box-shadow: none !important;
+            font-size: 0.85rem;
+            color: #1C2733;
+            width: 100%;
+            padding: 2px 0 !important;
+            margin: 0 !important;
+            line-height: 1.45;
+            font-family: inherit;
+
+            &:focus,
+            &:active,
+            &:hover {
+              border: none !important;
+              outline: none !important;
+              box-shadow: none !important;
+              background: transparent !important;
+            }
+
+            &::placeholder {
+              color: #8C96A2;
+            }
+          }
+
+          .search-clear-inline-btn {
+            background: transparent;
+            border: none;
+            color: #8C96A2;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 180ms ease;
+
+            &:hover {
+              color: #9B3D45;
+              background: rgba(155, 61, 69, 0.08);
+            }
+          }
         }
       }
 
       .services-grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
-        gap: 24px;
+        gap: 28px;
+        max-width: 1240px;
+        margin: 0 auto;
 
-        @media (max-width: 1100px) {
+        @media (max-width: 1199px) {
           grid-template-columns: repeat(2, 1fr);
         }
 
-        @media (max-width: 700px) {
+        @media (max-width: 767px) {
           grid-template-columns: 1fr;
+          gap: 20px;
+        }
+
+        &.fade-stagger-active .service-luxury-card {
+          animation: luxuryCardStaggerIn 340ms cubic-bezier(0.2, 0.8, 0.2, 1) calc(var(--stagger-index, 0) * 60ms) both;
         }
       }
 
-      .service-card {
+      @keyframes luxuryCardStaggerIn {
+        from {
+          opacity: 0;
+          transform: translateY(16px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .service-luxury-card {
         background: #FFFFFF;
+        border-radius: 20px;
         border: 1px solid #E4DED2;
-        border-radius: 16px;
-        padding: 24px;
+        padding: 28px;
         display: flex;
         flex-direction: column;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 4px 18px rgba(28, 39, 51, 0.035), 0 1px 3px rgba(184, 149, 90, 0.04);
+        transition: transform 300ms cubic-bezier(0.2, 0.8, 0.2, 1),
+                    box-shadow 300ms cubic-bezier(0.2, 0.8, 0.2, 1),
+                    border-color 300ms cubic-bezier(0.2, 0.8, 0.2, 1);
+
+        // Category Token Bindings
+        &.cat-khambenh {
+          --cat-color: #0E4A55;
+          --cat-tint: rgba(14, 74, 85, 0.08);
+          --cat-text: #0E4A55;
+          --cat-dot: #0E4A55;
+        }
+
+        &.cat-canlamsang {
+          --cat-color: #B8955A;
+          --cat-tint: rgba(184, 149, 90, 0.12);
+          --cat-text: #7A571B;
+          --cat-dot: #B8955A;
+        }
+
+        &.cat-cdha {
+          --cat-color: #1C2733;
+          --cat-tint: rgba(28, 39, 51, 0.08);
+          --cat-text: #1C2733;
+          --cat-dot: #1C2733;
+        }
+
+        &.cat-xetnghiem {
+          --cat-color: #5E8B7E;
+          --cat-tint: rgba(94, 139, 126, 0.12);
+          --cat-text: #346155;
+          --cat-dot: #5E8B7E;
+        }
+
+        // Top 2px Gold line draw on hover
+        &::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: 2px;
+          background: #B8955A;
+          transform: scaleX(0);
+          transform-origin: left;
+          transition: transform 320ms cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
 
         &:hover {
-          transform: translateY(-3px);
-          box-shadow: 0 12px 28px rgba(28, 39, 51, 0.08);
-          border-color: #0E4A55;
+          transform: translateY(-6px);
+          box-shadow: 0 18px 40px rgba(28, 39, 51, 0.08), 0 4px 12px rgba(184, 149, 90, 0.08);
+          border-color: #D6CEBE;
+
+          &::before {
+            transform: scaleX(1);
+          }
+
+          .svc-icon-box {
+            background: var(--cat-color);
+            color: #FFFFFF;
+            box-shadow: 0 6px 16px rgba(14, 74, 85, 0.18);
+          }
+
+          .btn-luxury-book {
+            background: #0E4A55;
+            color: #FFFFFF;
+
+            .btn-arrow-icon {
+              transform: translateX(4px);
+            }
+          }
         }
 
-        .card-top {
+        .card-header-row {
           display: flex;
           justify-content: space-between;
-          align-items: center;
-          margin-bottom: 14px;
+          align-items: flex-start;
+          margin-bottom: 20px;
         }
 
-        .svc-icon {
-          font-size: 1.8rem;
-        }
-
-        .svc-cat {
-          font-size: 0.72rem;
-          font-weight: 700;
-          color: #0E4A55;
-          background: rgba(14, 74, 85, 0.08);
-          padding: 3px 8px;
-          border-radius: 6px;
-        }
-
-        .svc-title {
-          font-size: 1.05rem;
-          color: #1C2733;
-          margin: 0 0 8px 0;
-        }
-
-        .svc-desc {
-          font-size: 0.84rem;
-          color: #2D3A47;
-          line-height: 1.55;
-          margin-bottom: 16px;
-          flex: 1;
-        }
-
-        .svc-meta {
+        .svc-icon-box {
+          width: 52px;
+          height: 52px;
+          border-radius: 14px;
+          background: var(--cat-tint);
+          color: var(--cat-color);
           display: flex;
-          gap: 14px;
-          font-size: 0.78rem;
-          font-weight: 550;
-          color: #384858;
-          margin-bottom: 18px;
-          border-top: 1px solid #EAE4D6;
-          padding-top: 12px;
-        }
-
-        .svc-footer {
-          display: flex;
-          justify-content: space-between;
           align-items: center;
+          justify-content: center;
+          transition: all 280ms cubic-bezier(0.2, 0.8, 0.2, 1);
         }
 
-        .svc-price-box {
+        .card-tag-cluster {
           display: flex;
           flex-direction: column;
+          align-items: flex-end;
+          gap: 6px;
+        }
 
-          .price-label {
-            font-size: 0.72rem;
-            color: #4A5A6A;
-            font-weight: 600;
-          }
+        .badge-popular {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          background: rgba(184, 149, 90, 0.14);
+          color: #7A571B;
+          border: 1px solid rgba(184, 149, 90, 0.4);
+          font-size: 0.656rem;
+          font-weight: 700;
+          letter-spacing: 0.08em;
+          padding: 3px 8px;
+          border-radius: 999px;
+          text-transform: uppercase;
+          line-height: 1.2;
+        }
 
-          .price-val {
-            font-size: 1.15rem;
+        .svc-category-pill {
+          background: var(--cat-tint);
+          color: var(--cat-text);
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.06em;
+          text-transform: uppercase;
+          padding: 4px 10px;
+          border-radius: 999px;
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+
+          .cat-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--cat-dot);
           }
         }
 
-        .btn-book-service {
-          background: rgba(14, 74, 85, 0.08);
+        .card-body-content {
+          margin-bottom: 4px;
+        }
+
+        .svc-card-title {
+          font-size: 21px;
+          font-weight: 600;
+          color: #1C2733;
+          margin: 0 0 10px 0;
+          line-height: 1.35;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+          min-height: 56px;
+
+          @media (max-width: 767px) {
+            min-height: auto;
+          }
+        }
+
+        .svc-card-desc {
+          font-size: 14px;
+          color: #5B6672;
+          line-height: 1.6;
+          margin: 0;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+          min-height: 44px;
+
+          @media (max-width: 767px) {
+            min-height: auto;
+          }
+        }
+
+        .svc-card-divider {
+          height: 1px;
+          margin: 20px 0;
+          background: linear-gradient(90deg, transparent 0%, rgba(184, 149, 90, 0.4) 50%, transparent 100%);
+          border: none;
+        }
+
+        .svc-meta-chips {
+          display: flex;
+          gap: 8px;
+          flex-wrap: wrap;
+          margin-bottom: 22px;
+
+          .meta-chip {
+            background: #F6F3EC;
+            color: #5B6672;
+            font-size: 13px;
+            font-weight: 500;
+            padding: 5px 11px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border: 1px solid rgba(228, 222, 210, 0.7);
+
+            .meta-icon {
+              color: #5E8B7E;
+            }
+
+            &.duration-chip .meta-text {
+              font-variant-numeric: tabular-nums;
+            }
+          }
+        }
+
+        .card-footer-row {
+          margin-top: auto;
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-end;
+          padding-top: 6px;
+
+          @media (max-width: 767px) {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 14px;
+          }
+        }
+
+        .svc-price-block {
+          display: flex;
+          flex-direction: column;
+          gap: 3px;
+
+          .price-eyebrow-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #5B6672;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+          }
+
+          .price-amount-group {
+            display: flex;
+            align-items: baseline;
+            color: #0E4A55;
+            line-height: 1;
+
+            .price-digits {
+              font-size: 28px;
+              font-weight: 700;
+              font-variant-numeric: tabular-nums;
+            }
+
+            .price-currency-unit {
+              font-size: 17px;
+              font-weight: 600;
+              margin-left: 2px;
+            }
+          }
+        }
+
+        .btn-luxury-book {
+          height: 44px;
+          min-height: 44px;
+          padding: 0 18px;
+          border-radius: 12px;
+          border: 1.5px solid #0E4A55;
+          background: transparent;
           color: #0E4A55;
-          border: 1.5px solid rgba(14, 74, 85, 0.35);
-          padding: 8px 16px;
-          border-radius: 8px;
-          font-size: 0.8125rem;
-          font-weight: 700;
+          font-size: 0.875rem;
+          font-weight: 600;
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
           cursor: pointer;
-          transition: all 0.2s ease;
+          transition: all 250ms cubic-bezier(0.2, 0.8, 0.2, 1);
+          position: relative;
+          overflow: hidden;
+
+          @media (max-width: 767px) {
+            width: 100%;
+            justify-content: center;
+          }
+
+          &:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(184, 149, 90, 0.45);
+          }
 
           &:hover {
             background: #0E4A55;
             color: #FFFFFF;
+
+            .btn-arrow-icon {
+              transform: translateX(4px);
+            }
           }
+
+          .btn-arrow-icon {
+            transition: transform 250ms cubic-bezier(0.2, 0.8, 0.2, 1);
+          }
+
+          .btn-spinner {
+            width: 14px;
+            height: 14px;
+            border: 2px solid currentColor;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spinBook 0.6s linear infinite;
+          }
+
+          &.btn-loading {
+            opacity: 0.85;
+            pointer-events: none;
+          }
+        }
+      }
+
+      @keyframes spinBook {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      // Skeleton & Empty States
+      .skeleton-card {
+        pointer-events: none;
+      }
+
+      .services-empty-state {
+        padding: 40px 20px;
+        text-align: center;
+        max-width: 520px;
+        margin: 0 auto;
+
+        .empty-inner-msg {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+        }
+
+        .empty-title {
+          font-size: 1.35rem;
+          color: #1C2733;
+          margin: 12px 0 6px 0;
+          font-weight: 600;
+        }
+
+        .empty-desc {
+          font-size: 0.875rem;
+          color: #5B6672;
+          line-height: 1.6;
+          margin: 0 0 18px 0;
+        }
+
+        .btn-reset-filters {
+          background: #0E4A55;
+          color: #FFFFFF;
+          border: none;
+          padding: 10px 22px;
+          border-radius: 10px;
+          font-size: 0.875rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 200ms ease;
+
+          &:hover {
+            background: #155B68;
+            box-shadow: 0 4px 12px rgba(14, 74, 85, 0.2);
+          }
+        }
+      }
+
+      // Reduced motion respect
+      @media (prefers-reduced-motion: reduce) {
+        .services-grid.fade-stagger-active .service-luxury-card,
+        .service-luxury-card {
+          animation: none !important;
+          transform: none !important;
+          opacity: 1 !important;
+        }
+
+        .service-luxury-card:hover {
+          transform: none !important;
+        }
+
+        .service-luxury-card::before {
+          display: none !important;
+        }
+
+        .btn-arrow-icon {
+          transform: none !important;
         }
       }
 
@@ -2052,13 +2635,13 @@ interface PublicDoctor {
         .f-logo {
           font-size: 1.2rem;
           font-weight: 700;
-          color: #B8955A;
+          color: #ECC880;
           letter-spacing: 0.05em;
         }
 
         .f-desc {
           font-size: 0.8125rem;
-          color: rgba(255, 255, 255, 0.65);
+          color: rgba(255, 255, 255, 0.88);
           line-height: 1.6;
           max-width: 320px;
         }
@@ -2071,13 +2654,13 @@ interface PublicDoctor {
 
         .f-col-title {
           font-size: 0.875rem;
-          color: #E6CE9F;
-          font-weight: 600;
+          color: #ECC880;
+          font-weight: 700;
           margin: 0 0 4px 0;
         }
 
         a, span, .footer-link-btn {
-          color: rgba(255, 255, 255, 0.7);
+          color: rgba(255, 255, 255, 0.82);
           text-decoration: none;
           font-size: 0.8125rem;
           background: transparent;
@@ -2093,21 +2676,21 @@ interface PublicDoctor {
         }
 
         .staff-portal-link {
-          color: #B8955A;
+          color: #ECC880;
           font-weight: 600;
         }
       }
 
       .footer-bottom {
         padding-top: 24px;
-        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        border-top: 1px solid rgba(255, 255, 255, 0.12);
         display: flex;
         justify-content: space-between;
         align-items: center;
         flex-wrap: wrap;
         gap: 12px;
         font-size: 0.75rem;
-        color: rgba(255, 255, 255, 0.5);
+        color: rgba(255, 255, 255, 0.82);
 
         .f-bottom-links {
           display: flex;
@@ -2115,7 +2698,7 @@ interface PublicDoctor {
           gap: 10px;
 
           .staff-link {
-            color: #B8955A;
+            color: #ECC880;
             text-decoration: none;
             font-weight: 600;
             &:hover {
@@ -2127,14 +2710,27 @@ interface PublicDoctor {
     `,
   ],
 })
-export class LandingHomeComponent {
+export class LandingHomeComponent implements AfterViewInit {
   private authService = inject(AuthService);
   private router = inject(Router);
 
   isScrolled = signal<boolean>(false);
   activeSection = signal<string>('hero');
-  serviceSearchQuery = '';
-  selectedServiceCategory = 'ALL';
+
+  // Service filter and search signals
+  serviceCategories = [
+    { key: 'ALL', label: 'Tất cả' },
+    { key: 'KHÁM BỆNH', label: 'Khám bệnh' },
+    { key: 'CẬN LÂM SÀNG', label: 'Cận lâm sàng' },
+    { key: 'CHẨN ĐOÁN HÌNH ẢNH', label: 'Chẩn đoán hình ảnh' },
+    { key: 'XÉT NGHIỆM', label: 'Xét nghiệm' },
+  ];
+  selectedServiceCategory = signal<string>('ALL');
+  serviceSearchQuery = signal<string>('');
+  bookingLoadingCode = signal<string | null>(null);
+  isLoadingServices = signal<boolean>(false);
+  isFilterTransitioning = signal<boolean>(false);
+  servicesInView = signal<boolean>(true);
 
   liveStations = [
     {
@@ -2230,6 +2826,26 @@ export class LandingHomeComponent {
     }
   }
 
+  ngAfterViewInit(): void {
+    if (typeof window !== 'undefined' && 'IntersectionObserver' in window) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              this.servicesInView.set(true);
+              observer.unobserve(entry.target);
+            }
+          });
+        },
+        { threshold: 0.1 }
+      );
+      const el = document.getElementById('services');
+      if (el) {
+        observer.observe(el);
+      }
+    }
+  }
+
   publicServices: PublicService[] = [
     {
       code: 'KB-TIMMACH',
@@ -2240,6 +2856,7 @@ export class LandingHomeComponent {
       room: 'Phòng khám Nội 101',
       icon: 'heart-pulse',
       description: 'Thăm khám, đo huyết áp, đánh giá nguy cơ xơ vữa, suy tim và bệnh mạch vành.',
+      isPopular: true,
     },
     {
       code: 'KB-NOITQ',
@@ -2270,6 +2887,7 @@ export class LandingHomeComponent {
       room: 'Phòng Siêu Âm 01',
       icon: 'xray',
       description: 'Khảo sát gan mật, thận, tụy, lách, tiền liệt tuyến và hệ tiêu hóa rõ nét.',
+      isPopular: true,
     },
     {
       code: 'XR-NGUC',
@@ -2328,10 +2946,11 @@ export class LandingHomeComponent {
 
   filteredPublicServices = computed(() => {
     let list = this.publicServices;
-    if (this.selectedServiceCategory !== 'ALL') {
-      list = list.filter((s) => s.category === this.selectedServiceCategory);
+    const cat = this.selectedServiceCategory();
+    if (cat !== 'ALL') {
+      list = list.filter((s) => s.category === cat);
     }
-    const q = this.serviceSearchQuery.trim().toLowerCase();
+    const q = this.serviceSearchQuery().trim().toLowerCase();
     if (q) {
       list = list.filter(
         (s) =>
@@ -2343,9 +2962,92 @@ export class LandingHomeComponent {
     return list;
   });
 
+  setCategory(catKey: string): void {
+    if (this.selectedServiceCategory() === catKey) return;
+    this.isFilterTransitioning.set(true);
+    this.selectedServiceCategory.set(catKey);
+    setTimeout(() => {
+      this.isFilterTransitioning.set(false);
+    }, 40);
+  }
+
+  onSearchChange(val: string): void {
+    this.serviceSearchQuery.set(val || '');
+  }
+
+  clearSearch(): void {
+    this.serviceSearchQuery.set('');
+  }
+
+  resetFilters(): void {
+    this.selectedServiceCategory.set('ALL');
+    this.serviceSearchQuery.set('');
+  }
+
+  getCategoryCount(catKey: string): number {
+    if (catKey === 'ALL') return this.publicServices.length;
+    return this.publicServices.filter((s) => s.category === catKey).length;
+  }
+
+  getCategoryClass(category: string): string {
+    switch (category) {
+      case 'KHÁM BỆNH':
+        return 'cat-khambenh';
+      case 'CẬN LÂM SÀNG':
+        return 'cat-canlamsang';
+      case 'CHẨN ĐOÁN HÌNH ẢNH':
+        return 'cat-cdha';
+      case 'XÉT NGHIỆM':
+        return 'cat-xetnghiem';
+      default:
+        return 'cat-khambenh';
+    }
+  }
+
+  getCategoryDotClass(category: string): string {
+    switch (category) {
+      case 'KHÁM BỆNH':
+        return 'dot-khambenh';
+      case 'CẬN LÂM SÀNG':
+        return 'dot-canlamsang';
+      case 'CHẨN ĐOÁN HÌNH ẢNH':
+        return 'dot-cdha';
+      case 'XÉT NGHIỆM':
+        return 'dot-xetnghiem';
+      default:
+        return 'dot-khambenh';
+    }
+  }
+
+  formatVndNumber(price: number): string {
+    return new Intl.NumberFormat('vi-VN').format(price);
+  }
+
+  handleBookService(svc: PublicService): void {
+    this.bookingLoadingCode.set(svc.code);
+
+    // Tactile 240ms feedback for ripple/smooth navigation state
+    setTimeout(() => {
+      const isAuth = this.authService.isAuthenticated();
+      const role = this.authService.currentRole();
+
+      if (isAuth && role === 'PATIENT') {
+        this.router.navigate(['/patient/booking'], {
+          queryParams: { serviceId: svc.code },
+        });
+      } else {
+        this.router.navigate(['/auth/login'], {
+          queryParams: {
+            returnUrl: `/patient/booking?serviceId=${svc.code}`,
+          },
+        });
+      }
+      this.bookingLoadingCode.set(null);
+    }, 240);
+  }
+
   goToBooking(serviceName?: string): void {
     if (!this.authService.isAuthenticated()) {
-      // Auto login as demo PATIENT or take to booking
       this.authService.login('PATIENT').subscribe(() => {
         this.router.navigate(['/patient/booking']);
       });

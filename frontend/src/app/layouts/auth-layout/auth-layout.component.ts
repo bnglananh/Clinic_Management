@@ -19,14 +19,14 @@ import { ClinicIconComponent } from '../../shared/components/clinic-icon/clinic-
               <span>Về trang chủ</span>
             </a>
             <div class="brand-badge">
-              <app-clinic-icon name="medical-cross" [size]="16" color="#B8955A"></app-clinic-icon>
+              <app-clinic-icon name="medical-cross" [size]="16" color="#ECC880"></app-clinic-icon>
               <span>SMART CLINIC EMR</span>
             </div>
           </div>
 
           <div class="quote-section">
             <div class="verified-tag">
-              <app-clinic-icon name="shield-check" [size]="14" color="#5E8B7E"></app-clinic-icon>
+              <app-clinic-icon name="shield-check" [size]="14" color="#8ED8C8"></app-clinic-icon>
               <span>HỆ THỐNG Y TẾ SỐ ĐẠT CHUẨN ISO 27001 & HL7</span>
             </div>
             <h1 class="brand-slogan font-serif">
@@ -87,7 +87,7 @@ import { ClinicIconComponent } from '../../shared/components/clinic-icon/clinic-
       .auth-visual-panel {
         flex: 1.1;
         position: relative;
-        background: linear-gradient(145deg, #1C2733 0%, #0E4A55 60%, #15333C 100%);
+        background: linear-gradient(150deg, #092B34 0%, #0C4652 50%, #10333C 100%);
         color: #FFFFFF;
         display: flex;
         flex-direction: column;
@@ -103,7 +103,7 @@ import { ClinicIconComponent } from '../../shared/components/clinic-icon/clinic-
           width: 600px;
           height: 600px;
           border-radius: 50%;
-          background: radial-gradient(circle, rgba(184, 149, 90, 0.15) 0%, transparent 70%);
+          background: radial-gradient(circle, rgba(236, 200, 128, 0.16) 0%, transparent 70%);
           pointer-events: none;
         }
 
@@ -115,7 +115,7 @@ import { ClinicIconComponent } from '../../shared/components/clinic-icon/clinic-
           width: 500px;
           height: 500px;
           border-radius: 50%;
-          background: radial-gradient(circle, rgba(14, 74, 85, 0.3) 0%, transparent 70%);
+          background: radial-gradient(circle, rgba(14, 74, 85, 0.45) 0%, transparent 70%);
           pointer-events: none;
         }
       }
@@ -140,21 +140,21 @@ import { ClinicIconComponent } from '../../shared/components/clinic-icon/clinic-
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        color: rgba(246, 243, 236, 0.85);
+        color: #F6F3EC;
         font-size: 0.875rem;
         font-weight: 500;
         text-decoration: none;
         padding: 8px 16px;
         border-radius: 999px;
-        background: rgba(255, 255, 255, 0.08);
-        border: 1px solid rgba(255, 255, 255, 0.15);
+        background: rgba(255, 255, 255, 0.10);
+        border: 1px solid rgba(255, 255, 255, 0.22);
         backdrop-filter: blur(8px);
         transition: all 0.2s ease;
 
         &:hover {
           color: #FFFFFF;
-          background: rgba(255, 255, 255, 0.16);
-          border-color: rgba(184, 149, 90, 0.5);
+          background: rgba(255, 255, 255, 0.18);
+          border-color: rgba(236, 200, 128, 0.6);
           transform: translateX(-2px);
         }
       }
@@ -163,15 +163,16 @@ import { ClinicIconComponent } from '../../shared/components/clinic-icon/clinic-
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        background: rgba(255, 255, 255, 0.08);
-        border: 1px solid rgba(184, 149, 90, 0.3);
+        background: rgba(236, 200, 128, 0.12);
+        border: 1px solid rgba(236, 200, 128, 0.45);
         padding: 8px 18px;
         border-radius: 999px;
         font-size: 0.8125rem;
-        font-weight: 600;
+        font-weight: 700;
         letter-spacing: 0.12em;
-        color: #B8955A;
+        color: #ECC880;
         backdrop-filter: blur(8px);
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
       }
 
       .quote-section {
@@ -186,10 +187,10 @@ import { ClinicIconComponent } from '../../shared/components/clinic-icon/clinic-
         font-size: 0.72rem;
         font-weight: 700;
         letter-spacing: 0.08em;
-        color: #A3C9BF;
-        background: rgba(94, 139, 126, 0.2);
-        border: 1px solid rgba(94, 139, 126, 0.35);
-        padding: 4px 12px;
+        color: #BBECE2;
+        background: rgba(94, 139, 126, 0.28);
+        border: 1px solid rgba(94, 139, 126, 0.55);
+        padding: 5px 14px;
         border-radius: 999px;
         margin-bottom: 18px;
       }
@@ -198,15 +199,15 @@ import { ClinicIconComponent } from '../../shared/components/clinic-icon/clinic-
         font-size: 2.5rem;
         line-height: 1.25;
         font-weight: 500;
-        color: #F6F3EC;
+        color: #FFFFFF;
         margin-bottom: 18px;
-        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
       }
 
       .brand-description {
         font-size: 1rem;
-        line-height: 1.6;
-        color: rgba(246, 243, 236, 0.85);
+        line-height: 1.65;
+        color: rgba(246, 243, 236, 0.95);
         margin: 0;
       }
 
@@ -218,8 +219,8 @@ import { ClinicIconComponent } from '../../shared/components/clinic-icon/clinic-
       }
 
       .stat-card {
-        background: rgba(255, 255, 255, 0.06);
-        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.18);
         padding: 14px 18px;
         border-radius: 12px;
         backdrop-filter: blur(8px);
@@ -228,22 +229,24 @@ import { ClinicIconComponent } from '../../shared/components/clinic-icon/clinic-
         gap: 4px;
 
         .stat-number {
-          font-size: 1.35rem;
+          font-size: 1.45rem;
           font-weight: 700;
-          color: #B8955A;
+          color: #ECC880;
           letter-spacing: -0.02em;
+          text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
         }
 
         .stat-label {
           font-size: 0.75rem;
-          color: rgba(246, 243, 236, 0.75);
+          color: rgba(246, 243, 236, 0.92);
           font-weight: 500;
         }
       }
 
       .visual-footer {
         font-size: 0.8125rem;
-        color: rgba(246, 243, 236, 0.55);
+        color: rgba(246, 243, 236, 0.9);
+        letter-spacing: 0.01em;
       }
 
       // Right Panel

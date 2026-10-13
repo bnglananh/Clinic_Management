@@ -1,10 +1,15 @@
 // Smart Clinic EMR - Design Tokens (SCSS Variables)
 // 6 Core Brand Colors
 $color-teal-primary: #0E4A55;      // Deep Teal: Buttons, active links, IN_PROGRESS
+$color-teal-light: #155E6C;        // Lighter teal for gradient mid-tones and contrast
+$color-teal-dark: #0A323A;         // Rich deep teal for dark backgrounds
 $color-ink-slate: #1C2733;         // Ink Slate: Dark sidebar, headers, typography
-$color-champagne-gold: #B8955A;    // Champagne Gold: Accent, WAITING, VIP badge
+$color-champagne-gold: #B8955A;    // Champagne Gold: Base brand accent, borders, badges
+$color-gold-luminous: #ECC880;     // Radiant Champagne Gold: For dark backgrounds & dark themes (WCAG AA compliant)
+$color-gold-dark: #7A571B;         // Deep Amber Gold: For text on light/white/ivory surfaces (WCAG AA compliant)
 $color-ivory-bg: #F6F3EC;          // Ivory: Page canvas background
 $color-sage-success: #5E8B7E;      // Sage: COMPLETED, success, normal vitals
+$color-sage-light: #B4DFD4;        // Sage light for dark panels
 $color-burgundy-danger: #9B3D45;   // Burgundy: Drug interaction, abnormal vitals, cancel
 
 // Neutral Tones - High legibility & crisp contrast

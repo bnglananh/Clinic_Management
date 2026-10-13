@@ -69,7 +69,7 @@ import { MedicalService } from '../../../core/services/medical.service';
         title="Đã khám & Đã khóa EMR"
         [value]="completedTickets().length"
         unit="hồ sơ"
-        subText="Tuân thủ chuẩn bất biến BR-23"
+        subText="Lưu trữ bảo mật bất biến an toàn"
         iconName="lock"
         iconBg="rgba(94, 139, 126, 0.15)"
         iconColor="#5E8B7E"
@@ -165,7 +165,7 @@ import { MedicalService } from '../../../core/services/medical.service';
         <app-clinic-icon name="lock" [size]="24" class="hub-icon"></app-clinic-icon>
         <div class="hub-content">
           <h4>Lịch Sử Bệnh Án Đã Khóa</h4>
-          <p>Kho hồ sơ EMR lưu trữ bất biến (BR-23), tra cứu và thêm phụ lục bổ sung</p>
+          <p>Kho hồ sơ EMR lưu trữ bất biến, tra cứu và thêm phụ lục bổ sung</p>
         </div>
         <span class="hub-arrow"><app-clinic-icon name="arrow-right" [size]="14"></app-clinic-icon></span>
       </div>

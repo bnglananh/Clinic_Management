@@ -148,7 +148,7 @@ import { ClinicIconComponent } from '../../../shared/components/clinic-icon/clin
         </div>
       </div>
 
-      <!-- Upcoming Appointments Section (UC03) -->
+      <!-- Upcoming Appointments Section -->
       <div class="appointments-section mt-5">
         <div class="section-top">
           <h2 class="sec-title font-serif">Danh Sách Lịch Hẹn Đã Đăng Ký</h2>

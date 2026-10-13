@@ -22,7 +22,7 @@ import { MedicalRecord } from '../../../core/models/medical-record.model';
       <app-page-header
         badgeText="KHO LƯU TRỮ EMR"
         title="Lịch Sử Bệnh Án Điện Tử Đã Khóa"
-        subtitle="Tuân thủ quy tắc BR-23: Hồ sơ y khoa đã hoàn tất được lưu trữ bất biến, bảo vệ tính pháp lý"
+        subtitle="Hồ sơ y khoa đã hoàn tất được lưu trữ bảo mật và bất biến, bảo vệ tính toàn vẹn dữ liệu"
       >
         <div actions class="header-actions">
           <button class="btn-workspace" (click)="goToWorkspace()">
@@ -93,7 +93,7 @@ import { MedicalRecord } from '../../../core/models/medical-record.model';
                 <td>
                   <span class="locked-badge">
                     <app-clinic-icon name="lock" [size]="12"></app-clinic-icon>
-                    <span>Đã khóa (BR-23)</span>
+                    <span>Đã khóa EMR</span>
                   </span>
                 </td>
                 <td>

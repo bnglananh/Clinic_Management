@@ -16,7 +16,7 @@ import { ClinicIconComponent } from '../clinic-icon/clinic-icon.component';
             <app-clinic-icon name="lock" [size]="16" color="#5E8B7E"></app-clinic-icon>
           </span>
           <div class="lock-info">
-            <span class="lock-label">HỒ SƠ ĐÃ KHÓA (BR-23)</span>
+            <span class="lock-label">HỒ SƠ ĐÃ KHÓA</span>
             <span class="lock-sub">
               Phiên bản v{{ version }}.0
               @if (amendments && amendments.length > 0) {
@@ -66,7 +66,7 @@ import { ClinicIconComponent } from '../clinic-icon/clinic-icon.component';
               </span>
               <div>
                 <h4 class="m-title font-serif">Thêm Phụ Lục Bổ Sung Hồ Sơ Bệnh Án</h4>
-                <span class="m-sub">Quy tắc BR-23: Hồ sơ đã khóa chỉ được cập nhật qua phụ lục minh bạch, không ghi đè dữ liệu gốc.</span>
+                <span class="m-sub">Hồ sơ y khoa đã hoàn tất và khóa bảo mật. Mọi cập nhật chỉ được ghi nhận qua phụ lục điều chỉnh minh bạch.</span>
               </div>
             </div>
 

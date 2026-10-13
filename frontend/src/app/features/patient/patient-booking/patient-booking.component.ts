@@ -1,7 +1,7 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { QueueService } from '../../../core/services/queue.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { VndCurrencyPipe } from '../../../shared/pipes/vnd-currency.pipe';
@@ -1192,10 +1192,11 @@ interface TimeSlotOption {
     `,
   ],
 })
-export class PatientBookingComponent {
+export class PatientBookingComponent implements OnInit {
   private queueService = inject(QueueService);
   private authService = inject(AuthService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
 
   currentStep = signal<number>(1);
   isSubmitting = signal<boolean>(false);
@@ -1211,6 +1212,25 @@ export class PatientBookingComponent {
     { id: 'DEP-NEURO', name: 'Khoa Thần Kinh', icon: 'activity', desc: 'Chữa trị đau nửa đầu Migraine, rối loạn tiền đình, mất ngủ kinh niên.', room: 'Phòng Khám 202', basePrice: 220000 },
     { id: 'DEP-ORTHO', name: 'Khoa Cơ Xương Khớp', icon: 'activity', desc: 'Thoái hóa khớp gối, đau thắt lưng, thoát vị đĩa đệm và loãng xương.', room: 'Phòng Khám 203', basePrice: 190000 },
   ];
+
+  ngOnInit(): void {
+    const serviceId = this.route.snapshot.queryParamMap.get('serviceId');
+    if (serviceId) {
+      if (serviceId.includes('TIMMACH') || serviceId.includes('ECG')) {
+        this.selectedDept.set(this.departments[0]);
+        this.selectedDoctor.set(this.doctors[0]);
+        this.currentStep.set(2);
+      } else if (serviceId.includes('NOITQ') || serviceId.includes('CBC')) {
+        this.selectedDept.set(this.departments[1]);
+        this.selectedDoctor.set(this.doctors[1]);
+        this.currentStep.set(2);
+      } else if (serviceId.includes('BUNGTQ')) {
+        this.selectedDept.set(this.departments[2]);
+        this.selectedDoctor.set(this.doctors[2]);
+        this.currentStep.set(2);
+      }
+    }
+  }
 
   // Doctor list
   doctors: DoctorOption[] = [

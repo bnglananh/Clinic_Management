@@ -16,7 +16,7 @@ import { ClinicIconComponent } from '../../shared/components/clinic-icon/clinic-
         <div class="header-inner">
           <div class="brand-zone">
             <div class="brand-symbol">
-              <app-clinic-icon name="medical-cross" [size]="20" color="#B8955A"></app-clinic-icon>
+              <app-clinic-icon name="medical-cross" [size]="20" color="#ECC880"></app-clinic-icon>
             </div>
             <div class="brand-titles">
               <span class="brand-name font-serif">SMART CLINIC</span>
@@ -159,12 +159,12 @@ import { ClinicIconComponent } from '../../shared/components/clinic-icon/clinic-
         width: 38px;
         height: 38px;
         background: #0E4A55;
-        border: 1px solid #B8955A;
+        border: 1px solid #ECC880;
         border-radius: 10px;
         display: flex;
         align-items: center;
         justify-content: center;
-        color: #B8955A;
+        color: #ECC880;
         font-weight: 700;
         font-size: 1.15rem;
       }
@@ -183,9 +183,9 @@ import { ClinicIconComponent } from '../../shared/components/clinic-icon/clinic-
 
       .brand-portal {
         font-size: 0.6875rem;
-        font-weight: 600;
+        font-weight: 700;
         letter-spacing: 0.1em;
-        color: #B8955A;
+        color: #7A571B;
       }
 
       .patient-nav {

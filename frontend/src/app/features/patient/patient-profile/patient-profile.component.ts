@@ -372,7 +372,7 @@ type ProfileTab = 'general' | 'medical' | 'security' | 'ecard';
                   <app-clinic-icon name="alert-triangle" [size]="20" color="#9B3D45"></app-clinic-icon>
                 </div>
                 <div class="alert-text-wrap">
-                  <span class="alert-title">LƯU Ý ĐẶC BIỆT VỀ TIỀN SỬ DỊ ỨNG (BR-03 / DDI)</span>
+                  <span class="alert-title">LƯU Ý ĐẶC BIỆT VỀ TIỀN SỬ DỊ ỨNG & TƯƠNG TÁC THUỐC</span>
                   <p class="alert-p">
                     Khi ghi nhận tiền sử dị ứng thuốc (như Penicillin, Cephalosporin, Aspirin...), hệ thống tự động
                     kết nối cơ sở tri thức để cảnh báo xung đột (DDI) ngay tại màn hình kê đơn của bác sĩ khám.
@@ -494,14 +494,14 @@ type ProfileTab = 'general' | 'medical' | 'security' | 'ecard';
             </div>
           }
 
-          <!-- TAB 3: TÀI KHOẢN & BẢO MẬT (UC01 - ĐỔI MẬT KHẨU) -->
+          <!-- TAB 3: TÀI KHOẢN & BẢO MẬT (ĐỔI MẬT KHẨU) -->
           @if (activeTab() === 'security') {
             <div class="tab-section animate-fade-in">
               <div class="section-top-bar">
                 <div>
                   <h2 class="section-heading font-serif">Bảo mật tài khoản & Đổi mật khẩu</h2>
                   <p class="section-sub">
-                    Thực hiện nghiệp vụ UC01 (Bước 4): Đổi mật khẩu bảo mật và kiểm tra quy tắc an toàn (SRS BR 4.1 & BR 4.2)
+                    Cập nhật mật khẩu định kỳ để bảo vệ tài khoản và lịch sử bệnh án điện tử.
                   </p>
                 </div>
               </div>
@@ -542,8 +542,10 @@ type ProfileTab = 'general' | 'medical' | 'security' | 'ecard';
                       type="button"
                       class="pass-toggle-btn"
                       (click)="showCurrentPass.set(!showCurrentPass())"
+                      [attr.aria-label]="showCurrentPass() ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'"
+                      [title]="showCurrentPass() ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'"
                     >
-                      <app-clinic-icon [name]="showCurrentPass() ? 'unlock' : 'lock'" [size]="15"></app-clinic-icon>
+                      <app-clinic-icon [name]="showCurrentPass() ? 'eye-off' : 'eye'" [size]="15"></app-clinic-icon>
                     </button>
                   </div>
                 </div>
@@ -565,8 +567,10 @@ type ProfileTab = 'general' | 'medical' | 'security' | 'ecard';
                       type="button"
                       class="pass-toggle-btn"
                       (click)="showNewPass.set(!showNewPass())"
+                      [attr.aria-label]="showNewPass() ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'"
+                      [title]="showNewPass() ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'"
                     >
-                      <app-clinic-icon [name]="showNewPass() ? 'unlock' : 'lock'" [size]="15"></app-clinic-icon>
+                      <app-clinic-icon [name]="showNewPass() ? 'eye-off' : 'eye'" [size]="15"></app-clinic-icon>
                     </button>
                   </div>
                   @if (passwordForm.get('newPassword')?.touched && passwordForm.get('newPassword')?.invalid) {
@@ -591,8 +595,10 @@ type ProfileTab = 'general' | 'medical' | 'security' | 'ecard';
                       type="button"
                       class="pass-toggle-btn"
                       (click)="showConfirmPass.set(!showConfirmPass())"
+                      [attr.aria-label]="showConfirmPass() ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'"
+                      [title]="showConfirmPass() ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'"
                     >
-                      <app-clinic-icon [name]="showConfirmPass() ? 'unlock' : 'lock'" [size]="15"></app-clinic-icon>
+                      <app-clinic-icon [name]="showConfirmPass() ? 'eye-off' : 'eye'" [size]="15"></app-clinic-icon>
                     </button>
                   </div>
                 </div>

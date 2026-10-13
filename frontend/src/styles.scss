@@ -50,18 +50,35 @@ p {
 .dark-theme,
 .bg-dark-slate,
 .dark-section,
+.auth-visual-panel,
+.lobby-screen,
 [data-theme='dark'] {
   color: #FFFFFF;
 
   p {
-    color: #E2E8F0;
+    color: #F1F5F9;
   }
 
   .text-muted,
   .text-secondary,
   .section-subheading {
-    color: #CBD5E1 !important;
+    color: #D3E0EA !important;
   }
+
+  .accent-gold,
+  .text-gold,
+  .gold-glow {
+    color: $color-gold-luminous !important;
+  }
+}
+
+// Global text gold utilities
+.text-gold-luminous {
+  color: $color-gold-luminous !important;
+}
+
+.text-gold-dark {
+  color: $color-gold-dark !important;
 }
 
 

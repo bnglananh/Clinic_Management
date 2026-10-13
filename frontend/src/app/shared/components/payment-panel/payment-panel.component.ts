@@ -193,7 +193,7 @@ import { ClinicIconComponent } from '../clinic-icon/clinic-icon.component';
                   </div>
                 </div>
                 <div class="qr-notice">
-                  <app-clinic-icon name="alert-triangle" [size]="14" color="#B8955A"></app-clinic-icon>
+                  <app-clinic-icon name="alert-triangle" [size]="14" color="#7A571B"></app-clinic-icon>
                   <span>Thu ngân kiểm tra thông báo biến động số dư trước khi xác nhận.</span>
                 </div>
               </div>
@@ -260,8 +260,9 @@ import { ClinicIconComponent } from '../clinic-icon/clinic-icon.component';
         font-size: 0.7rem;
         font-weight: 700;
         letter-spacing: 0.1em;
-        color: #B8955A;
-        background: rgba(184, 149, 90, 0.15);
+        color: #7A571B;
+        background: rgba(184, 149, 90, 0.16);
+        border: 1px solid rgba(184, 149, 90, 0.35);
         padding: 2px 10px;
         border-radius: 999px;
         display: inline-block;
@@ -282,7 +283,7 @@ import { ClinicIconComponent } from '../clinic-icon/clinic-icon.component';
         color: #5B6672;
 
         .dot {
-          color: #B8955A;
+          color: #7A571B;
         }
       }
 

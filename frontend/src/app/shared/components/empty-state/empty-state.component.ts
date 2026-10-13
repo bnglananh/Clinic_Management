@@ -9,7 +9,7 @@ import { ClinicIconComponent, ClinicIconName } from '../clinic-icon/clinic-icon.
   template: `
     <div class="clinic-empty-container">
       <div class="empty-icon-box">
-        <app-clinic-icon [name]="getCleanIcon()" [size]="28" color="#B8955A"></app-clinic-icon>
+        <app-clinic-icon [name]="getCleanIcon()" [size]="28" color="#7A571B"></app-clinic-icon>
       </div>
       <h4 class="empty-title">{{ title }}</h4>
       @if (description) {

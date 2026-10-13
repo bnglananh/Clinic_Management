@@ -28,7 +28,7 @@ import { ClinicIconComponent } from '../clinic-icon/clinic-icon.component';
           <!-- Receipt Header -->
           <div class="receipt-header">
             <div class="clinic-logo-mark">
-              <app-clinic-icon name="medical-cross" [size]="20" color="#B8955A"></app-clinic-icon>
+              <app-clinic-icon name="medical-cross" [size]="20" color="#ECC880"></app-clinic-icon>
             </div>
             <h2 class="receipt-brand font-serif">SMART CLINIC EMR</h2>
             <p class="receipt-addr">120 Hai Bà Trưng, P. Bến Nghé, Quận 1, TP.HCM</p>
@@ -199,7 +199,7 @@ import { ClinicIconComponent } from '../clinic-icon/clinic-icon.component';
         height: 28px;
         border-radius: 6px;
         background: #0E4A55;
-        color: #B8955A;
+        color: #ECC880;
         display: flex;
         align-items: center;
         justify-content: center;

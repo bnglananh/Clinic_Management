@@ -12,7 +12,7 @@ import { ClinicIconComponent } from '../../../shared/components/clinic-icon/clin
   imports: [CommonModule, FormsModule, PageHeaderComponent, ClinicIconComponent],
   template: `
     <app-page-header
-      badgeText="DANH MỤC DỊCH VỤ & BẢNG GIÁ • UC022"
+      badgeText="DANH MỤC DỊCH VỤ & BẢNG GIÁ"
       title="Quản Lý Dịch Vụ Khám Bệnh, Cận Lâm Sàng & Bảng Giá"
       subtitle="Quản lý danh mục gói khám, chỉ định xét nghiệm, chẩn đoán hình ảnh và cập nhật bảng giá viện phí."
     >
@@ -154,7 +154,7 @@ import { ClinicIconComponent } from '../../../shared/components/clinic-icon/clin
                       [class.btn-pause]="svc.isActive"
                       [class.btn-resume]="!svc.isActive"
                       (click)="toggleServiceStatus(svc)"
-                      [title]="svc.isActive ? 'Tạm ngưng dịch vụ này (BR-21)' : 'Mở lại dịch vụ'"
+                      [title]="svc.isActive ? 'Tạm ngưng dịch vụ này' : 'Mở lại dịch vụ'"
                     >
                       {{ svc.isActive ? 'Tạm ngưng' : 'Mở lại' }}
                     </button>
@@ -228,7 +228,7 @@ import { ClinicIconComponent } from '../../../shared/components/clinic-icon/clin
           <div class="modal-header">
             <h3 class="modal-title font-serif">
               <app-clinic-icon name="plus" [size]="18"></app-clinic-icon>
-              <span>Thêm Mới Dịch Vụ Kỹ Thuật Y Tế (UC022)</span>
+              <span>Thêm Mới Dịch Vụ Kỹ Thuật Y Tế</span>
             </h3>
             <button class="modal-close" (click)="closeCreateModal()">
               <app-clinic-icon name="close" [size]="16"></app-clinic-icon>

@@ -23,7 +23,7 @@ interface MenuItem {
         <!-- Logo Header -->
         <div class="sidebar-brand">
           <div class="brand-symbol">
-            <app-clinic-icon name="medical-cross" [size]="20" color="#B8955A"></app-clinic-icon>
+            <app-clinic-icon name="medical-cross" [size]="20" color="#ECC880"></app-clinic-icon>
           </div>
           @if (!isCollapsed()) {
             <div class="brand-text">
@@ -172,12 +172,12 @@ interface MenuItem {
         width: 36px;
         height: 36px;
         background: linear-gradient(135deg, #0E4A55 0%, #15333C 100%);
-        border: 1px solid #B8955A;
+        border: 1px solid #ECC880;
         border-radius: 9px;
         display: flex;
         align-items: center;
         justify-content: center;
-        color: #B8955A;
+        color: #ECC880;
         font-weight: 700;
         font-size: 1.125rem;
         flex-shrink: 0;
@@ -198,15 +198,15 @@ interface MenuItem {
       .brand-sub {
         font-size: 0.6875rem;
         letter-spacing: 0.1em;
-        color: #B8955A;
-        font-weight: 500;
+        color: #ECC880;
+        font-weight: 600;
       }
 
       .sidebar-role-pill {
         margin: 16px 16px 8px 16px;
         padding: 8px 14px;
-        background: rgba(184, 149, 90, 0.12);
-        border: 1px solid rgba(184, 149, 90, 0.25);
+        background: rgba(236, 200, 128, 0.12);
+        border: 1px solid rgba(236, 200, 128, 0.28);
         border-radius: 8px;
         display: flex;
         align-items: center;
@@ -216,13 +216,13 @@ interface MenuItem {
           width: 7px;
           height: 7px;
           border-radius: 50%;
-          background: #B8955A;
+          background: #ECC880;
         }
 
         .role-name {
           font-size: 0.8125rem;
           font-weight: 600;
-          color: #E6CE9F;
+          color: #F0D8AA;
         }
       }
 
@@ -265,12 +265,12 @@ interface MenuItem {
             top: 20%;
             bottom: 20%;
             width: 3.5px;
-            background: #B8955A;
+            background: #ECC880;
             border-radius: 0 4px 4px 0;
           }
 
           .nav-icon {
-            color: #B8955A;
+            color: #ECC880;
           }
         }
       }
