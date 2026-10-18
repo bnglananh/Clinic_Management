@@ -1,7 +1,6 @@
 package vn.clinic.controller;
 
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import vn.clinic.dto.ApiResponse;
@@ -17,13 +16,16 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/queue")
-@RequiredArgsConstructor
 public class QueueController {
 
     private final QueueService queueService;
 
+    public QueueController(QueueService queueService) {
+        this.queueService = queueService;
+    }
+
     // =========================================================================
-    // UC011: Lấy danh sách hàng đợi theo buồng khám, trạng thái, mức ưu tiên
+    // Lấy danh sách hàng đợi theo buồng khám, trạng thái, mức ưu tiên
     // =========================================================================
 
     @GetMapping
@@ -33,11 +35,11 @@ public class QueueController {
             @RequestParam(required = false) PriorityLevel priority,
             @RequestParam(required = false) String date) {
         List<QueueTicketDto> list = queueService.getQueue(roomName, status, priority, date);
-        return ResponseEntity.ok(ApiResponse.success(list, "Lấy danh sách hàng đợi thành công (SRS UC011)"));
+        return ResponseEntity.ok(ApiResponse.success(list, "Lấy danh sách hàng đợi thành công"));
     }
 
     // =========================================================================
-    // UC011: Thống kê số lượng hàng đợi tổng hợp (Chờ khám, Đang khám, Đã khám)
+    // Thống kê số lượng hàng đợi tổng hợp (Chờ khám, Đang khám, Đã khám)
     // =========================================================================
 
     @GetMapping("/summary")
@@ -47,17 +49,17 @@ public class QueueController {
     }
 
     // =========================================================================
-    // UC011: Điều phối đưa ca ưu tiên / cấp cứu lên vị trí đầu hàng đợi
+    // Điều phối đưa ca ưu tiên / cấp cứu lên vị trí đầu hàng đợi
     // =========================================================================
 
     @PostMapping("/{id}/promote")
     public ResponseEntity<ApiResponse<QueueTicketDto>> promoteToTop(@PathVariable String id) {
         QueueTicketDto ticket = queueService.promoteToTop(id);
-        return ResponseEntity.ok(ApiResponse.success(ticket, "Điều phối ưu tiên ca khám lên đầu hàng đợi thành công (SRS UC011)"));
+        return ResponseEntity.ok(ApiResponse.success(ticket, "Điều phối ưu tiên ca khám lên đầu hàng đợi thành công"));
     }
 
     // =========================================================================
-    // UC011 & UC014: Gọi bệnh nhân kế tiếp vào buồng khám
+    // Gọi bệnh nhân kế tiếp vào buồng khám
     // =========================================================================
 
     @PostMapping("/call-next")
@@ -66,11 +68,11 @@ public class QueueController {
         String roomName = body != null ? body.get("roomName") : null;
         String doctorId = body != null ? body.get("doctorId") : null;
         QueueTicketDto ticket = queueService.callNextPatient(roomName, doctorId);
-        return ResponseEntity.ok(ApiResponse.success(ticket, "Gọi lượt khám kế tiếp thành công (SRS UC011 & UC014)"));
+        return ResponseEntity.ok(ApiResponse.success(ticket, "Gọi lượt khám kế tiếp thành công"));
     }
 
     // =========================================================================
-    // UC011: Cập nhật trạng thái vé hàng đợi (WAITING -> IN_PROGRESS -> COMPLETED)
+    // Cập nhật trạng thái vé hàng đợi (WAITING -> IN_PROGRESS -> COMPLETED)
     // =========================================================================
 
     @PatchMapping("/{id}/status")
@@ -78,24 +80,24 @@ public class QueueController {
             @PathVariable String id,
             @Valid @RequestBody UpdateQueueStatusRequest request) {
         QueueTicketDto ticket = queueService.updateTicketStatus(id, request.getStatus());
-        return ResponseEntity.ok(ApiResponse.success(ticket, "Cập nhật trạng thái vé khám thành công (SRS BR-07)"));
+        return ResponseEntity.ok(ApiResponse.success(ticket, "Cập nhật trạng thái vé khám thành công"));
     }
 
     // =========================================================================
-    // UC04: Bệnh nhân theo dõi lượt khám & số thứ tự thời gian thực
+    // Bệnh nhân theo dõi lượt khám & số thứ tự thời gian thực
     // =========================================================================
 
     @GetMapping("/patient/{patientId}/active")
     public ResponseEntity<ApiResponse<vn.clinic.dto.PatientQueueTrackingDto>> getPatientActiveQueue(
             @PathVariable String patientId) {
         vn.clinic.dto.PatientQueueTrackingDto tracking = queueService.getPatientActiveQueue(patientId);
-        return ResponseEntity.ok(ApiResponse.success(tracking, "Lấy tiến trình số thứ tự khám thành công (SRS UC04)"));
+        return ResponseEntity.ok(ApiResponse.success(tracking, "Lấy tiến trình số thứ tự khám thành công"));
     }
 
     @GetMapping("/ticket/{ticketNumber}/track")
     public ResponseEntity<ApiResponse<vn.clinic.dto.PatientQueueTrackingDto>> trackTicketByNumber(
             @PathVariable String ticketNumber) {
         vn.clinic.dto.PatientQueueTrackingDto tracking = queueService.trackTicketByNumber(ticketNumber);
-        return ResponseEntity.ok(ApiResponse.success(tracking, "Tra cứu tiến trình lượt khám thành công (SRS UC04)"));
+        return ResponseEntity.ok(ApiResponse.success(tracking, "Tra cứu tiến trình lượt khám thành công"));
     }
 }

@@ -82,7 +82,7 @@ class AppointmentServiceTest {
         BusinessRuleException ex = assertThrows(BusinessRuleException.class, () ->
                 appointmentService.createAppointment(request)
         );
-        assertTrue(ex.getMessage().contains("SRS UC02 BR-05"));
+        assertTrue(ex.getMessage().contains("Bác sĩ đã có lịch hẹn"));
     }
 
     @Test

@@ -1,6 +1,6 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, ActivatedRoute } from '@angular/router';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { AuthService } from '../../../core/services/auth.service';
 import { UserRole } from '../../../core/models/user.model';
@@ -144,9 +144,10 @@ import { ClinicIconComponent } from '../../../shared/components/clinic-icon/clin
               (click)="toggleShowPassword()"
               class="eye-btn"
               tabindex="-1"
-              title="Ẩn / hiện mật khẩu"
+              [attr.aria-label]="showPassword() ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'"
+              [title]="showPassword() ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'"
             >
-              <app-clinic-icon [name]="showPassword() ? 'unlock' : 'lock'" [size]="16" color="#5B6672"></app-clinic-icon>
+              <app-clinic-icon [name]="showPassword() ? 'eye-off' : 'eye'" [size]="16" color="currentColor"></app-clinic-icon>
             </button>
           </div>
         </div>
@@ -264,9 +265,9 @@ import { ClinicIconComponent } from '../../../shared/components/clinic-icon/clin
         font-size: 0.6875rem;
         font-weight: 700;
         letter-spacing: 0.08em;
-        color: #8C6D34;
-        background: rgba(184, 149, 90, 0.15);
-        border: 1px solid rgba(184, 149, 90, 0.3);
+        color: #7A571B;
+        background: rgba(184, 149, 90, 0.16);
+        border: 1px solid rgba(184, 149, 90, 0.38);
         padding: 3px 10px;
         border-radius: 999px;
         display: inline-block;
@@ -310,9 +311,9 @@ import { ClinicIconComponent } from '../../../shared/components/clinic-icon/clin
 
       .role-zone-hint {
         font-size: 0.6875rem;
-        font-weight: 600;
-        color: #B8955A;
-        background: rgba(184, 149, 90, 0.12);
+        font-weight: 700;
+        color: #7A571B;
+        background: rgba(184, 149, 90, 0.16);
         padding: 2px 8px;
         border-radius: 999px;
       }
@@ -435,7 +436,7 @@ import { ClinicIconComponent } from '../../../shared/components/clinic-icon/clin
         height: 42px;
         border: 1.5px solid #E2DCD0;
         border-radius: 12px;
-        padding: 0 38px 0 38px;
+        padding: 0 42px 0 38px;
         font-size: 0.875rem;
         color: #1C2733;
         outline: none;
@@ -455,18 +456,30 @@ import { ClinicIconComponent } from '../../../shared/components/clinic-icon/clin
 
       .eye-btn {
         position: absolute;
-        right: 10px;
+        right: 8px;
+        top: 50%;
+        transform: translateY(-50%);
         background: transparent;
         border: none;
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 4px;
-        border-radius: 6px;
+        width: 30px;
+        height: 30px;
+        padding: 0;
+        border-radius: 8px;
+        color: #5B6672;
+        transition: all 0.2s ease;
 
         &:hover {
-          background: rgba(0, 0, 0, 0.04);
+          background: rgba(14, 74, 85, 0.08);
+          color: #0E4A55;
+        }
+
+        &:focus-visible {
+          outline: 2px solid #0E4A55;
+          outline-offset: 1px;
         }
       }
 
@@ -614,9 +627,10 @@ import { ClinicIconComponent } from '../../../shared/components/clinic-icon/clin
     `,
   ],
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
+  private route = inject(ActivatedRoute);
 
   selectedRole = signal<UserRole>('RECEPTIONIST');
   isLoading = signal<boolean>(false);
@@ -627,6 +641,13 @@ export class LoginComponent {
     password: ['123456', [Validators.required]],
     rememberMe: [true],
   });
+
+  ngOnInit(): void {
+    const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+    if (returnUrl && returnUrl.includes('/patient')) {
+      this.selectRole('PATIENT');
+    }
+  }
 
   selectRole(role: UserRole): void {
     this.selectedRole.set(role);
@@ -663,7 +684,8 @@ export class LoginComponent {
     }
 
     this.isLoading.set(true);
-    this.authService.login(this.selectedRole()).subscribe({
+    const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') || undefined;
+    this.authService.login(this.selectedRole(), returnUrl).subscribe({
       next: () => {
         this.isLoading.set(false);
       },

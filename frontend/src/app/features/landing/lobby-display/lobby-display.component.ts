@@ -38,7 +38,7 @@ export interface ClinicRoomStation {
       <header class="lobby-header">
         <div class="header-brand">
           <span class="brand-plus">
-            <app-clinic-icon name="medical-cross" [size]="24" color="#B8955A"></app-clinic-icon>
+            <app-clinic-icon name="medical-cross" [size]="24" color="#ECC880"></app-clinic-icon>
           </span>
           <div class="brand-info">
             <h1 class="brand-title font-serif">SMART CLINIC • HỆ THỐNG GỌI SỐ SẢNH CHỜ</h1>
@@ -104,7 +104,7 @@ export interface ClinicRoomStation {
           <div class="hero-top-bar">
             <div class="calling-tag">
               <span class="pulse-beacon"></span>
-              <app-clinic-icon name="bell" [size]="18" color="#B8955A"></app-clinic-icon>
+              <app-clinic-icon name="bell" [size]="18" color="#ECC880"></app-clinic-icon>
               <span>
                 {{ room.status === 'CALLING' ? 'MỜI BỆNH NHÂN CÓ SỐ THỨ TỰ SAU VÀO PHÒNG KHÁM' : 'ĐANG KHÁM PHỤC VỤ TẠI BUỒNG' }}
               </span>
@@ -141,7 +141,7 @@ export interface ClinicRoomStation {
             </div>
 
             <div class="hero-arrow">
-              <app-clinic-icon name="arrow-right" [size]="36" color="#B8955A"></app-clinic-icon>
+              <app-clinic-icon name="arrow-right" [size]="36" color="#ECC880"></app-clinic-icon>
             </div>
 
             <div class="hero-room-box">
@@ -166,7 +166,7 @@ export interface ClinicRoomStation {
           <div class="room-upcoming-strip">
             <div class="upcoming-header">
               <div class="upcoming-title-group">
-                <app-clinic-icon name="clock" [size]="16" color="#B8955A"></app-clinic-icon>
+                <app-clinic-icon name="clock" [size]="16" color="#ECC880"></app-clinic-icon>
                 <span class="upcoming-title">
                   CÁC SỐ THỨ TỰ TIẾP THEO ĐANG CHỜ CỦA {{ room.roomName | uppercase }}:
                 </span>
@@ -368,8 +368,8 @@ export interface ClinicRoomStation {
           height: 48px;
           border-radius: 12px;
           background: #0E4A55;
-          color: #B8955A;
-          border: 1.5px solid #B8955A;
+          color: #ECC880;
+          border: 1.5px solid #ECC880;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -465,7 +465,7 @@ export interface ClinicRoomStation {
 
         .clock-date {
           font-size: 0.78rem;
-          color: #B8955A;
+          color: #ECC880;
         }
       }
 
@@ -719,13 +719,13 @@ export interface ClinicRoomStation {
         .hero-ticket-num {
           font-size: 4.2rem;
           line-height: 1;
-          color: #B8955A;
-          text-shadow: 0 0 24px rgba(184, 149, 90, 0.6);
+          color: #ECC880;
+          text-shadow: 0 0 24px rgba(236, 200, 128, 0.6);
         }
 
         .called-time-label {
           font-size: 0.75rem;
-          color: rgba(255, 255, 255, 0.5);
+          color: rgba(255, 255, 255, 0.85);
           margin-top: 4px;
         }
       }

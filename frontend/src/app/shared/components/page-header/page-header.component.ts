@@ -44,11 +44,12 @@ import { CommonModule } from '@angular/common';
       .header-badge {
         display: inline-block;
         font-size: 0.75rem;
-        font-weight: 600;
+        font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.08em;
-        color: #B8955A;
-        background: rgba(184, 149, 90, 0.12);
+        color: #7A571B;
+        background: rgba(184, 149, 90, 0.16);
+        border: 1px solid rgba(184, 149, 90, 0.35);
         padding: 2px 10px;
         border-radius: 999px;
         margin-bottom: 6px;

@@ -12,6 +12,6 @@ import vn.clinic.model.QueueStatus;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UpdateQueueStatusRequest {
-    @NotNull(message = "Trạng thái hàng đợi không được để trống (BR-07)")
+    @NotNull(message = "Trạng thái hàng đợi không được để trống")
     private QueueStatus status;
 }

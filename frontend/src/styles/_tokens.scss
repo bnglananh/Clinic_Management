@@ -2,16 +2,22 @@
 :root {
   // Brand 6 Colors
   --clinic-primary: #0E4A55;
+  --clinic-primary-light: #155E6C;
+  --clinic-primary-dark: #0A323A;
   --clinic-dark: #1C2733;
   --clinic-accent: #B8955A;
+  --clinic-accent-light: #ECC880;
+  --clinic-accent-dark: #7A571B;
   --clinic-bg: #F6F3EC;
   --clinic-success: #5E8B7E;
+  --clinic-success-light: #B4DFD4;
   --clinic-danger: #9B3D45;
+  --clinic-danger-light: #E07A84;
 
   // Neutrals - High legibility
   --clinic-text-primary: #15222E;
-  --clinic-text-secondary: #4A5665;
-  --clinic-text-muted: #6F7B8A;
+  --clinic-text-secondary: #3D4A59;
+  --clinic-text-muted: #576371;
   --clinic-border: #E0D9CC;
   --clinic-border-subtle: #ECE5DC;
   --clinic-surface: #FFFFFF;

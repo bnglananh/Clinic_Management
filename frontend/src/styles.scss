@@ -50,18 +50,35 @@ p {
 .dark-theme,
 .bg-dark-slate,
 .dark-section,
+.auth-visual-panel,
+.lobby-screen,
 [data-theme='dark'] {
   color: #FFFFFF;
 
   p {
-    color: #E2E8F0;
+    color: #F1F5F9;
   }
 
   .text-muted,
   .text-secondary,
   .section-subheading {
-    color: #CBD5E1 !important;
+    color: #D3E0EA !important;
   }
+
+  .accent-gold,
+  .text-gold,
+  .gold-glow {
+    color: $color-gold-luminous !important;
+  }
+}
+
+// Global text gold utilities
+.text-gold-luminous {
+  color: $color-gold-luminous !important;
+}
+
+.text-gold-dark {
+  color: $color-gold-dark !important;
 }
 
 
@@ -332,5 +349,40 @@ select, .clinic-select {
         }
       }
     }
+  }
+}
+
+// Global Print Optimization
+@media print {
+  // Hide layout chrome, sidebars, top headers, floating widgets
+  .clinic-sidebar,
+  .top-navbar,
+  .sidebar-nav,
+  .brand-symbol,
+  .sidebar-role-pill,
+  .portal-nav,
+  .portal-footer,
+  .user-badge-btn,
+  .notification-bell,
+  .quick-search-trigger,
+  button,
+  .action-buttons,
+  .ant-tooltip,
+  .ant-dropdown,
+  app-drug-interaction-modal {
+    display: none !important;
+  }
+
+  // Allow body and main wrappers to stretch naturally for printing
+  html, body, .internal-container, .main-wrapper, .content-body, .patient-container {
+    height: auto !important;
+    min-height: auto !important;
+    overflow: visible !important;
+    display: block !important;
+    background: #FFFFFF !important;
+    color: #000000 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
   }
 }

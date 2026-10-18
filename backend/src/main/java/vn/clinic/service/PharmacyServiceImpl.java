@@ -1,6 +1,5 @@
 package vn.clinic.service;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import vn.clinic.dto.*;
@@ -21,14 +20,20 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class PharmacyServiceImpl implements PharmacyService {
 
     private final PharmacyDrugRepository pharmacyDrugRepository;
     private final StockTransactionRepository stockTransactionRepository;
 
+    public PharmacyServiceImpl(
+            PharmacyDrugRepository pharmacyDrugRepository,
+            StockTransactionRepository stockTransactionRepository) {
+        this.pharmacyDrugRepository = pharmacyDrugRepository;
+        this.stockTransactionRepository = stockTransactionRepository;
+    }
+
     // =========================================================================
-    // UC020: Quản lý danh mục thuốc
+    // Quản lý danh mục thuốc
     // =========================================================================
 
     @Override
@@ -53,9 +58,9 @@ public class PharmacyServiceImpl implements PharmacyService {
 
     @Override
     public PharmacyDrugDto createDrug(CreateDrugRequest request) {
-        // BR 5.1: Kiểm tra trùng mã thuốc
+        // Kiểm tra trùng mã thuốc
         if (pharmacyDrugRepository.existsByCode(request.getCode())) {
-            throw new DuplicateResourceException("Mã thuốc đã tồn tại trong danh mục hệ thống: " + request.getCode() + " (SRS UC020 BR 5.1)");
+            throw new DuplicateResourceException("Mã thuốc đã tồn tại trong danh mục hệ thống: " + request.getCode());
         }
 
         // Kiểm tra giá bán >= giá nhập
@@ -139,17 +144,17 @@ public class PharmacyServiceImpl implements PharmacyService {
     public PharmacyDrugDto toggleDrugStatus(String id) {
         PharmacyDrug drug = findDrugOrThrow(id);
 
-        // BR-24 & SRS UC020 BR 3.1: Không xóa vật lý, chuyển trạng thái ACTIVE <-> DISCONTINUED
+        // Không xóa vật lý, chuyển trạng thái ACTIVE <-> DISCONTINUED
         DrugStatus newStatus = (drug.getStatus() == DrugStatus.ACTIVE) ? DrugStatus.DISCONTINUED : DrugStatus.ACTIVE;
         drug.setStatus(newStatus);
 
         PharmacyDrug updated = pharmacyDrugRepository.save(drug);
-        log.info("Toggled drug status: id={}, newStatus={} (SRS BR-24)", id, newStatus);
+        log.info("Toggled drug status: id={}, newStatus={}", id, newStatus);
         return mapToDto(updated);
     }
 
     // =========================================================================
-    // UC021: Quản lý tồn kho thuốc
+    // Quản lý tồn kho thuốc
     // =========================================================================
 
     @Override
@@ -172,10 +177,10 @@ public class PharmacyServiceImpl implements PharmacyService {
                 break;
 
             case EXPORT:
-                // BR 3.1: Số lượng xuất kho không được lớn hơn số lượng tồn
+                // Số lượng xuất kho không được lớn hơn số lượng tồn
                 if (request.getQuantity() > currentStock) {
                     throw new BusinessRuleException(
-                            String.format("Số lượng xuất kho (%d) vượt quá số lượng tồn hiện tại (%d) của thuốc %s (SRS UC021 BR 3.1)",
+                            String.format("Số lượng xuất kho (%d) vượt quá số lượng tồn hiện tại (%d) của thuốc %s",
                                     request.getQuantity(), currentStock, drug.getName()));
                 }
                 change = -request.getQuantity();
@@ -191,7 +196,7 @@ public class PharmacyServiceImpl implements PharmacyService {
             case PRESCRIPTION_DISPENSE:
                 if (request.getQuantity() > currentStock) {
                     throw new BusinessRuleException(
-                            String.format("Không đủ tồn kho để cấp phát đơn thuốc. Tồn hiện tại: %d, yêu cầu: %d (SRS BR-15 & BR-19)",
+                            String.format("Không đủ tồn kho để cấp phát đơn thuốc. Tồn hiện tại: %d, yêu cầu: %d",
                                     currentStock, request.getQuantity()));
                 }
                 change = -request.getQuantity();
@@ -202,7 +207,7 @@ public class PharmacyServiceImpl implements PharmacyService {
         drug.setStockQuantity(newBalance);
         PharmacyDrug updated = pharmacyDrugRepository.save(drug);
 
-        // BR-22: Ghi nhận nhật ký biến động kho bắt buộc
+        // Ghi nhận nhật ký biến động kho bắt buộc
         StockTransaction tx = StockTransaction.builder()
                 .drugId(drug.getId())
                 .drugName(drug.getName())
@@ -216,9 +221,9 @@ public class PharmacyServiceImpl implements PharmacyService {
                 .build();
         stockTransactionRepository.save(tx);
 
-        // BR-21: Cảnh báo tồn kho nguy cấp khi tồn <= 10
+        // Cảnh báo tồn kho nguy cấp khi tồn <= 10
         if (newBalance <= 10) {
-            log.warn("CẢNH BÁO TỒN KHO NGUY CẤP: Thuốc {} (id={}) hiện chỉ còn {} đơn vị (ngưỡng <= 10 - SRS UC021 BR-21)",
+            log.warn("CẢNH BÁO TỒN KHO NGUY CẤP: Thuốc {} (id={}) hiện chỉ còn {} đơn vị (ngưỡng <= 10)",
                     drug.getName(), drug.getId(), newBalance);
         }
 
@@ -232,7 +237,7 @@ public class PharmacyServiceImpl implements PharmacyService {
             PharmacyDrug drug = findDrugOrThrow(item.getDrugId());
             if (item.getQuantity() > drug.getStockQuantity()) {
                 throw new BusinessRuleException(
-                        String.format("Không đủ thuốc '%s' trong kho để trừ đơn viện phí. Tồn kho: %d, yêu cầu trừ: %d (SRS BR-19)",
+                        String.format("Không đủ thuốc '%s' trong kho để trừ đơn viện phí. Tồn kho: %d, yêu cầu trừ: %d",
                                 drug.getName(), drug.getStockQuantity(), item.getQuantity()));
             }
         }
@@ -307,7 +312,7 @@ public class PharmacyServiceImpl implements PharmacyService {
 
     private void validatePrices(BigDecimal importPrice, BigDecimal salePrice) {
         if (importPrice != null && salePrice != null && salePrice.compareTo(importPrice) < 0) {
-            throw new BusinessRuleException("Giá bán thuốc không được nhỏ hơn giá nhập (SRS BR 3.1)");
+            throw new BusinessRuleException("Giá bán thuốc không được nhỏ hơn giá nhập");
         }
     }
 

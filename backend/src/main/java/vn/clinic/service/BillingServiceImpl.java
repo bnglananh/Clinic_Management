@@ -1,6 +1,5 @@
 package vn.clinic.service;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import vn.clinic.dto.*;
@@ -20,7 +19,6 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class BillingServiceImpl implements BillingService {
 
     private final BillRepository billRepository;
@@ -28,6 +26,19 @@ public class BillingServiceImpl implements BillingService {
     private final PharmacyDrugRepository pharmacyDrugRepository;
     private final PatientProfileRepository patientProfileRepository;
     private final NotificationService notificationService;
+
+    public BillingServiceImpl(
+            BillRepository billRepository,
+            PharmacyService pharmacyService,
+            PharmacyDrugRepository pharmacyDrugRepository,
+            PatientProfileRepository patientProfileRepository,
+            NotificationService notificationService) {
+        this.billRepository = billRepository;
+        this.pharmacyService = pharmacyService;
+        this.pharmacyDrugRepository = pharmacyDrugRepository;
+        this.patientProfileRepository = patientProfileRepository;
+        this.notificationService = notificationService;
+    }
 
     private static final String BANK_CODE = "VCB";
     private static final String ACCOUNT_NO = "0903123456";
@@ -193,7 +204,7 @@ public class BillingServiceImpl implements BillingService {
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy hóa đơn: " + billId));
 
         if (bill.getPaymentStatus() == PaymentStatus.PAID) {
-            throw new BusinessRuleException("Hóa đơn " + bill.getBillCode() + " đã được thanh toán trước đó (SRS BR-19)");
+            throw new BusinessRuleException("Hóa đơn " + bill.getBillCode() + " đã được thanh toán trước đó.");
         }
 
         if (request.getCashReceived() == null || request.getCashReceived() < bill.getTotalAmount()) {
@@ -215,7 +226,7 @@ public class BillingServiceImpl implements BillingService {
             bill.setNotes(request.getNotes());
         }
 
-        // UC021: Kích hoạt tự động trừ kho thuốc và bảo vệ không trừ hai lần
+        // Kích hoạt tự động trừ kho thuốc và bảo vệ không trừ hai lần
         deductMedicineStockIfEligible(bill);
 
         Bill saved = billRepository.save(bill);
@@ -231,7 +242,7 @@ public class BillingServiceImpl implements BillingService {
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy hóa đơn: " + billId));
 
         if (bill.getPaymentStatus() == PaymentStatus.PAID) {
-            throw new BusinessRuleException("Hóa đơn " + bill.getBillCode() + " đã được xác nhận thanh toán trước đó (SRS BR-19)");
+            throw new BusinessRuleException("Hóa đơn " + bill.getBillCode() + " đã được xác nhận thanh toán trước đó.");
         }
 
         String nowStr = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
@@ -249,7 +260,7 @@ public class BillingServiceImpl implements BillingService {
             bill.setNotes(request.getNotes());
         }
 
-        // UC021: Kích hoạt tự động trừ kho thuốc và bảo vệ không trừ hai lần
+        // Kích hoạt tự động trừ kho thuốc và bảo vệ không trừ hai lần
         deductMedicineStockIfEligible(bill);
 
         Bill saved = billRepository.save(bill);
@@ -324,13 +335,13 @@ public class BillingServiceImpl implements BillingService {
     }
 
     // =========================================================================
-    // UC021: Nghiệp vụ trừ kho thuốc tự động & phòng ngừa trừ kho 2 lần
+    // Nghiệp vụ trừ kho thuốc tự động & phòng ngừa trừ kho 2 lần
     // =========================================================================
 
     private void deductMedicineStockIfEligible(Bill bill) {
-        // BR-19 & UC021: Kiểm tra cờ idempotency - Tránh trừ kho 2 lần
+        // Kiểm tra cờ idempotency - Tránh trừ kho 2 lần
         if (bill.isStockDeducted()) {
-            log.info("Hóa đơn {} đã được trừ kho thuốc trước đó. Bỏ qua để tránh trừ kho hai lần (UC021)", bill.getBillCode());
+            log.info("Hóa đơn {} đã được trừ kho thuốc trước đó. Bỏ qua để tránh trừ kho hai lần", bill.getBillCode());
             return;
         }
 
@@ -362,7 +373,7 @@ public class BillingServiceImpl implements BillingService {
                         .items(deductionItems)
                         .performedBy(bill.getCashierName() != null ? bill.getCashierName() : "cashier")
                         .build());
-                log.info("Đã trừ tồn kho tự động {} mặt hàng thuốc cho hóa đơn {} (SRS BR-19 & UC021)",
+                log.info("Đã trừ tồn kho tự động {} mặt hàng thuốc cho hóa đơn {}",
                         deductionItems.size(), bill.getBillCode());
             } catch (Exception ex) {
                 log.error("Lỗi khi trừ kho thuốc cho hóa đơn {}: {}", bill.getBillCode(), ex.getMessage(), ex);

@@ -52,14 +52,16 @@ npm start
 
 ## 4. TÀI KHOẢN VÀ CÁC PHÂN HỆ SỬ DỤNG
 
-Truy cập trang đăng nhập tại: `http://localhost:4200/auth/login` (có sẵn nút bấm chuyển nhanh vai trò 1-chạm):
+Truy cập trang đăng nhập tại: `http://localhost:4200/auth/login` (hỗ trợ chuyển nhanh vai trò 1-chạm hoặc nhập tài khoản thủ công):
 
-| Phân hệ | Tài khoản | Vai trò | Chức năng chính |
-|---|---|---|---|
-| **Lễ tân & Thu ngân** | `letan` | `RECEPTIONIST` | Tiếp đón khám, cấp số thứ tự tự động, quản lý hàng đợi, thanh toán viện phí VietQR |
-| **Bác sĩ Lâm sàng** | `bacsi` | `DOCTOR` | Không gian khám bệnh lâm sàng, nhập 5 chỉ số sinh hiệu & BMI, chẩn đoán ICD-10, kê toa & cảnh báo tương tác thuốc DDI, khóa bệnh án EMR |
-| **Quản trị hệ thống** | `admin` | `ADMIN` | Quản lý nhân sự & phân quyền RBAC, quản lý tồn kho thuốc & cảnh báo cận kiệt, cấu hình dịch vụ y tế, lịch trực bác sĩ |
-| **Cổng Bệnh nhân** | `benhnhan` | `PATIENT` | Đặt lịch khám 4 bước, theo dõi số thứ tự hàng đợi thời gian thực, xem lịch sử bệnh án & đơn thuốc, nhận thông báo nhắc hẹn |
+| Phân hệ | Tài khoản | Mật khẩu | Vai trò (Role) | Chức năng chính |
+|---|---|---|---|---|
+| **Lễ tân & Thu ngân** | `letan` | `123456` | `RECEPTIONIST` | Tiếp đón khám, cấp số thứ tự tự động, quản lý hàng đợi, thanh toán viện phí VietQR |
+| **Bác sĩ Lâm sàng** | `bacsi` | `123456` | `DOCTOR` | Không gian khám bệnh lâm sàng, nhập 5 chỉ số sinh hiệu & BMI, chẩn đoán ICD-10, kê toa & cảnh báo tương tác thuốc DDI, khóa bệnh án EMR |
+| **Quản trị hệ thống** | `admin` | `123456` | `ADMIN` | Quản lý nhân sự & phân quyền RBAC, quản lý tồn kho thuốc & cảnh báo cận kiệt, cấu hình dịch vụ y tế, lịch trực bác sĩ |
+| **Cổng Bệnh nhân** | `benhnhan` | `123456` | `PATIENT` | Đặt lịch khám 4 bước, theo dõi số thứ tự hàng đợi thời gian thực, xem lịch sử bệnh án & đơn thuốc, nhận thông báo nhắc hẹn |
+
+> 🔑 **Ghi chú**: Mật khẩu mặc định cho toàn bộ 4 tài khoản thử nghiệm là **`123456`**. Bạn có thể nhấn icon con mắt tại ô mật khẩu để kiểm tra hoặc bấm trực tiếp vào thẻ vai trò để hệ thống tự động điền sẵn.
 
 ---
 

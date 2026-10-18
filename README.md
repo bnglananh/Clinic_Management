@@ -128,14 +128,18 @@ Hệ thống hỗ trợ cơ chế đăng nhập nhanh 1-chạm (1-Click Switch R
 
 | Vai trò (Role) | Tên người dùng | Mật khẩu | Chức danh & Quyền hạn | Đường dẫn chính |
 |---|---|---|---|---|
-| **Lễ tân / Thu ngân** (`RECEPTIONIST`) | `letan` | *Bất kỳ* | Tiếp đón bệnh nhân, cấp STT hàng đợi, thu viện phí VietQR | `http://localhost:4200/reception/checkin`<br>`http://localhost:4200/reception/queue`<br>`http://localhost:4200/reception/billing` |
-| **Bác sĩ Chuyên khoa** (`DOCTOR`) | `bacsi` | *Bất kỳ* | Khám bệnh lâm sàng, theo dõi sinh hiệu, chẩn đoán ICD-10, kê đơn & kiểm tra tương tác thuốc (DDI), khóa EMR | `http://localhost:4200/doctor/workspace`<br>`http://localhost:4200/doctor/queue` |
-| **Quản trị viên** (`ADMIN`) | `admin` | *Bất kỳ* | Quản lý tài khoản nhân sự & RBAC, quản lý danh mục kho dược, dịch vụ kỹ thuật, ca trực | `http://localhost:4200/admin/users`<br>`http://localhost:4200/admin/pharmacy`<br>`http://localhost:4200/admin/services` |
-| **Bệnh nhân** (`PATIENT`) | `benhnhan` | *Bất kỳ* | Đặt lịch khám trực tuyến, theo dõi tiến trình số khám, xem hồ sơ bệnh án cũ, nhận thông báo | `http://localhost:4200/patient/dashboard`<br>`http://localhost:4200/patient/booking`<br>`http://localhost:4200/patient/records` |
+| **Lễ tân / Thu ngân** (`RECEPTIONIST`) | `letan` | `123456` | Tiếp đón bệnh nhân, cấp STT hàng đợi, thu viện phí VietQR | `http://localhost:4200/reception/checkin`<br>`http://localhost:4200/reception/queue`<br>`http://localhost:4200/reception/billing` |
+| **Bác sĩ Chuyên khoa** (`DOCTOR`) | `bacsi` | `123456` | Khám bệnh lâm sàng, theo dõi sinh hiệu, chẩn đoán ICD-10, kê đơn & kiểm tra tương tác thuốc (DDI), khóa EMR | `http://localhost:4200/doctor/workspace`<br>`http://localhost:4200/doctor/queue` |
+| **Quản trị viên** (`ADMIN`) | `admin` | `123456` | Quản lý tài khoản nhân sự & RBAC, quản lý danh mục kho dược, dịch vụ kỹ thuật, ca trực | `http://localhost:4200/admin/users`<br>`http://localhost:4200/admin/pharmacy`<br>`http://localhost:4200/admin/services` |
+| **Bệnh nhân** (`PATIENT`) | `benhnhan` | `123456` | Đặt lịch khám trực tuyến, theo dõi tiến trình số khám, xem hồ sơ bệnh án cũ, nhận thông báo | `http://localhost:4200/patient/dashboard`<br>`http://localhost:4200/patient/booking`<br>`http://localhost:4200/patient/records` |
+
+> 💡 **Mẹo thử nghiệm nhanh**:
+> - Tại màn hình `http://localhost:4200/auth/login`, bạn có thể bấm trực tiếp vào thẻ vai trò (Role Card) tương ứng để hệ thống tự động điền sẵn tên đăng nhập và mật khẩu `123456`.
+> - Nút biểu tượng mắt (Show/Hide Password) cho phép kiểm tra mật khẩu đã nhập trước khi nhấn Đăng nhập.
 
 ### Các đường dẫn công khai (Không cần đăng nhập):
 - **Trang chủ giới thiệu**: `http://localhost:4200/`
-- **Màn hình sảnh chờ TV (Lobby Queue Display)**: `http://localhost:4200/lobby`
+- **Màn hình sảnh chờ TV (Lobby Queue Display)**: `http://localhost:4200/lobby-display`
 - **Đăng ký tài khoản bệnh nhân**: `http://localhost:4200/auth/register`
 
 ---

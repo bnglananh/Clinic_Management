@@ -20,12 +20,14 @@ import {
   INITIAL_ACTIVE_RECORD,
 } from '../mock-data/doctor-mock-data';
 import { QueueService } from './queue.service';
+import { NotificationService } from './notification.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class MedicalService {
   private queueService = inject(QueueService);
+  private notifService = inject(NotificationService);
 
   // Active Medical Record Signal
   private activeRecordSignal = signal<MedicalRecord>(INITIAL_ACTIVE_RECORD);
@@ -235,7 +237,32 @@ export class MedicalService {
   }
 
   /**
+   * Chuyển bệnh nhân đi làm Cận Lâm Sàng (Tạm lưu Draft, cập nhật Queue sang WAITING_RESULTS)
+   */
+  sendPatientToClinicalServices(): void {
+    const record = this.activeRecordSignal();
+    if (!record.services || record.services.length === 0) return;
+
+    this.activeRecordSignal.update((r) => ({
+      ...r,
+      status: 'WAITING_RESULTS',
+    }));
+
+    this.queueService.sendToClinicalServices(record.ticketNumber, record.services.length);
+
+    this.notifService.sendNotification({
+      userId: record.patientId || 'usr-pat-01',
+      title: 'Chỉ định cận lâm sàng',
+      content: `Bác sĩ ${record.doctorName} đã chỉ định ${record.services.length} dịch vụ kỹ thuật. Vui lòng di chuyển đến các phòng chức năng để thực hiện.`,
+      type: 'QUEUE',
+      referenceId: record.id,
+      channel: 'IN_APP',
+    });
+  }
+
+  /**
    * Update service result (Simulate lab return)
+   * Tự động tính toán tiến độ: khi đủ tất cả dịch vụ sẽ chuyển sang RESULTS_READY và bắn notification
    */
   updateServiceResult(orderId: string, resultSummary: string): void {
     this.activeRecordSignal.update((record) => {
@@ -251,7 +278,41 @@ export class MedicalService {
         }
         return s;
       });
-      return { ...record, services: updatedServices };
+
+      const doneCount = updatedServices.filter((s) => s.status === 'COMPLETED').length;
+      const totalCount = updatedServices.length;
+      const isAllDone = totalCount > 0 && doneCount >= totalCount;
+
+      // Cập nhật tiến độ hàng đợi Real-time
+      this.queueService.updateClinicalProgress(record.ticketNumber, doneCount, totalCount);
+
+      if (isAllDone) {
+        // Thông báo đến Bác sĩ
+        this.notifService.sendNotification({
+          userId: record.doctorId || 'usr-doc-01',
+          title: 'Đã có đầy đủ kết quả CLS',
+          content: `Bệnh nhân ${record.patientName} (${record.ticketNumber}) đã hoàn thành đủ ${totalCount}/${totalCount} dịch vụ cận lâm sàng. Sẵn sàng gọi vào phòng kết luận.`,
+          type: 'MEDICAL_RECORD',
+          referenceId: record.id,
+          channel: 'IN_APP',
+        });
+
+        // Thông báo đến Bệnh nhân
+        this.notifService.sendNotification({
+          userId: record.patientId || 'usr-pat-01',
+          title: 'Kết quả cận lâm sàng đã có',
+          content: `Kết quả cận lâm sàng của bạn đã hoàn tất. Mời bạn quay trở lại ${record.roomName} để Bác sĩ đọc kết quả và kết luận.`,
+          type: 'MEDICAL_RECORD',
+          referenceId: record.id,
+          channel: 'IN_APP',
+        });
+      }
+
+      return {
+        ...record,
+        services: updatedServices,
+        status: isAllDone ? 'RESULTS_READY' : record.status,
+      };
     });
   }
 
@@ -327,7 +388,7 @@ export class MedicalService {
   }
 
   /**
-   * Complete and Lock EMR Record (BR-23)
+   * Complete and Lock EMR Record
    * Status transitions to COMPLETED, isLocked becomes true.
    * Queue ticket transitions from IN_PROGRESS to COMPLETED.
    */
@@ -358,7 +419,7 @@ export class MedicalService {
   }
 
   /**
-   * Add amendment / supplementary version to locked EMR (BR-23)
+   * Add amendment / supplementary version to locked EMR
    * Strictly no direct overwrite of past medical data; append audit addendum.
    */
   addAmendment(reason: string, addendumContent: string): Observable<MedicalRecordAmendment> {

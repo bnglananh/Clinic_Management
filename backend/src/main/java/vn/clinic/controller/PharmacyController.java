@@ -1,7 +1,6 @@
 package vn.clinic.controller;
 
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,13 +12,16 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/admin/pharmacy")
-@RequiredArgsConstructor
 public class PharmacyController {
 
     private final PharmacyService pharmacyService;
 
+    public PharmacyController(PharmacyService pharmacyService) {
+        this.pharmacyService = pharmacyService;
+    }
+
     // =========================================================================
-    // UC020: Quản lý danh mục thuốc
+    // Quản lý danh mục thuốc
     // =========================================================================
 
     @GetMapping("/drugs")
@@ -64,12 +66,12 @@ public class PharmacyController {
         PharmacyDrugDto updated = pharmacyService.toggleDrugStatus(id);
         String msg = (updated.getStatus() == DrugStatus.ACTIVE)
                 ? "Kích hoạt kinh doanh thuốc thành công"
-                : "Chuyển trạng thái ngừng kinh doanh thuốc thành công (SRS BR-24)";
+                : "Chuyển trạng thái ngừng kinh doanh thuốc thành công";
         return ResponseEntity.ok(ApiResponse.success(updated, msg));
     }
 
     // =========================================================================
-    // UC021: Quản lý tồn kho thuốc
+    // Quản lý tồn kho thuốc
     // =========================================================================
 
     @PostMapping("/drugs/{id}/stock")
@@ -83,7 +85,7 @@ public class PharmacyController {
     @PostMapping("/drugs/batch-deduct")
     public ResponseEntity<ApiResponse<Void>> batchDeductStock(@Valid @RequestBody BatchDeductStockRequest request) {
         pharmacyService.batchDeductStock(request);
-        return ResponseEntity.ok(ApiResponse.success(null, "Tự động trừ kho thuốc sau thanh toán viện phí thành công (SRS BR-19)"));
+        return ResponseEntity.ok(ApiResponse.success(null, "Tự động trừ kho thuốc sau thanh toán viện phí thành công"));
     }
 
     @GetMapping("/drugs/low-stock")

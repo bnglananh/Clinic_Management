@@ -114,8 +114,8 @@ export interface MedicalRecord {
   prescriptions: PrescriptionItem[];
   doctorAdvice: string;
   followUpDays?: number;
-  isLocked: boolean; // BR-23: true when COMPLETED
-  status: 'IN_PROGRESS' | 'COMPLETED';
+  isLocked: boolean; // true when COMPLETED
+  status: 'IN_PROGRESS' | 'WAITING_RESULTS' | 'RESULTS_READY' | 'COMPLETED';
   version: number;
   amendments: MedicalRecordAmendment[];
   completedAt?: string;

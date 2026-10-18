@@ -13,7 +13,7 @@ import { ClinicIconComponent } from '../../../shared/components/clinic-icon/clin
   imports: [CommonModule, FormsModule, PageHeaderComponent, ClinicIconComponent],
   template: `
     <app-page-header
-      badgeText="PHÂN HỆ QUẢN TRỊ VIÊN • UC019"
+      badgeText="PHÂN HỆ QUẢN TRỊ VIÊN"
       title="Quản Lý Tài Khoản Nhân Viên & Phân Quyền (RBAC)"
       subtitle="Thiết lập tài khoản người dùng nội bộ, cấp quyền truy cập theo vai trò và kiểm soát trạng thái hoạt động."
     >

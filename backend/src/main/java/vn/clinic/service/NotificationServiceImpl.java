@@ -1,6 +1,5 @@
 package vn.clinic.service;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import vn.clinic.dto.NotificationDto;
@@ -18,10 +17,13 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class NotificationServiceImpl implements NotificationService {
 
     private final NotificationRepository notificationRepository;
+
+    public NotificationServiceImpl(NotificationRepository notificationRepository) {
+        this.notificationRepository = notificationRepository;
+    }
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
     @Override

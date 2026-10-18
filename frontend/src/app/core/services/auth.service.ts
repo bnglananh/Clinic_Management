@@ -76,13 +76,17 @@ export class AuthService {
     return null;
   }
 
-  login(role: UserRole): Observable<User> {
+  login(role: UserRole, returnUrl?: string): Observable<User> {
     const user = MOCK_USERS[role];
     return of(user).pipe(
       delay(300),
       tap((loggedInUser) => {
         this.setUser(loggedInUser);
-        this.redirectAfterLogin(loggedInUser.role);
+        if (returnUrl) {
+          this.router.navigateByUrl(returnUrl);
+        } else {
+          this.redirectAfterLogin(loggedInUser.role);
+        }
       })
     );
   }

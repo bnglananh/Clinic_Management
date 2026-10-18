@@ -18,10 +18,10 @@ public class StockAdjustmentRequest {
     @NotNull(message = "Loại biến động kho không được để trống (IMPORT, EXPORT, ADJUSTMENT)")
     private StockTransactionType type;
 
-    @Min(value = 1, message = "Số lượng điều chỉnh kho phải lớn hơn 0 (SRS UC021 BR 4.1)")
+    @Min(value = 1, message = "Số lượng điều chỉnh kho phải lớn hơn 0")
     private int quantity;
 
-    @NotBlank(message = "Lý do biến động kho không được để trống (SRS UC021 BR-22)")
+    @NotBlank(message = "Lý do biến động kho không được để trống")
     private String reason;
 
     private String batchNumber;

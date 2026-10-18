@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/services/auth.service';
 import { UserRole } from '../../core/models/user.model';
 import { ClinicIconComponent, ClinicIconName } from '../../shared/components/clinic-icon/clinic-icon.component';
+import { NotificationCenterComponent } from '../../shared/components/notification-center/notification-center.component';
 
 interface MenuItem {
   title: string;
@@ -15,7 +16,7 @@ interface MenuItem {
 @Component({
   selector: 'app-internal-layout',
   standalone: true,
-  imports: [CommonModule, RouterModule, ClinicIconComponent],
+  imports: [CommonModule, RouterModule, ClinicIconComponent, NotificationCenterComponent],
   template: `
     <div class="internal-container" [class.sidebar-collapsed]="isCollapsed()">
       <!-- Sidebar -->
@@ -23,7 +24,7 @@ interface MenuItem {
         <!-- Logo Header -->
         <div class="sidebar-brand">
           <div class="brand-symbol">
-            <app-clinic-icon name="medical-cross" [size]="20" color="#B8955A"></app-clinic-icon>
+            <app-clinic-icon name="medical-cross" [size]="20" color="#ECC880"></app-clinic-icon>
           </div>
           @if (!isCollapsed()) {
             <div class="brand-text">
@@ -100,18 +101,13 @@ interface MenuItem {
           <div class="header-right">
 
             <!-- Notifications -->
-            <button class="icon-action-btn" title="Thông báo hệ thống">
-              <app-clinic-icon name="bell" [size]="18" color="#5B6672"></app-clinic-icon>
-              <span class="badge-dot"></span>
-            </button>
+            <app-notification-center></app-notification-center>
 
             <!-- User Profile Dropdown / Card -->
             <div class="user-profile-widget">
-              <img
-                [src]="currentUser()?.avatarUrl"
-                [alt]="currentUser()?.fullName"
-                class="user-avatar"
-              />
+              <div class="user-avatar-badge font-serif" [title]="currentUser()?.fullName || 'Người dùng'">
+                {{ userMonogram() }}
+              </div>
               <div class="user-info-text">
                 <span class="user-name">{{ currentUser()?.fullName }}</span>
                 <span class="user-department">{{ currentUser()?.title || currentUser()?.department }}</span>
@@ -172,12 +168,12 @@ interface MenuItem {
         width: 36px;
         height: 36px;
         background: linear-gradient(135deg, #0E4A55 0%, #15333C 100%);
-        border: 1px solid #B8955A;
+        border: 1px solid #ECC880;
         border-radius: 9px;
         display: flex;
         align-items: center;
         justify-content: center;
-        color: #B8955A;
+        color: #ECC880;
         font-weight: 700;
         font-size: 1.125rem;
         flex-shrink: 0;
@@ -198,15 +194,15 @@ interface MenuItem {
       .brand-sub {
         font-size: 0.6875rem;
         letter-spacing: 0.1em;
-        color: #B8955A;
-        font-weight: 500;
+        color: #ECC880;
+        font-weight: 600;
       }
 
       .sidebar-role-pill {
         margin: 16px 16px 8px 16px;
         padding: 8px 14px;
-        background: rgba(184, 149, 90, 0.12);
-        border: 1px solid rgba(184, 149, 90, 0.25);
+        background: rgba(236, 200, 128, 0.12);
+        border: 1px solid rgba(236, 200, 128, 0.28);
         border-radius: 8px;
         display: flex;
         align-items: center;
@@ -216,13 +212,13 @@ interface MenuItem {
           width: 7px;
           height: 7px;
           border-radius: 50%;
-          background: #B8955A;
+          background: #ECC880;
         }
 
         .role-name {
           font-size: 0.8125rem;
           font-weight: 600;
-          color: #E6CE9F;
+          color: #F0D8AA;
         }
       }
 
@@ -265,12 +261,12 @@ interface MenuItem {
             top: 20%;
             bottom: 20%;
             width: 3.5px;
-            background: #B8955A;
+            background: #ECC880;
             border-radius: 0 4px 4px 0;
           }
 
           .nav-icon {
-            color: #B8955A;
+            color: #ECC880;
           }
         }
       }
@@ -435,12 +431,20 @@ interface MenuItem {
         padding-left: 12px;
         border-left: 1px solid rgba(228, 222, 210, 0.7);
 
-        .user-avatar {
+        .user-avatar-badge {
           width: 38px;
           height: 38px;
           border-radius: 10px;
-          object-fit: cover;
-          border: 1.5px solid #B8955A;
+          background: rgba(14, 74, 85, 0.1);
+          color: #0E4A55;
+          border: 1.5px solid rgba(14, 74, 85, 0.25);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: 700;
+          font-size: 0.85rem;
+          letter-spacing: 0.5px;
+          flex-shrink: 0;
         }
 
         .user-info-text {
@@ -498,6 +502,18 @@ export class InternalLayoutComponent {
   isCollapsed = signal<boolean>(false);
   currentUser = this.authService.currentUser;
   currentRole = this.authService.currentRole;
+
+  userMonogram = computed(() => {
+    const user = this.currentUser();
+    if (!user) return 'NV';
+    if (user.role === 'DOCTOR') return 'BS';
+    if (user.role === 'ADMIN') return 'AD';
+    if (user.role === 'RECEPTIONIST') return 'TN';
+    const name = user.fullName?.trim() || '';
+    if (!name) return 'ND';
+    const parts = name.split(/\s+/);
+    return parts[parts.length - 1].slice(0, 2).toUpperCase();
+  });
 
   roleDisplayName = computed(() => {
     const role = this.currentRole();

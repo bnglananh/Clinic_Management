@@ -109,7 +109,7 @@ public class InMemoryStaffAccountRepository implements StaffAccountRepository {
                 .updatedAt("2024-06-15")
                 .build());
 
-        // System Administrator (UC019: Last remaining admin protection test)
+        // System Administrator
         save(StaffAccount.builder()
                 .id("STAFF-06")
                 .username("son.le")
@@ -128,7 +128,7 @@ public class InMemoryStaffAccountRepository implements StaffAccountRepository {
                 .updatedAt("2023-11-01")
                 .build());
 
-        // Locked account (UC019: Test lock / unlock)
+        // Locked account
         save(StaffAccount.builder()
                 .id("STAFF-07")
                 .username("duy.tran")

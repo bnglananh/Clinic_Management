@@ -1,7 +1,6 @@
 package vn.clinic.controller;
 
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,13 +12,16 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/admin/users")
-@RequiredArgsConstructor
 public class StaffAccountController {
 
     private final StaffAccountService staffAccountService;
 
+    public StaffAccountController(StaffAccountService staffAccountService) {
+        this.staffAccountService = staffAccountService;
+    }
+
     /**
-     * UC019 - Bước 2: Hiển thị danh sách tài khoản nhân viên (hỗ trợ lọc theo vai trò và tìm kiếm)
+     * Hiển thị danh sách tài khoản nhân viên (hỗ trợ lọc theo vai trò và tìm kiếm)
      */
     @GetMapping
     public ResponseEntity<ApiResponse<List<StaffAccountDto>>> getAllAccounts(
@@ -30,7 +32,7 @@ public class StaffAccountController {
     }
 
     /**
-     * UC019: Xem chi tiết tài khoản nhân viên theo ID
+     * Xem chi tiết tài khoản nhân viên theo ID
      */
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<StaffAccountDto>> getAccountById(@PathVariable String id) {
@@ -39,8 +41,8 @@ public class StaffAccountController {
     }
 
     /**
-     * UC019 - Bước 3: Tạo mới tài khoản nhân viên
-     * BR 3.1: Kiểm tra trùng thông tin đăng nhập
+     * Tạo mới tài khoản nhân viên
+     * Kiểm tra trùng thông tin đăng nhập
      */
     @PostMapping
     public ResponseEntity<ApiResponse<StaffAccountDto>> createAccount(
@@ -51,7 +53,7 @@ public class StaffAccountController {
     }
 
     /**
-     * UC019 - Bước 3 & 6: Cập nhật thông tin tài khoản
+     * Cập nhật thông tin tài khoản
      */
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<StaffAccountDto>> updateAccount(
@@ -62,9 +64,9 @@ public class StaffAccountController {
     }
 
     /**
-     * UC019 - Bước 3: Khóa hoặc mở khóa tài khoản
-     * BR 3.2: Tài khoản bị khóa không thể đăng nhập
-     * BR 3.3: Không cho phép khóa tài khoản quản trị viên cuối cùng
+     * Khóa hoặc mở khóa tài khoản
+     * Tài khoản bị khóa không thể đăng nhập
+     * Không cho phép khóa tài khoản quản trị viên cuối cùng
      */
     @PatchMapping("/{id}/toggle-status")
     public ResponseEntity<ApiResponse<StaffAccountDto>> toggleAccountStatus(@PathVariable String id) {
@@ -74,7 +76,7 @@ public class StaffAccountController {
     }
 
     /**
-     * UC019 - Bước 4 & 5: Gán vai trò và phân quyền (RBAC)
+     * Gán vai trò và phân quyền (RBAC)
      */
     @PutMapping("/{id}/permissions")
     public ResponseEntity<ApiResponse<StaffAccountDto>> assignRoleAndPermissions(
@@ -85,7 +87,7 @@ public class StaffAccountController {
     }
 
     /**
-     * UC019: Đặt lại mật khẩu nhân viên
+     * Đặt lại mật khẩu nhân viên
      */
     @PostMapping("/{id}/reset-password")
     public ResponseEntity<ApiResponse<Void>> resetPassword(
@@ -96,7 +98,7 @@ public class StaffAccountController {
     }
 
     /**
-     * UC019: Danh mục vai trò và quyền hạn RBAC của hệ thống
+     * Danh mục vai trò và quyền hạn RBAC của hệ thống
      */
     @GetMapping("/roles-permissions")
     public ResponseEntity<ApiResponse<List<RolePermissionInfo>>> getRolesAndPermissionsMetadata() {

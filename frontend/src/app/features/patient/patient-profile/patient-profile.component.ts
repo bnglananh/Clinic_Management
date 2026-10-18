@@ -33,11 +33,8 @@ type ProfileTab = 'general' | 'medical' | 'security' | 'ecard';
       <!-- Profile Header / Hero Card -->
       <div class="profile-hero-card clinic-card">
         <div class="hero-left">
-          <div class="avatar-wrapper">
-            <img [src]="profile()?.avatarUrl" [alt]="profile()?.fullName" class="avatar-img" />
-            <button class="avatar-edit-btn" (click)="toggleAvatarModal()" title="Thay đổi ảnh đại diện">
-              <app-clinic-icon name="edit" [size]="14"></app-clinic-icon>
-            </button>
+          <div class="patient-id-badge-circle font-serif">
+            <app-clinic-icon name="user" [size]="32" color="#0E4A55"></app-clinic-icon>
           </div>
           <div class="user-meta">
             <div class="name-tier-row">
@@ -372,7 +369,7 @@ type ProfileTab = 'general' | 'medical' | 'security' | 'ecard';
                   <app-clinic-icon name="alert-triangle" [size]="20" color="#9B3D45"></app-clinic-icon>
                 </div>
                 <div class="alert-text-wrap">
-                  <span class="alert-title">LƯU Ý ĐẶC BIỆT VỀ TIỀN SỬ DỊ ỨNG (BR-03 / DDI)</span>
+                  <span class="alert-title">LƯU Ý ĐẶC BIỆT VỀ TIỀN SỬ DỊ ỨNG & TƯƠNG TÁC THUỐC</span>
                   <p class="alert-p">
                     Khi ghi nhận tiền sử dị ứng thuốc (như Penicillin, Cephalosporin, Aspirin...), hệ thống tự động
                     kết nối cơ sở tri thức để cảnh báo xung đột (DDI) ngay tại màn hình kê đơn của bác sĩ khám.
@@ -494,14 +491,14 @@ type ProfileTab = 'general' | 'medical' | 'security' | 'ecard';
             </div>
           }
 
-          <!-- TAB 3: TÀI KHOẢN & BẢO MẬT (UC01 - ĐỔI MẬT KHẨU) -->
+          <!-- TAB 3: TÀI KHOẢN & BẢO MẬT (ĐỔI MẬT KHẨU) -->
           @if (activeTab() === 'security') {
             <div class="tab-section animate-fade-in">
               <div class="section-top-bar">
                 <div>
                   <h2 class="section-heading font-serif">Bảo mật tài khoản & Đổi mật khẩu</h2>
                   <p class="section-sub">
-                    Thực hiện nghiệp vụ UC01 (Bước 4): Đổi mật khẩu bảo mật và kiểm tra quy tắc an toàn (SRS BR 4.1 & BR 4.2)
+                    Cập nhật mật khẩu định kỳ để bảo vệ tài khoản và lịch sử bệnh án điện tử.
                   </p>
                 </div>
               </div>
@@ -515,11 +512,11 @@ type ProfileTab = 'general' | 'medical' | 'security' | 'ecard';
                   </li>
                   <li>
                     <app-clinic-icon name="check" [size]="13" color="#5E8B7E"></app-clinic-icon>
-                    Mật khẩu mới không được trùng với mật khẩu hiện tại (BR 4.2).
+                    Mật khẩu mới không được trùng với mật khẩu hiện tại.
                   </li>
                   <li>
                     <app-clinic-icon name="check" [size]="13" color="#5E8B7E"></app-clinic-icon>
-                    Hệ thống tự động kiểm tra chính xác mật khẩu cũ trước khi cập nhật (BR 4.1).
+                    Hệ thống tự động kiểm tra chính xác mật khẩu cũ trước khi cập nhật.
                   </li>
                 </ul>
               </div>
@@ -542,8 +539,10 @@ type ProfileTab = 'general' | 'medical' | 'security' | 'ecard';
                       type="button"
                       class="pass-toggle-btn"
                       (click)="showCurrentPass.set(!showCurrentPass())"
+                      [attr.aria-label]="showCurrentPass() ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'"
+                      [title]="showCurrentPass() ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'"
                     >
-                      <app-clinic-icon [name]="showCurrentPass() ? 'unlock' : 'lock'" [size]="15"></app-clinic-icon>
+                      <app-clinic-icon [name]="showCurrentPass() ? 'eye-off' : 'eye'" [size]="15"></app-clinic-icon>
                     </button>
                   </div>
                 </div>
@@ -565,8 +564,10 @@ type ProfileTab = 'general' | 'medical' | 'security' | 'ecard';
                       type="button"
                       class="pass-toggle-btn"
                       (click)="showNewPass.set(!showNewPass())"
+                      [attr.aria-label]="showNewPass() ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'"
+                      [title]="showNewPass() ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'"
                     >
-                      <app-clinic-icon [name]="showNewPass() ? 'unlock' : 'lock'" [size]="15"></app-clinic-icon>
+                      <app-clinic-icon [name]="showNewPass() ? 'eye-off' : 'eye'" [size]="15"></app-clinic-icon>
                     </button>
                   </div>
                   @if (passwordForm.get('newPassword')?.touched && passwordForm.get('newPassword')?.invalid) {
@@ -591,8 +592,10 @@ type ProfileTab = 'general' | 'medical' | 'security' | 'ecard';
                       type="button"
                       class="pass-toggle-btn"
                       (click)="showConfirmPass.set(!showConfirmPass())"
+                      [attr.aria-label]="showConfirmPass() ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'"
+                      [title]="showConfirmPass() ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'"
                     >
-                      <app-clinic-icon [name]="showConfirmPass() ? 'unlock' : 'lock'" [size]="15"></app-clinic-icon>
+                      <app-clinic-icon [name]="showConfirmPass() ? 'eye-off' : 'eye'" [size]="15"></app-clinic-icon>
                     </button>
                   </div>
                 </div>
@@ -715,52 +718,6 @@ type ProfileTab = 'general' | 'medical' | 'security' | 'ecard';
           }
         </main>
       </div>
-
-      <!-- Avatar Picker Modal -->
-      @if (showAvatarModal()) {
-        <div class="modal-backdrop" (click)="toggleAvatarModal()">
-          <div class="modal-box" (click)="$event.stopPropagation()">
-            <div class="modal-header">
-              <h3 class="modal-title font-serif">Chọn ảnh đại diện mới</h3>
-              <button class="modal-close-btn" (click)="toggleAvatarModal()">✕</button>
-            </div>
-            <div class="modal-body">
-              <p class="modal-intro">Chọn một trong các ảnh chân dung chuẩn hoặc nhập đường dẫn ảnh:</p>
-              <div class="preset-avatars-grid">
-                @for (av of presetAvatars; track av) {
-                  <button
-                    type="button"
-                    class="avatar-option-btn"
-                    [class.selected]="selectedAvatarUrl() === av"
-                    (click)="selectedAvatarUrl.set(av)"
-                  >
-                    <img [src]="av" alt="Avatar option" class="avatar-option-img" />
-                  </button>
-                }
-              </div>
-              <div class="custom-url-group">
-                <label class="form-label">Hoặc nhập URL ảnh trực tiếp:</label>
-                <input
-                  type="text"
-                  [value]="selectedAvatarUrl()"
-                  (input)="onCustomAvatarInput($event)"
-                  class="form-control"
-                  placeholder="https://..."
-                />
-              </div>
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn-save-primary" (click)="saveAvatar()">
-                <app-clinic-icon name="check" [size]="15"></app-clinic-icon>
-                <span>Xác nhận cập nhật</span>
-              </button>
-              <button type="button" class="btn-reset-secondary" (click)="toggleAvatarModal()">
-                Hủy bỏ
-              </button>
-            </div>
-          </div>
-        </div>
-      }
     </div>
   `,
   styles: [
@@ -817,38 +774,17 @@ type ProfileTab = 'general' | 'medical' | 'security' | 'ecard';
         align-items: center;
         gap: 1.75rem;
       }
-      .avatar-wrapper {
-        position: relative;
-        flex-shrink: 0;
-      }
-      .avatar-img {
-        width: 92px;
-        height: 92px;
+      .patient-id-badge-circle {
+        width: 80px;
+        height: 80px;
         border-radius: 50%;
-        object-fit: cover;
-        border: 3px solid #FAF8F5;
-        box-shadow: 0 4px 14px rgba(14, 74, 85, 0.18);
-      }
-      .avatar-edit-btn {
-        position: absolute;
-        bottom: 2px;
-        right: 2px;
-        width: 28px;
-        height: 28px;
-        border-radius: 50%;
-        background-color: #0E4A55;
-        color: #ffffff;
-        border: 2px solid #ffffff;
+        background: linear-gradient(135deg, rgba(14, 74, 85, 0.12) 0%, rgba(184, 149, 90, 0.18) 100%);
+        border: 2px solid rgba(14, 74, 85, 0.2);
         display: flex;
         align-items: center;
         justify-content: center;
-        cursor: pointer;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-        transition: transform 0.15s ease, background-color 0.15s ease;
-      }
-      .avatar-edit-btn:hover {
-        background-color: #5E8B7E;
-        transform: scale(1.1);
+        flex-shrink: 0;
+        box-shadow: 0 4px 14px rgba(14, 74, 85, 0.1);
       }
 
       .user-meta {
@@ -1913,7 +1849,7 @@ export class PatientProfileComponent implements OnInit {
     }
 
     if (newPassword === currentPassword) {
-      this.showFeedback('Mật khẩu mới không được trùng với mật khẩu hiện tại (BR 4.2).', 'error');
+      this.showFeedback('Mật khẩu mới không được trùng với mật khẩu hiện tại.', 'error');
       return;
     }
 

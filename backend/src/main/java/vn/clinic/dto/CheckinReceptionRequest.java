@@ -16,16 +16,16 @@ public class CheckinReceptionRequest {
     private String patientId;          // ID hồ sơ bệnh nhân (nếu đã có)
     private String patientCode;        // Mã bệnh nhân (nếu đã có)
 
-    @NotBlank(message = "Họ tên bệnh nhân không được để trống (SRS UC09)")
+    @NotBlank(message = "Họ tên bệnh nhân không được để trống")
     private String patientName;
 
-    @NotBlank(message = "Số điện thoại không được để trống (SRS UC09)")
+    @NotBlank(message = "Số điện thoại không được để trống")
     private String phone;
 
     private String gender;             // NAM, NU, KHAC
     private Integer yearOfBirth;
 
-    @NotBlank(message = "Phòng khám phân bổ không được để trống (SRS UC09 BR-08)")
+    @NotBlank(message = "Phòng khám phân bổ không được để trống")
     private String roomName;
 
     private String doctorId;

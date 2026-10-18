@@ -13,9 +13,9 @@ import { PharmacyDrugItem } from '../../../core/models/admin.model';
   imports: [CommonModule, FormsModule, PageHeaderComponent, StockBadgeComponent, ClinicIconComponent],
   template: `
     <app-page-header
-      badgeText="KHO DƯỢC & DANH MỤC THUỐC • UC020 & UC021"
+      badgeText="KHO DƯỢC & DANH MỤC THUỐC"
       title="Quản Lý Kho Dược & Danh Mục Thuốc Phòng Khám"
-      subtitle="Giám sát tồn kho thời gian thực, cảnh báo thuốc nguy cấp (≤ 10 đơn vị theo BR-22) và quản lý xuất nhập kho."
+      subtitle="Giám sát tồn kho thời gian thực, cảnh báo thuốc nguy cấp dưới ngưỡng an toàn và quản lý xuất nhập kho."
     >
       <div actions>
         <button class="btn-gold" (click)="openCreateDrugModal()">
@@ -40,7 +40,7 @@ import { PharmacyDrugItem } from '../../../core/models/admin.model';
         <div class="kpi-info">
           <span class="kpi-label text-burgundy">Tồn nguy cấp (≤ 10 đơn vị)</span>
           <span class="kpi-val text-burgundy">{{ criticalDrugsCount() }}</span>
-          <span class="kpi-sub">Cần tạo đơn nhập kho gấp theo BR-22</span>
+          <span class="kpi-sub">Cần tạo đơn nhập bổ sung gấp</span>
         </div>
         <div class="kpi-icon burgundy"><app-clinic-icon name="alert-triangle" [size]="22"></app-clinic-icon></div>
       </div>
@@ -56,9 +56,9 @@ import { PharmacyDrugItem } from '../../../core/models/admin.model';
 
       <div class="kpi-card">
         <div class="kpi-info">
-          <span class="kpi-label">Ngừng kinh doanh (BR-21)</span>
+          <span class="kpi-label">Ngừng kinh doanh</span>
           <span class="kpi-val">{{ discontinuedCount() }}</span>
-          <span class="kpi-sub">Lưu trữ lịch sử, không xóa vật lý</span>
+          <span class="kpi-sub">Lưu trữ lịch sử, không xóa dữ liệu</span>
         </div>
         <div class="kpi-icon slate"><app-clinic-icon name="lock" [size]="22"></app-clinic-icon></div>
       </div>
@@ -197,7 +197,7 @@ import { PharmacyDrugItem } from '../../../core/models/admin.model';
                       [class.btn-stop]="drug.status === 'ACTIVE'"
                       [class.btn-resume]="drug.status === 'DISCONTINUED'"
                       (click)="toggleDrugStatus(drug)"
-                      [title]="drug.status === 'ACTIVE' ? 'Chuyển sang ngừng kinh doanh (BR-21)' : 'Kích hoạt lại thuốc này'"
+                      [title]="drug.status === 'ACTIVE' ? 'Chuyển sang ngừng kinh doanh' : 'Kích hoạt lại thuốc này'"
                     >
                       {{ drug.status === 'ACTIVE' ? 'Ngừng bán' : 'Bán lại' }}
                     </button>
@@ -217,7 +217,7 @@ import { PharmacyDrugItem } from '../../../core/models/admin.model';
       </div>
     </div>
 
-    <!-- Restock Modal (UC021) -->
+    <!-- Restock Modal -->
     @if (restockModalOpen() && selectedDrugForRestock()) {
       <div class="modal-backdrop" (click)="closeRestockModal()">
         <div class="modal-card" (click)="$event.stopPropagation()">
@@ -284,14 +284,14 @@ import { PharmacyDrugItem } from '../../../core/models/admin.model';
       </div>
     }
 
-    <!-- Create Drug Modal (UC020) -->
+    <!-- Create Drug Modal -->
     @if (createModalOpen()) {
       <div class="modal-backdrop" (click)="closeCreateModal()">
         <div class="modal-card wide-card" (click)="$event.stopPropagation()">
           <div class="modal-header">
             <h3 class="modal-title font-serif">
               <app-clinic-icon name="plus" [size]="18"></app-clinic-icon>
-              <span>Khai Báo Biệt Dược Mới (UC020)</span>
+              <span>Khai Báo Biệt Dược Mới</span>
             </h3>
             <button class="modal-close" (click)="closeCreateModal()">
               <app-clinic-icon name="close" [size]="16"></app-clinic-icon>
@@ -1007,7 +1007,7 @@ export class AdminPharmacyComponent {
     return list;
   });
 
-  // Restock Modal State (UC021)
+  // Restock Modal State
   restockModalOpen = signal<boolean>(false);
   selectedDrugForRestock = signal<PharmacyDrugItem | null>(null);
   restockQuantity = 20;
@@ -1040,12 +1040,12 @@ export class AdminPharmacyComponent {
     this.closeRestockModal();
   }
 
-  // Soft status toggle (BR-21)
+  // Soft status toggle
   toggleDrugStatus(drug: PharmacyDrugItem): void {
     this.adminService.toggleDrugStatus(drug.id);
   }
 
-  // Create Drug Modal State (UC020)
+  // Create Drug Modal State
   createModalOpen = signal<boolean>(false);
   createFormError = signal<string>('');
 
@@ -1102,7 +1102,7 @@ export class AdminPharmacyComponent {
       importPrice: Number(this.newImportPrice),
       salePrice: Number(this.newSalePrice),
       stockQuantity: Number(this.newInitialStock),
-      minAlertThreshold: 10, // BR-22
+      minAlertThreshold: 10,
       batchNumber: this.newBatch.trim(),
       expiryDate: this.newExpiry,
       manufacturer: this.newManufacturer.trim(),
