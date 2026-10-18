@@ -118,7 +118,7 @@ export class UserProfileService {
   }
 
   changePassword(payload: ChangePasswordPayload): Observable<void> {
-    // SRS UC01 BR 4.1: Kiểm tra mật khẩu hiện tại
+    // Kiểm tra mật khẩu hiện tại
     if (payload.currentPassword !== this.currentStoredPassword) {
       return throwError(() => new Error('Mật khẩu hiện tại không chính xác. Vui lòng kiểm tra lại.'));
     }
@@ -128,7 +128,7 @@ export class UserProfileService {
       return throwError(() => new Error('Mật khẩu mới và xác nhận mật khẩu không trùng khớp.'));
     }
 
-    // SRS UC01 BR 4.2: Mật khẩu mới không trùng mật khẩu cũ và tối thiểu 6 ký tự
+    // Mật khẩu mới không trùng mật khẩu cũ và tối thiểu 6 ký tự
     if (payload.newPassword === payload.currentPassword) {
       return throwError(() => new Error('Mật khẩu mới không được trùng với mật khẩu hiện tại.'));
     }

@@ -1,7 +1,6 @@
 package vn.clinic.controller;
 
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,13 +18,16 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/admin/schedules")
-@RequiredArgsConstructor
 public class DoctorScheduleController {
 
     private final DoctorScheduleService doctorScheduleService;
 
+    public DoctorScheduleController(DoctorScheduleService doctorScheduleService) {
+        this.doctorScheduleService = doctorScheduleService;
+    }
+
     // =========================================================================
-    // UC023: Quản lý lịch làm việc bác sĩ
+    // Quản lý lịch làm việc bác sĩ
     // =========================================================================
 
     @GetMapping

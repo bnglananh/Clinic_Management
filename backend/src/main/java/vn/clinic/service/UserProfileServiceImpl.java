@@ -1,6 +1,5 @@
 package vn.clinic.service;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import vn.clinic.dto.ChangePasswordRequest;
@@ -17,10 +16,13 @@ import java.time.format.DateTimeFormatter;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class UserProfileServiceImpl implements UserProfileService {
 
     private final PatientProfileRepository patientProfileRepository;
+
+    public UserProfileServiceImpl(PatientProfileRepository patientProfileRepository) {
+        this.patientProfileRepository = patientProfileRepository;
+    }
 
     @Override
     public UserProfileDto getProfile(String userId) {
@@ -37,14 +39,14 @@ public class UserProfileServiceImpl implements UserProfileService {
         PatientProfile profile = patientProfileRepository.findById(resolvedId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy hồ sơ cá nhân của người dùng: " + resolvedId));
 
-        // Kiểm tra email không trùng với người khác (SRS BR 3.1)
+        // Kiểm tra email không trùng với người khác
         patientProfileRepository.findByEmail(request.getEmail().trim()).ifPresent(existing -> {
             if (!existing.getId().equals(resolvedId)) {
                 throw new DuplicateResourceException("Địa chỉ email '" + request.getEmail() + "' đã được sử dụng bởi tài khoản khác.");
             }
         });
 
-        // Kiểm tra số điện thoại không trùng với người khác (SRS BR 3.1)
+        // Kiểm tra số điện thoại không trùng với người khác
         patientProfileRepository.findByPhone(request.getPhone().trim()).ifPresent(existing -> {
             if (!existing.getId().equals(resolvedId)) {
                 throw new DuplicateResourceException("Số điện thoại '" + request.getPhone() + "' đã được sử dụng bởi tài khoản khác.");
@@ -81,10 +83,10 @@ public class UserProfileServiceImpl implements UserProfileService {
         PatientProfile profile = patientProfileRepository.findById(resolvedId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy hồ sơ cá nhân của người dùng: " + resolvedId));
 
-        // SRS UC01 BR 4.1: Nếu mật khẩu hiện tại không chính xác, hệ thống thông báo lỗi
+        // Nếu mật khẩu hiện tại không chính xác, hệ thống thông báo lỗi
         if (!request.getCurrentPassword().equals(profile.getPassword())) {
             log.warn("Password change failed: Incorrect current password for user: {}", resolvedId);
-            throw new BusinessRuleException("Mật khẩu hiện tại không chính xác. Vui lòng kiểm tra lại (SRS BR 4.1).");
+            throw new BusinessRuleException("Mật khẩu hiện tại không chính xác. Vui lòng kiểm tra lại.");
         }
 
         // Kiểm tra mật khẩu xác nhận
@@ -92,13 +94,13 @@ public class UserProfileServiceImpl implements UserProfileService {
             throw new BusinessRuleException("Mật khẩu mới và xác nhận mật khẩu không trùng khớp.");
         }
 
-        // SRS UC01 BR 4.2: Nếu mật khẩu mới không đáp ứng yêu cầu bảo mật / trùng mật khẩu cũ
+        // Nếu mật khẩu mới không đáp ứng yêu cầu bảo mật / trùng mật khẩu cũ
         if (request.getNewPassword().equals(request.getCurrentPassword())) {
-            throw new BusinessRuleException("Mật khẩu mới không được trùng với mật khẩu hiện tại (SRS BR 4.2).");
+            throw new BusinessRuleException("Mật khẩu mới không được trùng với mật khẩu hiện tại.");
         }
 
         if (request.getNewPassword().length() < 6) {
-            throw new BusinessRuleException("Mật khẩu mới phải có tối thiểu 6 ký tự để đảm bảo an toàn (SRS BR 4.2).");
+            throw new BusinessRuleException("Mật khẩu mới phải có tối thiểu 6 ký tự để đảm bảo an toàn.");
         }
 
         profile.setPassword(request.getNewPassword());

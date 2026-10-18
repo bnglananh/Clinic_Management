@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { QueueService } from '../../../core/services/queue.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { NotificationService } from '../../../core/services/notification.service';
 import { VndCurrencyPipe } from '../../../shared/pipes/vnd-currency.pipe';
 import { ClinicIconComponent, ClinicIconName } from '../../../shared/components/clinic-icon/clinic-icon.component';
 
@@ -147,7 +148,9 @@ interface TimeSlotOption {
                 [class.selected]="selectedDoctor()?.id === doc.id"
                 (click)="selectedDoctor.set(doc)"
               >
-                <img [src]="doc.avatarUrl" [alt]="doc.name" class="doc-avatar" />
+                <div class="doc-icon-badge">
+                  <app-clinic-icon name="stethoscope" [size]="24" color="#0E4A55"></app-clinic-icon>
+                </div>
                 <div class="doc-info">
                   <span class="doc-title-pill">{{ doc.title }}</span>
                   <h3 class="doc-name">{{ doc.name }}</h3>
@@ -661,12 +664,23 @@ interface TimeSlotOption {
           box-shadow: 0 0 0 2px #0E4A55;
         }
 
-        .doc-avatar {
-          width: 64px;
-          height: 64px;
+        .doc-icon-badge {
+          width: 58px;
+          height: 58px;
           border-radius: 14px;
-          object-fit: cover;
-          border: 1.5px solid #B8955A;
+          background: rgba(14, 74, 85, 0.08);
+          border: 1.5px solid rgba(14, 74, 85, 0.18);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+          transition: all 0.2s ease;
+        }
+
+        &.selected .doc-icon-badge {
+          background: rgba(14, 74, 85, 0.14);
+          border-color: #0E4A55;
+          transform: scale(1.04);
         }
 
         .doc-info {
@@ -1195,6 +1209,7 @@ interface TimeSlotOption {
 export class PatientBookingComponent implements OnInit {
   private queueService = inject(QueueService);
   private authService = inject(AuthService);
+  private notifService = inject(NotificationService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
 
@@ -1318,6 +1333,16 @@ export class PatientBookingComponent implements OnInit {
         this.isSubmitting.set(false);
         this.bookedAppointment.set(apt);
         this.isSuccess.set(true);
+
+        // Gửi thông báo xác nhận đặt lịch hẹn thành công
+        this.notifService.sendNotification({
+          userId: user?.id || 'usr-pat-01',
+          title: 'Đặt lịch hẹn khám thành công',
+          content: `Lịch hẹn ${dept.name} với ${doc.name} vào ngày ${this.selectedDate()} (${this.selectedSlot()?.time || '08:30 - 09:00'}) đã được ghi nhận. Mã lịch hẹn: ${apt.id}.`,
+          type: 'APPOINTMENT',
+          referenceId: apt.id,
+          channel: 'IN_APP',
+        });
       });
   }
 }

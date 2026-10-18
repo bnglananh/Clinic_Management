@@ -1,7 +1,6 @@
 package vn.clinic.controller;
 
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,13 +12,16 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/billing")
-@RequiredArgsConstructor
 public class BillingController {
 
     private final BillingService billingService;
 
+    public BillingController(BillingService billingService) {
+        this.billingService = billingService;
+    }
+
     // =========================================================================
-    // UC013: Quản lý hóa đơn & Thu ngân
+    // Quản lý hóa đơn & Thu ngân
     // =========================================================================
 
     @GetMapping
@@ -46,7 +48,7 @@ public class BillingController {
     public ResponseEntity<ApiResponse<BillDto>> createBill(@Valid @RequestBody CreateBillRequest request) {
         BillDto created = billingService.createBill(request);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success(created, "Lập hóa đơn viện phí thành công (UC013)"));
+                .body(ApiResponse.success(created, "Lập hóa đơn viện phí thành công"));
     }
 
     @PostMapping("/{id}/pay-cash")
@@ -55,13 +57,13 @@ public class BillingController {
             @Valid @RequestBody ProcessPaymentRequest request) {
         BillDto paidBill = billingService.processCashPayment(id, request);
         return ResponseEntity.ok(ApiResponse.success(paidBill,
-                "Thu tiền mặt thành công. Tự động kích hoạt trừ tồn kho thuốc (UC013 & UC021)"));
+                "Thu tiền mặt thành công. Tự động kích hoạt trừ tồn kho thuốc"));
     }
 
     @PostMapping("/{id}/vietqr")
     public ResponseEntity<ApiResponse<VietQrResponseDto>> generateVietQr(@PathVariable String id) {
         VietQrResponseDto qr = billingService.generateVietQr(id);
-        return ResponseEntity.ok(ApiResponse.success(qr, "Tạo mã thanh toán VietQR động thành công (UC013)"));
+        return ResponseEntity.ok(ApiResponse.success(qr, "Tạo mã thanh toán VietQR động thành công"));
     }
 
     @PostMapping("/{id}/confirm-vietqr")
@@ -70,7 +72,7 @@ public class BillingController {
             @RequestBody(required = false) ConfirmVietQrRequest request) {
         BillDto paidBill = billingService.confirmVietQrPayment(id, request);
         return ResponseEntity.ok(ApiResponse.success(paidBill,
-                "Thu ngân xác nhận nhận tiền VietQR thành công. Tự động kích hoạt trừ tồn kho thuốc (UC013 & UC021)"));
+                "Thu ngân xác nhận nhận tiền VietQR thành công. Tự động kích hoạt trừ tồn kho thuốc"));
     }
 
     @GetMapping("/summary")
@@ -88,12 +90,12 @@ public class BillingController {
     }
 
     // =========================================================================
-    // UC07: Bệnh nhân theo dõi hóa đơn cá nhân
+    // Bệnh nhân theo dõi hóa đơn cá nhân
     // =========================================================================
 
     @GetMapping("/patient/{patientId}")
     public ResponseEntity<ApiResponse<List<BillDto>>> getBillsByPatientId(@PathVariable String patientId) {
         List<BillDto> patientBills = billingService.getBillsByPatientId(patientId);
-        return ResponseEntity.ok(ApiResponse.success(patientBills, "Lấy danh sách hóa đơn của bệnh nhân thành công (UC07)"));
+        return ResponseEntity.ok(ApiResponse.success(patientBills, "Lấy danh sách hóa đơn của bệnh nhân thành công"));
     }
 }

@@ -1,6 +1,5 @@
 package vn.clinic.service;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import vn.clinic.dto.CheckinReceptionRequest;
@@ -22,13 +21,23 @@ import java.util.List;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class QueueServiceImpl implements QueueService {
 
     private final QueueTicketRepository queueTicketRepository;
     private final AppointmentRepository appointmentRepository;
     private final PatientProfileRepository patientProfileRepository;
     private final NotificationService notificationService;
+
+    public QueueServiceImpl(
+            QueueTicketRepository queueTicketRepository,
+            AppointmentRepository appointmentRepository,
+            PatientProfileRepository patientProfileRepository,
+            NotificationService notificationService) {
+        this.queueTicketRepository = queueTicketRepository;
+        this.appointmentRepository = appointmentRepository;
+        this.patientProfileRepository = patientProfileRepository;
+        this.notificationService = notificationService;
+    }
 
     @Override
     public QueueTicketDto checkinAndIssueTicket(CheckinReceptionRequest request) {
@@ -37,13 +46,13 @@ public class QueueServiceImpl implements QueueService {
         String patientName = request.getPatientName().trim();
         String phone = request.getPhone().trim();
 
-        // Xử lý khi có lịch hẹn trước (UC09)
+        // Xử lý khi có lịch hẹn trước
         if (request.getAppointmentId() != null && !request.getAppointmentId().isBlank()) {
             Appointment appointment = appointmentRepository.findById(request.getAppointmentId())
                     .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy lịch hẹn ID: " + request.getAppointmentId()));
 
             if (appointment.getStatus() == AppointmentStatus.CANCELLED) {
-                throw new BusinessRuleException("Lịch hẹn này đã bị hủy, không thể tiếp nhận khám (SRS UC09)");
+                throw new BusinessRuleException("Lịch hẹn này đã bị hủy, không thể tiếp nhận khám.");
             }
 
             appointment.setStatus(AppointmentStatus.CHECKED_IN);
@@ -65,7 +74,7 @@ public class QueueServiceImpl implements QueueService {
             }
         }
 
-        // Sinh mã số thứ tự theo buồng khám (BR-08: A-xxx, B-xxx, C-xxx)
+        // Sinh mã số thứ tự theo buồng khám (A-xxx, B-xxx, C-xxx)
         String room = request.getRoomName().trim();
         String prefix = room.contains("Tai Mũi Họng") ? "B" : room.contains("Tiêu Hóa") ? "C" : "A";
         long roomCount = queueTicketRepository.countByRoomPrefix(prefix);
@@ -83,7 +92,7 @@ public class QueueServiceImpl implements QueueService {
                 .gender(request.getGender() != null ? request.getGender().trim().toUpperCase() : "KHAC")
                 .yearOfBirth(request.getYearOfBirth() != null ? request.getYearOfBirth() : 1990)
                 .phone(phone)
-                .status(QueueStatus.WAITING) // BR-07: Khởi tạo ở trạng thái WAITING
+                .status(QueueStatus.WAITING) // Khởi tạo ở trạng thái WAITING
                 .priority(request.getPriority() != null ? request.getPriority() : PriorityLevel.NORMAL)
                 .roomName(room)
                 .doctorId(request.getDoctorId())
@@ -98,7 +107,7 @@ public class QueueServiceImpl implements QueueService {
         log.info("Issued queue ticket: number={}, room={}, patient={}, priority={}",
                 saved.getTicketNumber(), saved.getRoomName(), saved.getPatientName(), saved.getPriority());
 
-        // Bắn thông báo đẩy số thứ tự khám cho bệnh nhân (BR-25, UC08)
+        // Bắn thông báo đẩy số thứ tự khám cho bệnh nhân
         try {
             notificationService.sendNotification(SendNotificationRequest.builder()
                     .userId(saved.getPatientId())
@@ -141,7 +150,7 @@ public class QueueServiceImpl implements QueueService {
     public QueueTicketDto promoteToTop(String ticketId) {
         QueueTicket ticket = findOrThrow(ticketId);
         if (ticket.getStatus() != QueueStatus.WAITING) {
-            throw new BusinessRuleException("Chỉ có thể điều phối ưu tiên cho vé đang ở trạng thái Chờ khám (WAITING) (SRS UC011)");
+            throw new BusinessRuleException("Chỉ có thể điều phối ưu tiên cho vé đang ở trạng thái Chờ khám (WAITING).");
         }
 
         boolean success = queueTicketRepository.promoteToTop(ticketId);
@@ -159,7 +168,7 @@ public class QueueServiceImpl implements QueueService {
         QueueTicket nextTicket = queueTicketRepository.findNextWaitingTicket(roomName)
                 .orElseThrow(() -> new ResourceNotFoundException("Không còn bệnh nhân nào đang chờ khám tại " + (roomName != null ? roomName : "phòng khám")));
 
-        // BR-07: WAITING -> IN_PROGRESS
+        // WAITING -> IN_PROGRESS
         nextTicket.setStatus(QueueStatus.IN_PROGRESS);
         if (doctorId != null && !doctorId.isBlank()) {
             nextTicket.setDoctorId(doctorId);
@@ -189,17 +198,17 @@ public class QueueServiceImpl implements QueueService {
     public QueueTicketDto updateTicketStatus(String ticketId, QueueStatus newStatus) {
         QueueTicket ticket = findOrThrow(ticketId);
 
-        // BR-07: Trạng thái lượt khám tuân theo đúng tiến trình WAITING -> IN_PROGRESS -> COMPLETED
+        // Trạng thái lượt khám tuân theo đúng tiến trình WAITING -> IN_PROGRESS -> COMPLETED
         QueueStatus current = ticket.getStatus();
         if (current == QueueStatus.COMPLETED && newStatus != QueueStatus.COMPLETED) {
-            throw new BusinessRuleException("Lượt khám đã hoàn tất (COMPLETED), không thể đảo ngược trạng thái (SRS BR-07 & BR-23)");
+            throw new BusinessRuleException("Lượt khám đã hoàn tất (COMPLETED), không thể đảo ngược trạng thái.");
         }
 
         ticket.setStatus(newStatus);
         QueueTicket updated = queueTicketRepository.save(ticket);
         log.info("Updated ticket {} status from {} -> {}", updated.getTicketNumber(), current, newStatus);
 
-        // UC08: Thông báo khi hoàn thành lượt khám
+        // Thông báo tương ứng từng trạng thái lượt khám
         if (newStatus == QueueStatus.COMPLETED) {
             try {
                 notificationService.sendNotification(SendNotificationRequest.builder()
@@ -212,6 +221,32 @@ public class QueueServiceImpl implements QueueService {
                         .build());
             } catch (Exception e) {
                 log.warn("Could not dispatch completed notification: {}", e.getMessage());
+            }
+        } else if (newStatus == QueueStatus.WAITING_RESULTS) {
+            try {
+                notificationService.sendNotification(SendNotificationRequest.builder()
+                        .userId(updated.getPatientId())
+                        .title("Chỉ định Cận lâm sàng")
+                        .content(String.format("Bác sĩ đã chỉ định dịch vụ cận lâm sàng cho lượt khám %s. Vui lòng di chuyển đến các phòng chức năng để thực hiện.",
+                                updated.getTicketNumber()))
+                        .type(NotificationType.QUEUE)
+                        .referenceId(updated.getId())
+                        .build());
+            } catch (Exception e) {
+                log.warn("Could not dispatch waiting results notification: {}", e.getMessage());
+            }
+        } else if (newStatus == QueueStatus.RESULTS_READY) {
+            try {
+                notificationService.sendNotification(SendNotificationRequest.builder()
+                        .userId(updated.getPatientId())
+                        .title("Đã có kết quả Cận lâm sàng")
+                        .content(String.format("Kết quả cận lâm sàng của lượt khám %s đã hoàn tất. Mời bạn quay lại %s để Bác sĩ đọc kết quả và kết luận.",
+                                updated.getTicketNumber(), updated.getRoomName()))
+                        .type(NotificationType.MEDICAL_RECORD)
+                        .referenceId(updated.getId())
+                        .build());
+            } catch (Exception e) {
+                log.warn("Could not dispatch results ready notification: {}", e.getMessage());
             }
         }
 

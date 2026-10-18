@@ -22,7 +22,7 @@ public class PharmacyDrug {
     private BigDecimal importPrice;
     private BigDecimal salePrice;
     private int stockQuantity;
-    private int minAlertThreshold; // Default 10 (SRS BR-21)
+    private int minAlertThreshold; // Default 10
     private String batchNumber;
     private String expiryDate; // YYYY-MM-DD
     private String manufacturer;

@@ -1,7 +1,6 @@
 package vn.clinic.controller;
 
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,13 +15,16 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/admin/services")
-@RequiredArgsConstructor
 public class MedicalServiceController {
 
     private final MedicalServiceService medicalServiceService;
 
+    public MedicalServiceController(MedicalServiceService medicalServiceService) {
+        this.medicalServiceService = medicalServiceService;
+    }
+
     // =========================================================================
-    // UC022: Quản lý danh mục dịch vụ kỹ thuật
+    // Quản lý danh mục dịch vụ kỹ thuật
     // =========================================================================
 
     @GetMapping
@@ -69,7 +71,7 @@ public class MedicalServiceController {
         MedicalServiceDto updated = medicalServiceService.toggleServiceStatus(id);
         String msg = updated.isActive()
                 ? "Kích hoạt cung cấp dịch vụ thành công"
-                : "Ngừng cung cấp dịch vụ thành công (SRS BR-24 & UC022 BR 3.2)";
+                : "Ngừng cung cấp dịch vụ thành công";
         return ResponseEntity.ok(ApiResponse.success(updated, msg));
     }
 }

@@ -835,7 +835,7 @@ export class AdminServicesComponent {
     this.closeEditPriceModal();
   }
 
-  // Soft status toggle (BR-21)
+  // Soft status toggle
   toggleServiceStatus(svc: MedicalServiceItem): void {
     this.adminService.toggleServiceStatus(svc.id);
   }

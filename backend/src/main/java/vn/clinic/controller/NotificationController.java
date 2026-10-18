@@ -1,7 +1,6 @@
 package vn.clinic.controller;
 
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,13 +16,16 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/notifications")
-@RequiredArgsConstructor
 public class NotificationController {
 
     private final NotificationService notificationService;
 
+    public NotificationController(NotificationService notificationService) {
+        this.notificationService = notificationService;
+    }
+
     /**
-     * UC08 - Bước 4: Lấy danh sách thông báo của người dùng
+     * Lấy danh sách thông báo của người dùng
      */
     @GetMapping
     public ResponseEntity<ApiResponse<List<NotificationDto>>> getNotifications(
@@ -35,7 +37,7 @@ public class NotificationController {
     }
 
     /**
-     * UC08: Tóm tắt thông báo và số lượng chưa đọc (phục vụ hiển thị badge chuông)
+     * Tóm tắt thông báo và số lượng chưa đọc (phục vụ hiển thị badge chuông)
      */
     @GetMapping("/summary")
     public ResponseEntity<ApiResponse<NotificationSummaryDto>> getNotificationSummary(
@@ -45,7 +47,7 @@ public class NotificationController {
     }
 
     /**
-     * UC08: Lấy số lượng thông báo chưa đọc
+     * Lấy số lượng thông báo chưa đọc
      */
     @GetMapping("/unread-count")
     public ResponseEntity<ApiResponse<Map<String, Long>>> getUnreadCount(
@@ -55,7 +57,7 @@ public class NotificationController {
     }
 
     /**
-     * UC08 - Bước 5: Ghi nhận trạng thái đã xem (đánh dấu 1 thông báo là đã đọc)
+     * Ghi nhận trạng thái đã xem (đánh dấu 1 thông báo là đã đọc)
      */
     @PatchMapping("/{id}/read")
     public ResponseEntity<ApiResponse<NotificationDto>> markAsRead(
@@ -66,7 +68,7 @@ public class NotificationController {
     }
 
     /**
-     * UC08: Đánh dấu tất cả thông báo là đã đọc
+     * Đánh dấu tất cả thông báo là đã đọc
      */
     @PatchMapping("/mark-all-read")
     public ResponseEntity<ApiResponse<Void>> markAllAsRead(
@@ -76,7 +78,7 @@ public class NotificationController {
     }
 
     /**
-     * UC08 - Bước 1 & 2: Hệ thống phát sinh và gửi thông báo mới
+     * Hệ thống phát sinh và gửi thông báo mới
      */
     @PostMapping
     public ResponseEntity<ApiResponse<NotificationDto>> sendNotification(
@@ -87,7 +89,7 @@ public class NotificationController {
     }
 
     /**
-     * UC08: Xóa thông báo khỏi danh sách
+     * Xóa thông báo khỏi danh sách
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteNotification(

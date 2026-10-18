@@ -1,6 +1,5 @@
 package vn.clinic.service;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import vn.clinic.dto.ClinicDashboardStatsDto;
@@ -8,15 +7,12 @@ import vn.clinic.dto.DepartmentPerformanceDto;
 import vn.clinic.model.*;
 import vn.clinic.repository.*;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class ReportServiceImpl implements ReportService {
 
     private final BillRepository billRepository;
@@ -24,6 +20,19 @@ public class ReportServiceImpl implements ReportService {
     private final AppointmentRepository appointmentRepository;
     private final PharmacyDrugRepository pharmacyDrugRepository;
     private final StaffAccountRepository staffAccountRepository;
+
+    public ReportServiceImpl(
+            BillRepository billRepository,
+            QueueTicketRepository queueTicketRepository,
+            AppointmentRepository appointmentRepository,
+            PharmacyDrugRepository pharmacyDrugRepository,
+            StaffAccountRepository staffAccountRepository) {
+        this.billRepository = billRepository;
+        this.queueTicketRepository = queueTicketRepository;
+        this.appointmentRepository = appointmentRepository;
+        this.pharmacyDrugRepository = pharmacyDrugRepository;
+        this.staffAccountRepository = staffAccountRepository;
+    }
 
     @Override
     public ClinicDashboardStatsDto getDashboardStats() {

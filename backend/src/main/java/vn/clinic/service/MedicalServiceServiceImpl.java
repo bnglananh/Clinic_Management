@@ -1,6 +1,5 @@
 package vn.clinic.service;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import vn.clinic.dto.CreateMedicalServiceRequest;
@@ -17,10 +16,13 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class MedicalServiceServiceImpl implements MedicalServiceService {
 
     private final MedicalServiceRepository medicalServiceRepository;
+
+    public MedicalServiceServiceImpl(MedicalServiceRepository medicalServiceRepository) {
+        this.medicalServiceRepository = medicalServiceRepository;
+    }
 
     @Override
     public List<MedicalServiceDto> getAllServices(String query, String category, Boolean activeOnly) {
@@ -44,9 +46,9 @@ public class MedicalServiceServiceImpl implements MedicalServiceService {
 
     @Override
     public MedicalServiceDto createService(CreateMedicalServiceRequest request) {
-        // BR 4.1: Kiểm tra tính duy nhất của mã dịch vụ
+        // Kiểm tra tính duy nhất của mã dịch vụ
         if (medicalServiceRepository.existsByServiceCode(request.getServiceCode())) {
-            throw new DuplicateResourceException("Mã dịch vụ kỹ thuật đã tồn tại trong hệ thống: " + request.getServiceCode() + " (SRS UC022 BR 4.1)");
+            throw new DuplicateResourceException("Mã dịch vụ kỹ thuật đã tồn tại trong hệ thống: " + request.getServiceCode());
         }
 
         MedicalService service = MedicalService.builder()
@@ -99,11 +101,11 @@ public class MedicalServiceServiceImpl implements MedicalServiceService {
     public MedicalServiceDto toggleServiceStatus(String id) {
         MedicalService service = findServiceOrThrow(id);
 
-        // BR-24 & SRS UC022 BR 3.2: Không xóa vật lý dữ liệu đã phát sinh, chỉ chuyển trạng thái hoạt động
+        // Không xóa vật lý dữ liệu đã phát sinh, chỉ chuyển trạng thái hoạt động
         service.setActive(!service.isActive());
 
         MedicalService updated = medicalServiceRepository.save(service);
-        log.info("Toggled service status: id={}, newStatus={} (SRS BR-24)", id, updated.isActive());
+        log.info("Toggled service status: id={}, newStatus={}", id, updated.isActive());
         return mapToDto(updated);
     }
 

@@ -47,7 +47,7 @@ public class MedicalRecord {
 
     private String doctorAdvice;     // Lời dặn y bác sĩ
     private Integer followUpDays;    // Số ngày hẹn tái khám (vd: 30)
-    private boolean isLocked;        // BR-23: true khi khám hoàn tất
+    private boolean isLocked;        // true khi khám hoàn tất
     private int version;             // Phiên bản bệnh án (vd: 1)
     private String createdAt;
     private String updatedAt;

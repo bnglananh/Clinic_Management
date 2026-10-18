@@ -4,6 +4,8 @@ import { CommonModule } from '@angular/common';
 export type SupportedStatus =
   | 'WAITING'
   | 'IN_PROGRESS'
+  | 'WAITING_RESULTS'
+  | 'RESULTS_READY'
   | 'COMPLETED'
   | 'PAID'
   | 'UNPAID'
@@ -36,6 +38,22 @@ const STATUS_MAP: Record<SupportedStatus, StatusConfig> = {
     textColor: '#0E4A55',
     borderColor: 'rgba(14, 74, 85, 0.35)',
     dotColor: '#0E4A55',
+    hasPulse: true,
+  },
+  WAITING_RESULTS: {
+    label: 'Chờ kết quả CLS',
+    bgColor: 'rgba(217, 119, 6, 0.12)',
+    textColor: '#B45309',
+    borderColor: 'rgba(217, 119, 6, 0.35)',
+    dotColor: '#D97706',
+    hasPulse: true,
+  },
+  RESULTS_READY: {
+    label: 'Đã có kết quả CLS',
+    bgColor: 'rgba(16, 185, 129, 0.14)',
+    textColor: '#047857',
+    borderColor: 'rgba(16, 185, 129, 0.4)',
+    dotColor: '#10B981',
     hasPulse: true,
   },
   COMPLETED: {

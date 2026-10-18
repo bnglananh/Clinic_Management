@@ -1,6 +1,5 @@
 package vn.clinic.service;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import vn.clinic.dto.*;
@@ -18,12 +17,20 @@ import java.util.List;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class PatientServiceImpl implements PatientService {
 
     private final PatientProfileRepository patientProfileRepository;
     private final AppointmentRepository appointmentRepository;
     private final QueueTicketRepository queueTicketRepository;
+
+    public PatientServiceImpl(
+            PatientProfileRepository patientProfileRepository,
+            AppointmentRepository appointmentRepository,
+            QueueTicketRepository queueTicketRepository) {
+        this.patientProfileRepository = patientProfileRepository;
+        this.appointmentRepository = appointmentRepository;
+        this.queueTicketRepository = queueTicketRepository;
+    }
 
     @Override
     public List<PatientDto> searchPatients(String query) {
@@ -47,12 +54,12 @@ public class PatientServiceImpl implements PatientService {
 
     @Override
     public PatientDto createPatient(CreatePatientRequest request) {
-        // BR-03: Kiểm tra tính duy nhất (trùng CCCD hoặc SĐT) trước khi tạo mới hồ sơ
+        // Kiểm tra tính duy nhất (trùng CCCD hoặc SĐT) trước khi tạo mới hồ sơ
         if (patientProfileRepository.existsByIdentityCardNumber(request.getCccd().trim())) {
-            throw new DuplicateResourceException("Số CCCD/Định danh cá nhân đã tồn tại trong hệ thống: " + request.getCccd() + " (SRS BR-03 & UC012)");
+            throw new DuplicateResourceException("Số CCCD/Định danh cá nhân đã tồn tại trong hệ thống: " + request.getCccd());
         }
         if (patientProfileRepository.existsByPhone(request.getPhone().trim())) {
-            throw new DuplicateResourceException("Số điện thoại đã được đăng ký cho bệnh nhân khác: " + request.getPhone() + " (SRS BR-03 & UC012)");
+            throw new DuplicateResourceException("Số điện thoại đã được đăng ký cho bệnh nhân khác: " + request.getPhone());
         }
 
         long count = patientProfileRepository.findAll().size();
@@ -91,12 +98,12 @@ public class PatientServiceImpl implements PatientService {
     public PatientDto updatePatient(String id, UpdatePatientRequest request) {
         PatientProfile patient = findOrThrow(id);
 
-        // BR-03: Kiểm tra trùng CCCD hoặc SĐT với bệnh nhân khác
+        // Kiểm tra trùng CCCD hoặc SĐT với bệnh nhân khác
         if (patientProfileRepository.existsByIdentityCardNumberAndIdNot(request.getCccd().trim(), id)) {
-            throw new DuplicateResourceException("Số CCCD đã thuộc về bệnh nhân khác trong hệ thống: " + request.getCccd() + " (SRS BR-03)");
+            throw new DuplicateResourceException("Số CCCD đã thuộc về bệnh nhân khác trong hệ thống: " + request.getCccd());
         }
         if (patientProfileRepository.existsByPhoneAndIdNot(request.getPhone().trim(), id)) {
-            throw new DuplicateResourceException("Số điện thoại đã thuộc về bệnh nhân khác trong hệ thống: " + request.getPhone() + " (SRS BR-03)");
+            throw new DuplicateResourceException("Số điện thoại đã thuộc về bệnh nhân khác trong hệ thống: " + request.getPhone());
         }
 
         patient.setIdentityCardNumber(request.getCccd().trim());

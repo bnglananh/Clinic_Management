@@ -471,11 +471,13 @@ interface PublicDoctor {
 
         <div class="doctors-grid">
           @for (doc of publicDoctors; track doc.id) {
-            <div class="doctor-card">
-              <div class="doc-image-wrap">
-                <img [src]="doc.avatarUrl" [alt]="doc.name" class="doc-img" />
+            <div class="doctor-card no-photo-card">
+              <div class="doc-header-top">
+                <div class="doc-badge-icon">
+                  <app-clinic-icon name="stethoscope" [size]="22" color="#0E4A55"></app-clinic-icon>
+                </div>
                 <span class="doc-room-tag">
-                  <app-clinic-icon name="map-pin" [size]="13" color="#ffffff"></app-clinic-icon> {{ doc.room }}
+                  <app-clinic-icon name="map-pin" [size]="13" color="#0E4A55"></app-clinic-icon> {{ doc.room }}
                 </span>
               </div>
               <div class="doc-body">
@@ -2248,28 +2250,36 @@ interface PublicDoctor {
           box-shadow: 0 16px 36px rgba(28, 39, 51, 0.09);
         }
 
-        .doc-image-wrap {
-          height: 240px;
-          position: relative;
-          background: #E4DED2;
+        .doc-header-top {
+          padding: 22px 22px 14px 22px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          border-bottom: 1px solid #F0ECE4;
+          background: #FAF8F5;
 
-          .doc-img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
+          .doc-badge-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: rgba(14, 74, 85, 0.08);
+            border: 1px solid rgba(14, 74, 85, 0.16);
+            display: flex;
+            align-items: center;
+            justify-content: center;
           }
 
           .doc-room-tag {
-            position: absolute;
-            bottom: 12px;
-            left: 12px;
-            background: rgba(28, 39, 51, 0.85);
-            color: #FFFFFF;
-            padding: 4px 10px;
-            border-radius: 6px;
+            background: rgba(14, 74, 85, 0.08);
+            color: #0E4A55;
+            padding: 5px 12px;
+            border-radius: 999px;
             font-size: 0.75rem;
             font-weight: 600;
-            backdrop-filter: blur(4px);
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            border: 1px solid rgba(14, 74, 85, 0.16);
           }
         }
 

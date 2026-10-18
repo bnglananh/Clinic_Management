@@ -23,6 +23,15 @@ export class QueueService {
   public readonly inProgressCount = computed(
     () => this.queueTicketsSignal().filter((t) => t.status === 'IN_PROGRESS').length
   );
+  public readonly waitingResultsCount = computed(
+    () =>
+      this.queueTicketsSignal().filter(
+        (t) => t.status === 'WAITING_RESULTS' || t.status === 'RESULTS_READY'
+      ).length
+  );
+  public readonly resultsReadyCount = computed(
+    () => this.queueTicketsSignal().filter((t) => t.status === 'RESULTS_READY').length
+  );
   public readonly completedCount = computed(
     () => this.queueTicketsSignal().filter((t) => t.status === 'COMPLETED').length
   );
@@ -233,6 +242,106 @@ export class QueueService {
       })
     );
     return of(updated).pipe(delay(200));
+  }
+
+  /**
+   * Chuyển bệnh nhân sang trạng thái đi làm Cận Lâm Sàng (WAITING_RESULTS)
+   */
+  sendToClinicalServices(
+    ticketNumber: string,
+    servicesCount: number
+  ): Observable<QueueTicket | null> {
+    let updated: QueueTicket | null = null;
+    this.queueTicketsSignal.update((current) =>
+      current.map((t) => {
+        if (t.ticketNumber === ticketNumber) {
+          updated = {
+            ...t,
+            status: 'WAITING_RESULTS',
+            clinicalServicesTotal: servicesCount,
+            clinicalServicesDone: 0,
+            arrivedAtDoor: false,
+            notes: `Đang thực hiện ${servicesCount} dịch vụ cận lâm sàng`,
+          };
+          return updated;
+        }
+        return t;
+      })
+    );
+    return of(updated).pipe(delay(150));
+  }
+
+  /**
+   * Cập nhật tiến độ hoàn thành dịch vụ CLS
+   * Tự động chuyển sang RESULTS_READY khi tất cả dịch vụ đã xong
+   */
+  updateClinicalProgress(
+    ticketNumber: string,
+    doneCount: number,
+    totalCount: number
+  ): Observable<QueueTicket | null> {
+    let updated: QueueTicket | null = null;
+    this.queueTicketsSignal.update((current) =>
+      current.map((t) => {
+        if (t.ticketNumber === ticketNumber) {
+          const isAllDone = totalCount > 0 && doneCount >= totalCount;
+          updated = {
+            ...t,
+            clinicalServicesTotal: totalCount,
+            clinicalServicesDone: doneCount,
+            status: isAllDone ? 'RESULTS_READY' : 'WAITING_RESULTS',
+            notes: isAllDone
+              ? `Đã đủ kết quả cận lâm sàng (${doneCount}/${totalCount})`
+              : `Đang làm cận lâm sàng (${doneCount}/${totalCount})`,
+          };
+          return updated;
+        }
+        return t;
+      })
+    );
+    return of(updated).pipe(delay(150));
+  }
+
+  /**
+   * Gọi lại bệnh nhân có kết quả vào phòng (Recall)
+   * Chuyển trạng thái từ RESULTS_READY -> IN_PROGRESS
+   */
+  recallPatientForResults(ticketNumber: string): Observable<QueueTicket | null> {
+    let updated: QueueTicket | null = null;
+    this.queueTicketsSignal.update((current) =>
+      current.map((t) => {
+        if (t.ticketNumber === ticketNumber) {
+          updated = {
+            ...t,
+            status: 'IN_PROGRESS',
+            notes: 'Bệnh nhân đã quay lại phòng khám, bác sĩ đang đọc kết quả và kết luận.',
+          };
+          return updated;
+        }
+        return t;
+      })
+    );
+    return of(updated).pipe(delay(150));
+  }
+
+  /**
+   * Đánh dấu bệnh nhân đã có mặt trước cửa phòng
+   */
+  togglePatientArrived(ticketNumber: string): Observable<QueueTicket | null> {
+    let updated: QueueTicket | null = null;
+    this.queueTicketsSignal.update((current) =>
+      current.map((t) => {
+        if (t.ticketNumber === ticketNumber) {
+          updated = {
+            ...t,
+            arrivedAtDoor: !t.arrivedAtDoor,
+          };
+          return updated;
+        }
+        return t;
+      })
+    );
+    return of(updated).pipe(delay(150));
   }
 
   private calculateEstimatedTime(): string {

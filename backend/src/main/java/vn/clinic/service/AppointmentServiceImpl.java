@@ -1,6 +1,5 @@
 package vn.clinic.service;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import vn.clinic.dto.*;
@@ -18,12 +17,20 @@ import java.util.List;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class AppointmentServiceImpl implements AppointmentService {
 
     private final AppointmentRepository appointmentRepository;
     private final PatientProfileRepository patientProfileRepository;
     private final NotificationService notificationService;
+
+    public AppointmentServiceImpl(
+            AppointmentRepository appointmentRepository,
+            PatientProfileRepository patientProfileRepository,
+            NotificationService notificationService) {
+        this.appointmentRepository = appointmentRepository;
+        this.patientProfileRepository = patientProfileRepository;
+        this.notificationService = notificationService;
+    }
 
     @Override
     public List<AppointmentDto> getAppointments(String date, String doctorId, AppointmentStatus status, String patientId, String query) {
@@ -54,7 +61,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Override
     public AppointmentDto createAppointment(CreateAppointmentRequest request) {
-        // BR-05: Kiểm tra xung đột lịch làm việc và chống đặt trùng khung giờ
+        // Kiểm tra xung đột lịch làm việc và chống đặt trùng khung giờ
         boolean slotBusy = appointmentRepository.existsByDoctorIdAndAppointmentDateAndTimeSlotAndStatusNot(
                 request.getDoctorId(),
                 request.getAppointmentDate(),
@@ -63,7 +70,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         );
         if (slotBusy) {
             throw new BusinessRuleException(
-                    String.format("Bác sĩ đã có lịch hẹn trong khung giờ %s ngày %s. Vui lòng chọn khung giờ khác (SRS UC02 BR-05)",
+                    String.format("Bác sĩ đã có lịch hẹn trong khung giờ %s ngày %s. Vui lòng chọn khung giờ khác.",
                             request.getTimeSlot(), request.getAppointmentDate())
             );
         }
@@ -110,7 +117,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         log.info("Created appointment: code={}, patient={}, doctor={}, date={}, slot={}",
                 saved.getAppointmentCode(), saved.getPatientName(), saved.getDoctorName(), saved.getAppointmentDate(), saved.getTimeSlot());
 
-        // BR-25: Gửi thông báo xác nhận đặt lịch hẹn cho bệnh nhân
+        // Gửi thông báo xác nhận đặt lịch hẹn cho bệnh nhân
         try {
             notificationService.sendNotification(SendNotificationRequest.builder()
                     .userId(saved.getPatientId())
@@ -131,15 +138,15 @@ public class AppointmentServiceImpl implements AppointmentService {
     public AppointmentDto rescheduleAppointment(String id, RescheduleAppointmentRequest request) {
         Appointment apt = findOrThrow(id);
 
-        // BR-25 & UC03: Chỉ cho phép dời lịch khi chưa check-in và chưa bị hủy
+        // Chỉ cho phép dời lịch khi chưa check-in và chưa bị hủy
         if (apt.getStatus() == AppointmentStatus.CHECKED_IN) {
-            throw new BusinessRuleException("Không thể dời lịch hẹn đã được tiếp nhận khám tại quầy (SRS UC03)");
+            throw new BusinessRuleException("Không thể dời lịch hẹn đã được tiếp nhận khám tại quầy.");
         }
         if (apt.getStatus() == AppointmentStatus.CANCELLED) {
-            throw new BusinessRuleException("Không thể dời lịch hẹn đã bị hủy trước đó (SRS UC03)");
+            throw new BusinessRuleException("Không thể dời lịch hẹn đã bị hủy trước đó.");
         }
 
-        // BR-05: Kiểm tra xung đột khung giờ mới
+        // Kiểm tra xung đột khung giờ mới
         boolean slotBusy = appointmentRepository.existsByDoctorIdAndAppointmentDateAndTimeSlotAndStatusNot(
                 apt.getDoctorId(),
                 request.getNewAppointmentDate(),
@@ -148,7 +155,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         );
         if (slotBusy) {
             throw new BusinessRuleException(
-                    String.format("Khung giờ %s ngày %s của bác sĩ đã có bệnh nhân khác đặt hẹn. Vui lòng chọn giờ khác (SRS UC03 BR-05)",
+                    String.format("Khung giờ %s ngày %s của bác sĩ đã có bệnh nhân khác đặt hẹn. Vui lòng chọn giờ khác.",
                             request.getNewTimeSlot(), request.getNewAppointmentDate())
             );
         }
@@ -167,7 +174,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         log.info("Rescheduled appointment {}: from {} {} -> {} {}",
                 apt.getAppointmentCode(), oldDate, oldSlot, updated.getAppointmentDate(), updated.getTimeSlot());
 
-        // BR-25: Bắn thông báo cập nhật lịch hẹn
+        // Bắn thông báo cập nhật lịch hẹn
         try {
             notificationService.sendNotification(SendNotificationRequest.builder()
                     .userId(updated.getPatientId())
@@ -189,7 +196,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         Appointment apt = findOrThrow(id);
 
         if (apt.getStatus() == AppointmentStatus.CHECKED_IN) {
-            throw new BusinessRuleException("Không thể hủy lịch hẹn đã được tiếp nhận khám tại quầy phòng khám (SRS UC03 & UC010)");
+            throw new BusinessRuleException("Không thể hủy lịch hẹn đã được tiếp nhận khám tại quầy phòng khám.");
         }
         if (apt.getStatus() == AppointmentStatus.CANCELLED) {
             return AppointmentDto.fromEntity(apt); // Idempotent
@@ -203,7 +210,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         Appointment updated = appointmentRepository.save(apt);
         log.info("Cancelled appointment: code={}, reason={}", updated.getAppointmentCode(), updated.getCancelReason());
 
-        // BR-25: Bắn thông báo hủy lịch hẹn
+        // Bắn thông báo hủy lịch hẹn
         try {
             notificationService.sendNotification(SendNotificationRequest.builder()
                     .userId(updated.getPatientId())

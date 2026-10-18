@@ -49,7 +49,7 @@ export class AdminService {
     this.staffAccountsSignal().filter((s) => s.role === 'DOCTOR' && s.status === 'ACTIVE')
   );
 
-  // --- UC019: User Accounts & RBAC Actions ---
+  // --- User Accounts & RBAC Actions ---
   toggleAccountStatus(id: string): void {
     this.staffAccountsSignal.update((list) =>
       list.map((acc) => {
@@ -73,8 +73,8 @@ export class AdminService {
     return newAccount;
   }
 
-  // --- UC020 & UC021: Pharmacy Drug Catalogue & Stock Actions ---
-  // BR-21: Soft deletion / state change (no physical delete)
+  // --- Pharmacy Drug Catalogue & Stock Actions ---
+  // Soft deletion / state change (no physical delete)
   toggleDrugStatus(id: string): void {
     this.pharmacyDrugsSignal.update((list) =>
       list.map((drug) => {
@@ -119,8 +119,8 @@ export class AdminService {
     );
   }
 
-  // --- UC022: Medical Services & Pricing Actions ---
-  // BR-21: Soft deletion / deactivate (no physical delete)
+  // --- Medical Services & Pricing Actions ---
+  // Soft deletion / deactivate (no physical delete)
   toggleServiceStatus(id: string): void {
     this.medicalServicesSignal.update((list) =>
       list.map((s) => (s.id === id ? { ...s, isActive: !s.isActive } : s))
@@ -143,7 +143,7 @@ export class AdminService {
     return newService;
   }
 
-  // --- UC023: Doctor Shift Scheduling Actions ---
+  // --- Doctor Shift Scheduling Actions ---
   assignDoctorShift(scheduleData: Omit<DoctorSchedule, 'id'>): DoctorSchedule {
     const newId = `SCH-${String(this.doctorSchedulesSignal().length + 1).padStart(2, '0')}`;
     const newSchedule: DoctorSchedule = {

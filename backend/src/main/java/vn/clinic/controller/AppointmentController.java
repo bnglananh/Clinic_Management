@@ -1,7 +1,6 @@
 package vn.clinic.controller;
 
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,13 +12,16 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/appointments")
-@RequiredArgsConstructor
 public class AppointmentController {
 
     private final AppointmentService appointmentService;
 
+    public AppointmentController(AppointmentService appointmentService) {
+        this.appointmentService = appointmentService;
+    }
+
     // =========================================================================
-    // UC010 & UC03: Quản lý lịch hẹn phòng khám & Tra cứu danh sách lịch hẹn
+    // Quản lý lịch hẹn phòng khám & Tra cứu danh sách lịch hẹn
     // =========================================================================
 
     @GetMapping
@@ -46,7 +48,7 @@ public class AppointmentController {
     }
 
     // =========================================================================
-    // UC03: Tra cứu lịch hẹn của bệnh nhân
+    // Tra cứu lịch hẹn của bệnh nhân
     // =========================================================================
 
     @GetMapping("/patient/{patientId}")
@@ -56,7 +58,7 @@ public class AppointmentController {
     }
 
     // =========================================================================
-    // UC02 & UC010: Đặt lịch hẹn mới (Bệnh nhân trực tuyến hoặc Lễ tân tại quầy)
+    // Đặt lịch hẹn mới (Bệnh nhân trực tuyến hoặc Lễ tân tại quầy)
     // =========================================================================
 
     @PostMapping
@@ -64,11 +66,11 @@ public class AppointmentController {
             @Valid @RequestBody CreateAppointmentRequest request) {
         AppointmentDto created = appointmentService.createAppointment(request);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success(created, "Đặt lịch hẹn khám thành công (SRS UC02 & UC010)"));
+                .body(ApiResponse.success(created, "Đặt lịch hẹn khám thành công"));
     }
 
     // =========================================================================
-    // UC03 & UC010: Dời lịch hẹn (Reschedule)
+    // Dời lịch hẹn (Reschedule)
     // =========================================================================
 
     @PutMapping("/{id}/reschedule")
@@ -76,11 +78,11 @@ public class AppointmentController {
             @PathVariable String id,
             @Valid @RequestBody RescheduleAppointmentRequest request) {
         AppointmentDto updated = appointmentService.rescheduleAppointment(id, request);
-        return ResponseEntity.ok(ApiResponse.success(updated, "Dời lịch hẹn khám thành công (SRS UC03 & UC010)"));
+        return ResponseEntity.ok(ApiResponse.success(updated, "Dời lịch hẹn khám thành công"));
     }
 
     // =========================================================================
-    // UC03 & UC010: Hủy lịch hẹn (Cancel)
+    // Hủy lịch hẹn (Cancel)
     // =========================================================================
 
     @PutMapping("/{id}/cancel")
@@ -88,6 +90,6 @@ public class AppointmentController {
             @PathVariable String id,
             @RequestBody(required = false) CancelAppointmentRequest request) {
         AppointmentDto updated = appointmentService.cancelAppointment(id, request);
-        return ResponseEntity.ok(ApiResponse.success(updated, "Hủy lịch hẹn thành công (SRS UC03 & UC010)"));
+        return ResponseEntity.ok(ApiResponse.success(updated, "Hủy lịch hẹn thành công"));
     }
 }

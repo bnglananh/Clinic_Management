@@ -28,11 +28,11 @@ export interface PharmacyDrugItem {
   importPrice: number;
   salePrice: number;
   stockQuantity: number;
-  minAlertThreshold: number; // default 10 (BR-22)
+  minAlertThreshold: number; // default 10
   batchNumber: string;
   expiryDate: string; // YYYY-MM-DD
   manufacturer: string;
-  status: DrugStatus; // BR-21: No physical delete
+  status: DrugStatus; // Soft toggle, no physical delete
 }
 
 export interface MedicalServiceItem {

@@ -1,14 +1,15 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, computed } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/services/auth.service';
 import { UserRole } from '../../core/models/user.model';
 import { ClinicIconComponent } from '../../shared/components/clinic-icon/clinic-icon.component';
+import { NotificationCenterComponent } from '../../shared/components/notification-center/notification-center.component';
 
 @Component({
   selector: 'app-patient-layout',
   standalone: true,
-  imports: [CommonModule, RouterModule, ClinicIconComponent],
+  imports: [CommonModule, RouterModule, ClinicIconComponent, NotificationCenterComponent],
   template: `
     <div class="patient-app-wrapper">
       <!-- Luxury Top Navigation -->
@@ -77,15 +78,15 @@ import { ClinicIconComponent } from '../../shared/components/clinic-icon/clinic-
 
           <!-- Right Controls -->
           <div class="patient-controls">
+            <!-- Notification Center -->
+            <app-notification-center></app-notification-center>
 
             <!-- Patient Avatar & Info -->
             <div class="patient-profile">
               <a routerLink="/patient/profile" class="patient-profile-link" title="Quản lý hồ sơ & thông tin cá nhân">
-                <img
-                  [src]="currentUser()?.avatarUrl"
-                  [alt]="currentUser()?.fullName"
-                  class="patient-avatar"
-                />
+                <div class="patient-avatar-badge font-serif" [title]="currentUser()?.fullName || 'Bệnh nhân'">
+                  {{ patientMonogram() }}
+                </div>
                 <div class="patient-name-box">
                   <span class="p-name">{{ currentUser()?.fullName }}</span>
                   <span class="p-type">Hạng Vàng VIP</span>
@@ -261,12 +262,20 @@ import { ClinicIconComponent } from '../../shared/components/clinic-icon/clinic-
           }
         }
 
-        .patient-avatar {
+        .patient-avatar-badge {
           width: 38px;
           height: 38px;
           border-radius: 50%;
-          object-fit: cover;
-          border: 1.5px solid #B8955A;
+          background: rgba(184, 149, 90, 0.15);
+          color: #B8955A;
+          border: 1.5px solid rgba(184, 149, 90, 0.4);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: 700;
+          font-size: 0.85rem;
+          letter-spacing: 0.5px;
+          flex-shrink: 0;
         }
 
         .patient-name-box {
@@ -346,6 +355,15 @@ import { ClinicIconComponent } from '../../shared/components/clinic-icon/clinic-
 export class PatientLayoutComponent {
   private authService = inject(AuthService);
   currentUser = this.authService.currentUser;
+
+  patientMonogram = computed(() => {
+    const user = this.currentUser();
+    if (!user || !user.fullName) return 'BN';
+    const name = user.fullName.trim();
+    const parts = name.split(/\s+/);
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+  });
 
   switchRole(role: UserRole): void {
     this.authService.switchRole(role);

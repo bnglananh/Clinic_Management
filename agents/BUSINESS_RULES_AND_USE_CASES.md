@@ -46,9 +46,13 @@ Hệ thống phân chia 4 vai trò rõ rệt, chỉ hiển thị màn hình và 
 - **BR-04**: Lịch hẹn bắt buộc phải có thông tin bệnh nhân, thời gian khám, chuyên khoa/bác sĩ và trạng thái hợp lệ.
 - **BR-05**: Không cho phép đặt trùng khung giờ khi lịch làm việc hoặc sức chứa của bác sĩ/buồng khám đã đạt giới hạn (Redis Lock TTL = 10 phút chống xung đột đặt trùng).
 - **BR-06**: Bệnh nhân đến trực tiếp (không hẹn trước) được tiếp nhận theo luồng khám vãng lai (Walk-in).
-- **BR-07 (Quy tắc Hàng đợi duy nhất)**: Trạng thái lượt khám tuân theo đúng tiến trình:
-  $$\text{WAITING (Chờ khám)} \longrightarrow \text{IN\_PROGRESS (Đang khám)} \longrightarrow \text{COMPLETED (Đã khám)}$$
-  Chỉ người dùng có thẩm quyền mới được chuyển trạng thái.
+- **BR-07 (Quy tắc Hàng đợi & Chu trình Cận lâm sàng)**: Trạng thái lượt khám tuân theo đúng tiến trình:
+  $$\text{WAITING (Chờ khám)} \longrightarrow \text{IN\_PROGRESS (Đang khám)} \rightleftharpoons \begin{matrix} \text{WAITING\_RESULTS (Đi làm CLS)} \\ \downarrow \\ \text{RESULTS\_READY (Đã có đủ KQ)} \end{matrix} \longrightarrow \text{COMPLETED (Đã khám)}$$
+  **Đặc tả nghiệp vụ chuyển tiếp Cận lâm sàng (CLS) & Recall Priority:**
+  - Khi Bác sĩ chỉ định dịch vụ kỹ thuật/xét nghiệm/CĐHA, phiên khám được tạm lưu nháp (`DRAFT`), vé khám chuyển sang `WAITING_RESULTS` kèm bộ đếm số lượng dịch vụ thực tế. Bác sĩ giải phóng buồng khám để gọi bệnh nhân tiếp theo trong hàng đợi mà không làm mất phiên khám của bệnh nhân cũ.
+  - **Tuyệt đối không bắt bệnh nhân bốc số lại tại quầy tiếp đón** khi quay lại. Bệnh nhân giữ nguyên STT và mã vé ban đầu.
+  - Hệ thống tự động theo dõi tiến độ hoàn tất theo thời gian thực (Event-driven). Ngay khi phòng chức năng duyệt kết quả dịch vụ cuối cùng, vé khám chuyển sang `RESULTS_READY` (xanh lá) và tự động phát sinh thông báo (Notification) in-app/SMS cho Bác sĩ và Bệnh nhân.
+  - Bác sĩ áp dụng cơ chế gọi lại ưu tiên (Recall Priority): bấm gọi trực tiếp bệnh nhân đã đủ kết quả vào buồng khám để kết luận và kê đơn mà không cần xếp hàng lại từ đầu.
 - **BR-08**: Số thứ tự hàng đợi gắn liền với ngày khám và buồng khám, không được phép gây nhầm lẫn giữa các ca.
 - **BR-09**: Dấu hiệu sinh tồn được ghi nhận phải gắn liền với đúng bệnh nhân, lượt khám và dấu thời gian (timestamp) lưu trữ vào Cassandra.
 - **BR-10**: Chẩn đoán bệnh bắt buộc sử dụng danh mục và mã bệnh chuẩn quốc tế **ICD-10** (ví dụ: `I10` - Tăng huyết áp vô căn, `E11` - Đái tháo đường type 2).
@@ -97,8 +101,8 @@ Hệ thống phân chia 4 vai trò rõ rệt, chỉ hiển thị màn hình và 
 ### Phân hệ 3: Bác sĩ (Doctor Clinical Workspace)
 14. **UC014 - Quản lý khám bệnh**: Gọi bệnh nhân tiếp theo từ hàng đợi (chuyển sang `IN_PROGRESS`); ghi nhận 5 chỉ số sinh hiệu (Huyết áp, Mạch, Nhiệt độ, Chiều cao, Cân nặng $\rightarrow$ BMI); nhập triệu chứng cơ năng; chẩn đoán theo mã ICD-10; hoàn tất lượt khám (chuyển sang `COMPLETED`).
 15. **UC015 - Quản lý hồ sơ bệnh án (EMR)**: Xem tóm tắt bệnh sử, tiền sử dị ứng; hồ sơ sau khi `COMPLETED` sẽ tự động khóa chỉnh sửa trực tiếp, hỗ trợ tạo phiên bản bổ sung / phụ lục nếu cần đính chính.
-16. **UC016 - Chỉ định dịch vụ kỹ thuật**: Chọn các dịch vụ đơn giản (siêu âm, điện tâm đồ, xét nghiệm nhanh); bác sĩ trực tiếp thực hiện và nhập kết quả vào bệnh án.
-17. **UC017 - Xem & đánh giá kết quả dịch vụ**: Xem chi tiết kết quả cận lâm sàng và ghi nhận kết luận y khoa vào hồ sơ bệnh án.
+16. **UC016 - Chỉ định dịch vụ kỹ thuật / Cận lâm sàng**: Chọn các dịch vụ kỹ thuật (siêu âm, X-quang, xét nghiệm sinh hóa); bấm **"Chuyển đi cận lâm sàng"** để lưu nháp bệnh án và chuyển trạng thái vé sang `WAITING_RESULTS`, giải phóng buồng khám để tiếp nhận bệnh nhân tiếp theo mà không làm mất phiên khám của bệnh nhân.
+17. **UC017 - Xem kết quả CLS & Gọi lại ưu tiên (Recall)**: Tự động nhận thông báo khi phòng chức năng duyệt đủ kết quả (trạng thái `RESULTS_READY` sáng xanh); Bác sĩ bấm **"Mời vào"** để gọi bệnh nhân quay lại buồng khám kết luận và kê đơn ngay mà **tuyệt đối không bắt bệnh nhân bốc số lại tại quầy tiếp đón**.
 18. **UC018 - Quản lý đơn thuốc & Cảnh báo DDI**: Tìm kiếm và kê đơn thuốc; hệ thống tự động quét tương tác thuốc (DDI) qua Neo4j và hiển thị cảnh báo đỏ Burgundy bắt buộc bác sĩ xác nhận trước khi lưu đơn.
 
 ### Phân hệ 4: Quản trị viên (Admin Portal)

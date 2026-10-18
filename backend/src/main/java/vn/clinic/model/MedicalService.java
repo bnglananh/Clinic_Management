@@ -21,7 +21,7 @@ public class MedicalService {
     private String roomName;
     private String unit;
     private int estimatedDurationMinutes;
-    private boolean active; // SRS BR-24: Soft toggle, no physical delete
+    private boolean active; // Soft toggle, no physical delete
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

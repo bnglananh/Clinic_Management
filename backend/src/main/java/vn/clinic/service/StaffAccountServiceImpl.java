@@ -1,6 +1,5 @@
 package vn.clinic.service;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import vn.clinic.dto.*;
@@ -20,10 +19,13 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class StaffAccountServiceImpl implements StaffAccountService {
 
     private final StaffAccountRepository repository;
+
+    public StaffAccountServiceImpl(StaffAccountRepository repository) {
+        this.repository = repository;
+    }
 
     @Override
     public List<StaffAccountDto> getAllAccounts(UserRole role, String searchQuery) {
@@ -60,7 +62,7 @@ public class StaffAccountServiceImpl implements StaffAccountService {
     public StaffAccountDto createAccount(CreateStaffRequest request) {
         log.info("Creating new staff account: username={}, email={}", request.getUsername(), request.getEmail());
 
-        // SRS UC019 BR 3.1: Kiểm tra trùng tên đăng nhập
+        // Kiểm tra trùng tên đăng nhập
         if (repository.existsByUsername(request.getUsername())) {
             throw new DuplicateResourceException("Tên đăng nhập '" + request.getUsername() + "' đã được sử dụng trong hệ thống.");
         }
@@ -145,12 +147,12 @@ public class StaffAccountServiceImpl implements StaffAccountService {
         StaffAccount account = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy tài khoản nhân viên có mã: " + id));
 
-        // SRS UC019 BR 3.3: "Hệ thống không cho phép khóa tài khoản quản trị viên cuối cùng có quyền quản trị hệ thống."
+        // Hệ thống không cho phép khóa tài khoản quản trị viên cuối cùng có quyền quản trị hệ thống
         if (account.getRole() == UserRole.ADMIN && account.getStatus() == AccountStatus.ACTIVE) {
             long activeAdminCount = repository.countByRoleAndStatus(UserRole.ADMIN, AccountStatus.ACTIVE);
             if (activeAdminCount <= 1) {
                 log.warn("Attempted to lock the last active admin account: id={}, username={}", account.getId(), account.getUsername());
-                throw new BusinessRuleException("Không thể khóa tài khoản quản trị viên cuối cùng của hệ thống. Bắt buộc phải duy trì ít nhất một Quản trị viên đang hoạt động (SRS BR 3.3).");
+                throw new BusinessRuleException("Không thể khóa tài khoản quản trị viên cuối cùng của hệ thống. Bắt buộc phải duy trì ít nhất một Quản trị viên đang hoạt động.");
             }
         }
 
@@ -173,7 +175,7 @@ public class StaffAccountServiceImpl implements StaffAccountService {
 
         account.setRole(request.getRole());
 
-        // Kiểm tra quyền được cấp (SRS BR 4.1)
+        // Kiểm tra quyền được cấp
         Set<String> newPermissions = request.getPermissions();
         if (newPermissions == null || newPermissions.isEmpty()) {
             newPermissions = Permission.getDefaultPermissions(request.getRole()).stream()
@@ -204,7 +206,7 @@ public class StaffAccountServiceImpl implements StaffAccountService {
     public List<RolePermissionInfo> getRolesAndPermissionsMetadata() {
         List<RolePermissionInfo> list = new ArrayList<>();
         for (UserRole role : UserRole.values()) {
-            if (role == UserRole.PATIENT) continue; // Only staff roles in UC019
+            if (role == UserRole.PATIENT) continue; // Only staff roles
             Set<Permission> defaultPerms = Permission.getDefaultPermissions(role);
             List<RolePermissionInfo.PermissionItem> permItems = defaultPerms.stream()
                     .map(p -> RolePermissionInfo.PermissionItem.builder()

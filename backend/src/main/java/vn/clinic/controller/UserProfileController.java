@@ -1,7 +1,6 @@
 package vn.clinic.controller;
 
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import vn.clinic.dto.ApiResponse;
@@ -14,13 +13,16 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/profile")
-@RequiredArgsConstructor
 public class UserProfileController {
 
     private final UserProfileService userProfileService;
 
+    public UserProfileController(UserProfileService userProfileService) {
+        this.userProfileService = userProfileService;
+    }
+
     /**
-     * UC01 - Bước 2: Hiển thị thông tin cá nhân hiện tại
+     * Hiển thị thông tin cá nhân hiện tại
      */
     @GetMapping
     public ResponseEntity<ApiResponse<UserProfileDto>> getCurrentProfile(
@@ -30,7 +32,7 @@ public class UserProfileController {
     }
 
     /**
-     * UC01: Xem hồ sơ theo mã người dùng
+     * Xem hồ sơ theo mã người dùng
      */
     @GetMapping("/{userId}")
     public ResponseEntity<ApiResponse<UserProfileDto>> getProfileById(@PathVariable String userId) {
@@ -39,8 +41,8 @@ public class UserProfileController {
     }
 
     /**
-     * UC01 - Bước 3, 5, 6, 7: Cập nhật thông tin cá nhân
-     * BR 3.1: Kiểm tra tính hợp lệ của dữ liệu
+     * Cập nhật thông tin cá nhân
+     * Kiểm tra tính hợp lệ của dữ liệu
      */
     @PutMapping
     public ResponseEntity<ApiResponse<UserProfileDto>> updateProfile(
@@ -51,9 +53,9 @@ public class UserProfileController {
     }
 
     /**
-     * UC01 - Bước 4: Thay đổi mật khẩu tài khoản cá nhân
-     * BR 4.1: Kiểm tra mật khẩu hiện tại
-     * BR 4.2: Kiểm tra yêu cầu bảo mật của mật khẩu mới
+     * Thay đổi mật khẩu tài khoản cá nhân
+     * Kiểm tra mật khẩu hiện tại
+     * Kiểm tra yêu cầu bảo mật của mật khẩu mới
      */
     @PutMapping("/change-password")
     public ResponseEntity<ApiResponse<Void>> changePassword(
@@ -64,7 +66,7 @@ public class UserProfileController {
     }
 
     /**
-     * UC01: Cập nhật ảnh đại diện cá nhân
+     * Cập nhật ảnh đại diện cá nhân
      */
     @PostMapping("/avatar")
     public ResponseEntity<ApiResponse<UserProfileDto>> updateAvatar(

@@ -217,7 +217,7 @@ import { PharmacyDrugItem } from '../../../core/models/admin.model';
       </div>
     </div>
 
-    <!-- Restock Modal (UC021) -->
+    <!-- Restock Modal -->
     @if (restockModalOpen() && selectedDrugForRestock()) {
       <div class="modal-backdrop" (click)="closeRestockModal()">
         <div class="modal-card" (click)="$event.stopPropagation()">
@@ -284,7 +284,7 @@ import { PharmacyDrugItem } from '../../../core/models/admin.model';
       </div>
     }
 
-    <!-- Create Drug Modal (UC020) -->
+    <!-- Create Drug Modal -->
     @if (createModalOpen()) {
       <div class="modal-backdrop" (click)="closeCreateModal()">
         <div class="modal-card wide-card" (click)="$event.stopPropagation()">
@@ -1007,7 +1007,7 @@ export class AdminPharmacyComponent {
     return list;
   });
 
-  // Restock Modal State (UC021)
+  // Restock Modal State
   restockModalOpen = signal<boolean>(false);
   selectedDrugForRestock = signal<PharmacyDrugItem | null>(null);
   restockQuantity = 20;
@@ -1040,12 +1040,12 @@ export class AdminPharmacyComponent {
     this.closeRestockModal();
   }
 
-  // Soft status toggle (BR-21)
+  // Soft status toggle
   toggleDrugStatus(drug: PharmacyDrugItem): void {
     this.adminService.toggleDrugStatus(drug.id);
   }
 
-  // Create Drug Modal State (UC020)
+  // Create Drug Modal State
   createModalOpen = signal<boolean>(false);
   createFormError = signal<string>('');
 
@@ -1102,7 +1102,7 @@ export class AdminPharmacyComponent {
       importPrice: Number(this.newImportPrice),
       salePrice: Number(this.newSalePrice),
       stockQuantity: Number(this.newInitialStock),
-      minAlertThreshold: 10, // BR-22
+      minAlertThreshold: 10,
       batchNumber: this.newBatch.trim(),
       expiryDate: this.newExpiry,
       manufacturer: this.newManufacturer.trim(),

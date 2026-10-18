@@ -45,7 +45,7 @@ public class Bill {
     private String cashierName;            // Thu ngân tiếp nhận
     private String notes;                  // Ghi chú hóa đơn
 
-    private boolean stockDeducted;         // Cờ xác nhận đã trừ kho thuốc (tránh trừ kho hai lần - UC021)
+    private boolean stockDeducted;         // Cờ xác nhận đã trừ kho thuốc (tránh trừ kho hai lần)
 
     private String createdAt;
     private String updatedAt;

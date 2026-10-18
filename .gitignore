@@ -34,6 +34,7 @@ yarn-error.log*
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+frontend/.vscode/
 
 # Excluded documents requested by user
 **/README_UC*.md

@@ -90,7 +90,7 @@ import { MedicalRecord } from '../../../core/models/medical-record.model';
                     }
                   </span>
                 </td>
-                <td>
+                <td style="white-space: nowrap;">
                   <span class="locked-badge">
                     <app-clinic-icon name="lock" [size]="12"></app-clinic-icon>
                     <span>Đã khóa EMR</span>
@@ -210,6 +210,10 @@ import { MedicalRecord } from '../../../core/models/medical-record.model';
 
             <div class="modal-footer">
               <button class="btn-secondary" (click)="selectedRecord.set(null)">Đóng</button>
+              <button class="btn-print-emr" (click)="printRecord()">
+                <app-clinic-icon name="receipt" [size]="14"></app-clinic-icon>
+                <span>In Bệnh Án</span>
+              </button>
               <button class="btn-open-workspace" (click)="openInWorkspace(rec)">
                 Mở trong Clinical Workspace (Thêm phụ lục) →
               </button>
@@ -334,13 +338,23 @@ import { MedicalRecord } from '../../../core/models/medical-record.model';
         }
 
         .locked-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          white-space: nowrap;
           font-size: 0.74rem;
-          background: rgba(94, 139, 126, 0.15);
-          color: #2F5A4F;
-          border: 1px solid #5E8B7E;
-          padding: 3px 8px;
-          border-radius: 6px;
+          background: rgba(14, 74, 85, 0.08);
+          color: #0E4A55;
+          border: 1px solid rgba(14, 74, 85, 0.3);
+          padding: 3px 10px;
+          border-radius: 20px;
           font-weight: 600;
+          line-height: 1;
+
+          app-clinic-icon + span {
+            margin-left: 4px;
+            white-space: nowrap;
+          }
         }
 
         .btn-view {
@@ -559,6 +573,23 @@ import { MedicalRecord } from '../../../core/models/medical-record.model';
           color: #FFFFFF;
           border: none;
         }
+
+        .btn-print-emr {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          background: linear-gradient(135deg, #0E4A55 0%, #155E6C 100%);
+          color: #FFFFFF;
+          border: 1px solid rgba(14, 74, 85, 0.4);
+          box-shadow: 0 4px 12px rgba(14, 74, 85, 0.25);
+          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+
+          &:hover {
+            background: linear-gradient(135deg, #135d6b 0%, #1a7182 100%);
+            box-shadow: 0 6px 18px rgba(14, 74, 85, 0.38);
+            transform: translateY(-1.5px);
+          }
+        }
       }
     `,
   ],
@@ -606,5 +637,9 @@ export class DoctorHistoryComponent {
 
   goToWorkspace(): void {
     this.router.navigate(['/doctor/workspace']);
+  }
+
+  printRecord(): void {
+    window.print();
   }
 }

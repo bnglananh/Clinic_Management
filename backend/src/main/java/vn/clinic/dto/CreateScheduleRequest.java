@@ -18,7 +18,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class CreateScheduleRequest {
 
-    @NotBlank(message = "ID Bác sĩ không được để trống (SRS UC023)")
+    @NotBlank(message = "ID Bác sĩ không được để trống")
     private String doctorId;
 
     private String doctorName;
@@ -29,7 +29,7 @@ public class CreateScheduleRequest {
     @NotBlank(message = "Phòng khám / Buồng trực không được để trống")
     private String roomName;
 
-    @NotNull(message = "Ngày làm việc không được để trống (SRS UC023)")
+    @NotNull(message = "Ngày làm việc không được để trống")
     private LocalDate date;
 
     @NotNull(message = "Ca làm việc không được để trống (MORNING, AFTERNOON, EVENING)")

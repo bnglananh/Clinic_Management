@@ -19,7 +19,7 @@ public class ClinicDashboardStatsDto {
     private int visitsInProgress;          // Số ca đang khám
     private int visitsWaiting;             // Số ca đang chờ
 
-    private int criticalStockCount;        // Số thuốc có tồn kho <= 10 (BR-22)
+    private int criticalStockCount;        // Số thuốc có tồn kho <= 10
     private int lowStockCount;             // Số thuốc có tồn kho <= 30
     private int activeDoctorsCount;        // Số bác sĩ đang trực
     private int totalStaffCount;           // Tổng số nhân sự

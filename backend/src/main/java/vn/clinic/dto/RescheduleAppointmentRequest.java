@@ -11,10 +11,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RescheduleAppointmentRequest {
-    @NotBlank(message = "Ngày khám mới không được để trống (SRS UC03 & UC010)")
+    @NotBlank(message = "Ngày khám mới không được để trống")
     private String newAppointmentDate;
 
-    @NotBlank(message = "Khung giờ mới không được để trống (SRS UC03 & UC010)")
+    @NotBlank(message = "Khung giờ mới không được để trống")
     private String newTimeSlot;
 
     private String reason;

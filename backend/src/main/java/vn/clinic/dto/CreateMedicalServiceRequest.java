@@ -18,11 +18,11 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class CreateMedicalServiceRequest {
 
-    @NotBlank(message = "Mã dịch vụ không được để trống (SRS UC022)")
+    @NotBlank(message = "Mã dịch vụ không được để trống")
     @Size(min = 2, max = 30, message = "Mã dịch vụ phải từ 2 đến 30 ký tự")
     private String serviceCode;
 
-    @NotBlank(message = "Tên dịch vụ kỹ thuật không được để trống (SRS UC022)")
+    @NotBlank(message = "Tên dịch vụ kỹ thuật không được để trống")
     @Size(min = 2, max = 150, message = "Tên dịch vụ phải từ 2 đến 150 ký tự")
     private String serviceName;
 

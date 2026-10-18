@@ -27,6 +27,6 @@ public class PharmacyDrugDto {
     private String expiryDate;
     private String manufacturer;
     private DrugStatus status;
-    private boolean isCriticalStock; // Tồn kho <= 10 (SRS UC021 BR-21)
+    private boolean isCriticalStock; // Tồn kho <= 10
     private boolean isLowStock;      // Tồn kho <= minAlertThreshold (hoặc <= 30)
 }

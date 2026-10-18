@@ -1,6 +1,5 @@
 package vn.clinic.service;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import vn.clinic.dto.CreateScheduleRequest;
@@ -22,11 +21,17 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class DoctorScheduleServiceImpl implements DoctorScheduleService {
 
     private final DoctorScheduleRepository doctorScheduleRepository;
     private final StaffAccountRepository staffAccountRepository;
+
+    public DoctorScheduleServiceImpl(
+            DoctorScheduleRepository doctorScheduleRepository,
+            StaffAccountRepository staffAccountRepository) {
+        this.doctorScheduleRepository = doctorScheduleRepository;
+        this.staffAccountRepository = staffAccountRepository;
+    }
 
     @Override
     public List<DoctorScheduleDto> getAllSchedules(LocalDate date, String doctorId, WorkShift shift) {
@@ -43,12 +48,12 @@ public class DoctorScheduleServiceImpl implements DoctorScheduleService {
 
     @Override
     public DoctorScheduleDto createSchedule(CreateScheduleRequest request) {
-        // BR 4.1: Kiểm tra xung đột lịch - Bác sĩ đã có ca trực trong khung giờ ngày đó
+        // Kiểm tra xung đột lịch - Bác sĩ đã có ca trực trong khung giờ ngày đó
         Optional<DoctorSchedule> conflictDoctor = doctorScheduleRepository.findByDoctorDateAndShift(
                 request.getDoctorId(), request.getDate(), request.getShift());
         if (conflictDoctor.isPresent()) {
             throw new BusinessRuleException(
-                    String.format("Bác sĩ đã có lịch trực trong ca %s vào ngày %s (SRS UC023 BR 4.1)",
+                    String.format("Bác sĩ đã có lịch trực trong ca %s vào ngày %s.",
                             request.getShift(), request.getDate()));
         }
 
@@ -57,7 +62,7 @@ public class DoctorScheduleServiceImpl implements DoctorScheduleService {
                 request.getRoomName(), request.getDate(), request.getShift());
         if (conflictRoom.isPresent()) {
             throw new BusinessRuleException(
-                    String.format("Phòng '%s' đã có bác sĩ %s trực trong ca %s vào ngày %s (SRS UC023)",
+                    String.format("Phòng '%s' đã có bác sĩ %s trực trong ca %s vào ngày %s.",
                             request.getRoomName(), conflictRoom.get().getDoctorName(), request.getShift(), request.getDate()));
         }
 
@@ -93,7 +98,7 @@ public class DoctorScheduleServiceImpl implements DoctorScheduleService {
         // Kiểm tra số lượng bệnh nhân tối đa không được thấp hơn số lượng đã đặt hẹn
         if (request.getMaxPatients() < schedule.getBookedPatients()) {
             throw new BusinessRuleException(
-                    String.format("Số lượng bệnh nhân tối đa (%d) không được nhỏ hơn số lượt đã đặt hẹn trước (%d) (SRS UC023)",
+                    String.format("Số lượng bệnh nhân tối đa (%d) không được nhỏ hơn số lượt đã đặt hẹn trước (%d).",
                             request.getMaxPatients(), schedule.getBookedPatients()));
         }
 
@@ -127,10 +132,10 @@ public class DoctorScheduleServiceImpl implements DoctorScheduleService {
     public void deleteSchedule(String id) {
         DoctorSchedule schedule = findScheduleOrThrow(id);
 
-        // BR 3.1: Nếu đã có bệnh nhân đặt hẹn thì không được xóa lịch
+        // Nếu đã có bệnh nhân đặt hẹn thì không được xóa lịch
         if (schedule.getBookedPatients() > 0) {
             throw new BusinessRuleException(
-                    String.format("Không thể xóa ca làm việc đã có %d bệnh nhân đặt hẹn trước. Vui lòng chuyển trạng thái nghỉ phép hoặc hủy hẹn trước (SRS UC023 BR 3.1)",
+                    String.format("Không thể xóa ca làm việc đã có %d bệnh nhân đặt hẹn trước. Vui lòng chuyển trạng thái nghỉ phép hoặc hủy hẹn trước.",
                             schedule.getBookedPatients()));
         }
 

@@ -7,23 +7,23 @@ import java.util.Set;
 
 public enum Permission {
     // Admin permissions
-    MANAGE_USERS("Quản lý tài khoản & phân quyền (UC019)"),
-    MANAGE_DRUGS("Quản lý danh mục & tồn kho thuốc (UC020, UC021)"),
-    MANAGE_SERVICES("Quản lý danh mục dịch vụ & viện phí (UC022)"),
-    MANAGE_SCHEDULES("Phân công lịch làm việc bác sĩ (UC023)"),
-    VIEW_REPORTS("Xem báo cáo thống kê & doanh thu (UC024)"),
+    MANAGE_USERS("Quản lý tài khoản & phân quyền"),
+    MANAGE_DRUGS("Quản lý danh mục & tồn kho thuốc"),
+    MANAGE_SERVICES("Quản lý danh mục dịch vụ & viện phí"),
+    MANAGE_SCHEDULES("Phân công lịch làm việc bác sĩ"),
+    VIEW_REPORTS("Xem báo cáo thống kê & doanh thu"),
 
     // Doctor permissions
-    EXAMINE_PATIENT("Khám bệnh & chẩn đoán (UC013, UC014)"),
-    PRESCRIBE_MEDICATION("Kê đơn thuốc điều trị (UC015)"),
-    ORDER_TESTS("Chỉ định dịch vụ cận lâm sàng (UC016)"),
-    VIEW_MEDICAL_HISTORY("Tra cứu bệnh sử & tiền sử (UC017)"),
+    EXAMINE_PATIENT("Khám bệnh & chẩn đoán"),
+    PRESCRIBE_MEDICATION("Kê đơn thuốc điều trị"),
+    ORDER_TESTS("Chỉ định dịch vụ cận lâm sàng"),
+    VIEW_MEDICAL_HISTORY("Tra cứu bệnh sử & tiền sử"),
 
     // Receptionist permissions
-    RECEPTION_CHECKIN("Tiếp đón & cấp số thứ tự (UC007, UC008)"),
-    MANAGE_APPOINTMENTS("Tiếp nhận & xác nhận lịch hẹn (UC009)"),
-    BILLING_COLLECTION("Thu phí viện phí & xuất hóa đơn (UC010, UC011)"),
-    DISPENSE_MEDICINE("Phát thuốc theo toa bác sĩ (UC012)");
+    RECEPTION_CHECKIN("Tiếp đón & cấp số thứ tự"),
+    MANAGE_APPOINTMENTS("Tiếp nhận & xác nhận lịch hẹn"),
+    BILLING_COLLECTION("Thu phí viện phí & xuất hóa đơn"),
+    DISPENSE_MEDICINE("Phát thuốc theo toa bác sĩ");
 
     private final String description;
 

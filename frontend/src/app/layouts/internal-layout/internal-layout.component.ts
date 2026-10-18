@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/services/auth.service';
 import { UserRole } from '../../core/models/user.model';
 import { ClinicIconComponent, ClinicIconName } from '../../shared/components/clinic-icon/clinic-icon.component';
+import { NotificationCenterComponent } from '../../shared/components/notification-center/notification-center.component';
 
 interface MenuItem {
   title: string;
@@ -15,7 +16,7 @@ interface MenuItem {
 @Component({
   selector: 'app-internal-layout',
   standalone: true,
-  imports: [CommonModule, RouterModule, ClinicIconComponent],
+  imports: [CommonModule, RouterModule, ClinicIconComponent, NotificationCenterComponent],
   template: `
     <div class="internal-container" [class.sidebar-collapsed]="isCollapsed()">
       <!-- Sidebar -->
@@ -100,18 +101,13 @@ interface MenuItem {
           <div class="header-right">
 
             <!-- Notifications -->
-            <button class="icon-action-btn" title="Thông báo hệ thống">
-              <app-clinic-icon name="bell" [size]="18" color="#5B6672"></app-clinic-icon>
-              <span class="badge-dot"></span>
-            </button>
+            <app-notification-center></app-notification-center>
 
             <!-- User Profile Dropdown / Card -->
             <div class="user-profile-widget">
-              <img
-                [src]="currentUser()?.avatarUrl"
-                [alt]="currentUser()?.fullName"
-                class="user-avatar"
-              />
+              <div class="user-avatar-badge font-serif" [title]="currentUser()?.fullName || 'Người dùng'">
+                {{ userMonogram() }}
+              </div>
               <div class="user-info-text">
                 <span class="user-name">{{ currentUser()?.fullName }}</span>
                 <span class="user-department">{{ currentUser()?.title || currentUser()?.department }}</span>
@@ -435,12 +431,20 @@ interface MenuItem {
         padding-left: 12px;
         border-left: 1px solid rgba(228, 222, 210, 0.7);
 
-        .user-avatar {
+        .user-avatar-badge {
           width: 38px;
           height: 38px;
           border-radius: 10px;
-          object-fit: cover;
-          border: 1.5px solid #B8955A;
+          background: rgba(14, 74, 85, 0.1);
+          color: #0E4A55;
+          border: 1.5px solid rgba(14, 74, 85, 0.25);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: 700;
+          font-size: 0.85rem;
+          letter-spacing: 0.5px;
+          flex-shrink: 0;
         }
 
         .user-info-text {
@@ -498,6 +502,18 @@ export class InternalLayoutComponent {
   isCollapsed = signal<boolean>(false);
   currentUser = this.authService.currentUser;
   currentRole = this.authService.currentRole;
+
+  userMonogram = computed(() => {
+    const user = this.currentUser();
+    if (!user) return 'NV';
+    if (user.role === 'DOCTOR') return 'BS';
+    if (user.role === 'ADMIN') return 'AD';
+    if (user.role === 'RECEPTIONIST') return 'TN';
+    const name = user.fullName?.trim() || '';
+    if (!name) return 'ND';
+    const parts = name.split(/\s+/);
+    return parts[parts.length - 1].slice(0, 2).toUpperCase();
+  });
 
   roleDisplayName = computed(() => {
     const role = this.currentRole();

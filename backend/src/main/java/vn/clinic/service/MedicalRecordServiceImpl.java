@@ -1,6 +1,5 @@
 package vn.clinic.service;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import vn.clinic.dto.CreateMedicalRecordRequest;
@@ -22,11 +21,17 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class MedicalRecordServiceImpl implements MedicalRecordService {
 
     private final MedicalRecordRepository medicalRecordRepository;
     private final PatientProfileRepository patientProfileRepository;
+
+    public MedicalRecordServiceImpl(
+            MedicalRecordRepository medicalRecordRepository,
+            PatientProfileRepository patientProfileRepository) {
+        this.medicalRecordRepository = medicalRecordRepository;
+        this.patientProfileRepository = patientProfileRepository;
+    }
 
     @Override
     public List<MedicalRecordDto> getPatientRecords(String patientId, String keyword, String department, Integer year) {
@@ -127,7 +132,7 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
         record.setLocked(true);
         record.setUpdatedAt(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
         MedicalRecord saved = medicalRecordRepository.save(record);
-        log.info("Locked medical record: id={}, visitCode={} (BR-23)", saved.getId(), saved.getVisitCode());
+        log.info("Locked medical record: id={}, visitCode={}", saved.getId(), saved.getVisitCode());
         return mapToDto(saved);
     }
 

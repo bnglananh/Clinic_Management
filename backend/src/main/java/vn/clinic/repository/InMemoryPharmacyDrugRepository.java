@@ -7,7 +7,6 @@ import vn.clinic.model.PharmacyDrug;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -169,7 +168,7 @@ public class InMemoryPharmacyDrugRepository implements PharmacyDrugRepository {
                 .batchNumber("ZC-2024-01")
                 .expiryDate("2025-12-31")
                 .manufacturer("MSD (Mỹ)")
-                .status(DrugStatus.DISCONTINUED) // Soft discontinued (BR-24)
+                .status(DrugStatus.DISCONTINUED) // Soft discontinued
                 .createdAt(LocalDateTime.now().minusDays(100))
                 .updatedAt(LocalDateTime.now().minusDays(20))
                 .build());

@@ -202,7 +202,7 @@ import { PharmacyDrugItem } from '../../../core/models/admin.model';
         </div>
       </div>
 
-      <!-- Right Column: Drug Low Stock Alert Card (BR-22) -->
+      <!-- Right Column: Drug Low Stock Alert Card -->
       <div class="right-col">
         <div class="clinic-card alert-card">
           <div class="alert-top">

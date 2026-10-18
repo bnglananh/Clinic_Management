@@ -226,7 +226,7 @@ export const MOCK_PHARMACY_DRUGS: PharmacyDrugItem[] = [
     batchNumber: 'ZC-2024-01',
     expiryDate: '2025-12-31',
     manufacturer: 'MSD (Mỹ)',
-    status: 'DISCONTINUED', // BR-21: Soft status change, not physically deleted
+    status: 'DISCONTINUED', // Soft status change, not physically deleted
   },
 ];
 
