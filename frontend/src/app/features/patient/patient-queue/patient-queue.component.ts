@@ -281,6 +281,7 @@ import { ClinicIconComponent } from '../../../shared/components/clinic-icon/clin
         box-shadow: 0 12px 32px rgba(28, 39, 51, 0.07);
         position: relative;
         overflow: hidden;
+        margin-bottom: 38px;
       }
 
       .card-status-bar {
@@ -555,11 +556,16 @@ import { ClinicIconComponent } from '../../../shared/components/clinic-icon/clin
       }
 
       /* Upcoming Appointments */
+      .appointments-section {
+        margin-top: 40px;
+        padding-top: 6px;
+      }
+
       .section-top {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 20px;
+        margin-bottom: 22px;
 
         .sec-title {
           font-size: 1.45rem;

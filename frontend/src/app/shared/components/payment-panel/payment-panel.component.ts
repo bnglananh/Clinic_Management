@@ -187,7 +187,7 @@ import { ClinicIconComponent } from '../clinic-icon/clinic-icon.component';
                   />
                   <div class="qr-desc">
                     <p class="qr-bank font-bold">Ngân hàng TMCP Ngoại Thương (Vietcombank)</p>
-                    <p class="qr-acc">STK: <strong>0903 123 456</strong></p>
+                    <p class="qr-acc">STK: <strong>1040394574</strong></p>
                     <p class="qr-name">Chủ TK: <strong>PHÒNG KHÁM SMART CLINIC</strong></p>
                     <p class="qr-syntax">Nội dung CK: <strong>{{ bill.billCode }} {{ bill.patientCode }}</strong></p>
                   </div>

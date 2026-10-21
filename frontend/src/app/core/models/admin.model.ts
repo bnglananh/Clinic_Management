@@ -61,3 +61,24 @@ export interface DoctorSchedule {
   maxPatients: number;
   bookedPatients: number;
 }
+
+export type MembershipTier = 'STANDARD' | 'SILVER' | 'GOLD' | 'VIP';
+
+export interface PatientAccount {
+  id: string;
+  patientCode: string;          // Ví dụ: BN-2026-0891
+  username: string;             // SĐT hoặc Username đăng nhập
+  fullName: string;
+  email: string;
+  phone: string;
+  cccd: string;
+  gender: 'NAM' | 'NU' | 'KHAC';
+  dateOfBirth: string;
+  address?: string;
+  status: AccountStatus;        // 'ACTIVE' | 'LOCKED'
+  membershipTier: MembershipTier;
+  totalVisits: number;
+  lastLoginAt?: string;
+  registeredAt: string;
+}
+

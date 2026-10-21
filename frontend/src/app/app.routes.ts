@@ -5,6 +5,7 @@ import { PatientLayoutComponent } from './layouts/patient-layout/patient-layout.
 import { authGuard } from './core/guards/auth.guard';
 import { roleGuard } from './core/guards/role.guard';
 import { publicLandingGuard } from './core/guards/public-landing.guard';
+import { AdminPatientsComponent } from './features/admin/admin-patients/admin-patients.component';
 
 export const routes: Routes = [
   // Authentication Routes
@@ -23,6 +24,13 @@ export const routes: Routes = [
           import('./features/auth/register/register.component').then((m) => m.RegisterComponent),
       },
       {
+        path: 'forgot-password',
+        loadComponent: () =>
+          import('./features/auth/forgot-password/forgot-password.component').then(
+            (m) => m.ForgotPasswordComponent
+          ),
+      },
+      {
         path: '',
         redirectTo: 'login',
         pathMatch: 'full',
@@ -32,6 +40,11 @@ export const routes: Routes = [
   {
     path: 'login',
     redirectTo: 'auth/login',
+    pathMatch: 'full',
+  },
+  {
+    path: 'forgot-password',
+    redirectTo: 'auth/forgot-password',
     pathMatch: 'full',
   },
 
@@ -142,6 +155,10 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'patients',
+        component: AdminPatientsComponent,
+      },
+      {
         path: 'pharmacy',
         loadComponent: () =>
           import('./features/admin/admin-pharmacy/admin-pharmacy.component').then(
@@ -220,7 +237,28 @@ export const routes: Routes = [
             (m) => m.PatientProfileComponent
           ),
       },
+      {
+        path: 'services/:code',
+        loadComponent: () =>
+          import('./features/services/service-detail/service-detail.component').then(
+            (m) => m.ServiceDetailComponent
+          ),
+      },
     ],
+  },
+
+  // Public Service Detail Route (Before booking / explore modern equipment)
+  {
+    path: 'services/:code',
+    loadComponent: () =>
+      import('./features/services/service-detail/service-detail.component').then(
+        (m) => m.ServiceDetailComponent
+      ),
+  },
+  {
+    path: 'services',
+    redirectTo: '',
+    pathMatch: 'full',
   },
 
   // Public Clinic Landing Portal
@@ -249,3 +287,4 @@ export const routes: Routes = [
     redirectTo: '',
   },
 ];
+

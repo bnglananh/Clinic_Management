@@ -60,21 +60,35 @@ interface PatientRecordItem {
         </p>
       </div>
 
-      <!-- Filter Controls Bar -->
+      <!-- Filter Controls Bar v2 -->
       <div class="filters-bar clinic-card">
-        <div class="filter-field">
+        <div class="filter-field search-field">
           <label>Tìm kiếm từ khóa:</label>
-          <input
-            type="text"
-            class="f-input"
-            [(ngModel)]="searchKeyword"
-            placeholder="Tìm theo tên bệnh, thuốc, bác sĩ..."
-          />
+          <div class="search-input-box">
+            <span class="search-prefix-icon">
+              <app-clinic-icon name="search" [size]="16" color="#718096"></app-clinic-icon>
+            </span>
+            <input
+              type="text"
+              class="f-input"
+              [ngModel]="searchKeyword()"
+              (ngModelChange)="onKeywordChange($event)"
+              (keyup.enter)="applySearch()"
+              placeholder="Tìm theo tên bệnh, thuốc, bác sĩ..."
+            />
+            @if (searchKeyword()) {
+              <button type="button" class="btn-clear-keyword" (click)="clearKeyword()" title="Xóa từ khóa">✕</button>
+            }
+          </div>
         </div>
 
         <div class="filter-field">
           <label>Chuyên khoa:</label>
-          <select class="f-select" [(ngModel)]="selectedDeptFilter">
+          <select
+            class="f-select"
+            [ngModel]="selectedDeptFilter()"
+            (ngModelChange)="onDeptChange($event)"
+          >
             <option value="ALL">Tất cả chuyên khoa</option>
             <option value="Khoa Tim Mạch">Khoa Tim Mạch</option>
             <option value="Khoa Tiêu Hóa">Khoa Tiêu Hóa</option>
@@ -84,11 +98,29 @@ interface PatientRecordItem {
 
         <div class="filter-field">
           <label>Năm khám:</label>
-          <select class="f-select" [(ngModel)]="selectedYearFilter">
+          <select
+            class="f-select"
+            [ngModel]="selectedYearFilter()"
+            (ngModelChange)="onYearChange($event)"
+          >
             <option value="ALL">Tất cả các năm</option>
             <option value="2026">Năm 2026</option>
             <option value="2025">Năm 2025</option>
           </select>
+        </div>
+
+        <!-- Action Buttons: Search & Reset -->
+        <div class="filter-actions-group">
+          <button type="button" class="btn-search-records" (click)="applySearch()" title="Tìm kiếm theo điều kiện">
+            <app-clinic-icon name="search" [size]="15" color="#FFFFFF"></app-clinic-icon>
+            <span>Tìm kiếm</span>
+          </button>
+
+          @if (isFiltered()) {
+            <button type="button" class="btn-reset-records" (click)="resetFilters()" title="Xóa toàn bộ bộ lọc">
+              <span>Đặt lại</span>
+            </button>
+          }
         </div>
 
         <div class="filter-stat">
@@ -293,7 +325,7 @@ interface PatientRecordItem {
           flex-direction: column;
           gap: 6px;
           flex: 1;
-          min-width: 180px;
+          min-width: 170px;
 
           label {
             font-size: 0.75rem;
@@ -322,10 +354,102 @@ interface PatientRecordItem {
           }
         }
 
+        .search-field {
+          flex: 1.5;
+          min-width: 240px;
+        }
+
+        .search-input-box {
+          position: relative;
+          display: flex;
+          align-items: center;
+
+          .search-prefix-icon {
+            position: absolute;
+            left: 12px;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+          }
+
+          .f-input {
+            width: 100%;
+            padding-left: 36px;
+            padding-right: 32px;
+          }
+
+          .btn-clear-keyword {
+            position: absolute;
+            right: 10px;
+            background: none;
+            border: none;
+            color: #A0AEC0;
+            cursor: pointer;
+            font-size: 0.85rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+
+            &:hover {
+              color: #1C2733;
+              background: #F0EAE1;
+            }
+          }
+        }
+
+        .filter-actions-group {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          flex-shrink: 0;
+
+          .btn-search-records {
+            background: #0E4A55;
+            color: #FFFFFF;
+            border: 1px solid #0E4A55;
+            border-radius: 12px;
+            padding: 9px 18px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 8px rgba(14, 74, 85, 0.2);
+
+            &:hover {
+              background: #145b68;
+              border-color: #145b68;
+              transform: translateY(-1px);
+              box-shadow: 0 4px 12px rgba(14, 74, 85, 0.28);
+            }
+          }
+
+          .btn-reset-records {
+            background: #F6F3EC;
+            color: #5B6672;
+            border: 1px solid #E2DCD0;
+            border-radius: 12px;
+            padding: 9px 14px;
+            font-size: 0.88rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+
+            &:hover {
+              color: #0E4A55;
+              border-color: #B8955A;
+              background: #FFFFFF;
+            }
+          }
+        }
+
         .filter-stat {
           font-size: 0.82rem;
           color: #5B6672;
           padding-bottom: 8px;
+          margin-left: auto;
+          white-space: nowrap;
         }
       }
 
@@ -654,9 +778,56 @@ interface PatientRecordItem {
   ],
 })
 export class PatientRecordsComponent {
-  searchKeyword = '';
-  selectedDeptFilter = 'ALL';
-  selectedYearFilter = 'ALL';
+  searchKeyword = signal<string>('');
+  selectedDeptFilter = signal<string>('ALL');
+  selectedYearFilter = signal<string>('ALL');
+
+  appliedKeyword = signal<string>('');
+  appliedDept = signal<string>('ALL');
+  appliedYear = signal<string>('ALL');
+
+  isFiltered = computed(() => {
+    return (
+      this.searchKeyword().trim() !== '' ||
+      this.selectedDeptFilter() !== 'ALL' ||
+      this.selectedYearFilter() !== 'ALL'
+    );
+  });
+
+  onKeywordChange(val: string): void {
+    this.searchKeyword.set(val || '');
+    this.appliedKeyword.set((val || '').trim());
+  }
+
+  onDeptChange(val: string): void {
+    this.selectedDeptFilter.set(val);
+    this.appliedDept.set(val);
+  }
+
+  onYearChange(val: string): void {
+    this.selectedYearFilter.set(val);
+    this.appliedYear.set(val);
+  }
+
+  applySearch(): void {
+    this.appliedKeyword.set(this.searchKeyword().trim());
+    this.appliedDept.set(this.selectedDeptFilter());
+    this.appliedYear.set(this.selectedYearFilter());
+  }
+
+  clearKeyword(): void {
+    this.searchKeyword.set('');
+    this.appliedKeyword.set('');
+  }
+
+  resetFilters(): void {
+    this.searchKeyword.set('');
+    this.selectedDeptFilter.set('ALL');
+    this.selectedYearFilter.set('ALL');
+    this.appliedKeyword.set('');
+    this.appliedDept.set('ALL');
+    this.appliedYear.set('ALL');
+  }
 
   records: PatientRecordItem[] = [
     {
@@ -756,25 +927,45 @@ export class PatientRecordsComponent {
     },
   ];
 
+  private normalizeVi(str: string): string {
+    return (str || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/đ/g, 'd')
+      .replace(/Đ/g, 'D')
+      .toLowerCase()
+      .trim();
+  }
+
   filteredRecords = computed(() => {
     let list = this.records;
-    const kw = this.searchKeyword.toLowerCase().trim();
-    if (kw) {
-      list = list.filter(
-        (r) =>
-          r.doctorName.toLowerCase().includes(kw) ||
-          r.department.toLowerCase().includes(kw) ||
-          r.diagnoses.some((d) => d.nameVi.toLowerCase().includes(kw) || d.code.toLowerCase().includes(kw)) ||
-          r.prescriptions.some((p) => p.name.toLowerCase().includes(kw))
-      );
+    const rawKw = this.appliedKeyword().trim().toLowerCase();
+    if (rawKw) {
+      const normKw = this.normalizeVi(rawKw);
+      list = list.filter((r) => {
+        const targetText = [
+          r.doctorName,
+          r.department,
+          r.roomName,
+          r.chiefComplaint,
+          r.visitCode,
+          ...r.diagnoses.map((d) => `${d.code} ${d.nameVi}`),
+          ...r.prescriptions.map((p) => p.name),
+          ...r.services.map((s) => `${s.name} ${s.category}`),
+        ].join(' ');
+
+        return targetText.toLowerCase().includes(rawKw) || this.normalizeVi(targetText).includes(normKw);
+      });
     }
 
-    if (this.selectedDeptFilter !== 'ALL') {
-      list = list.filter((r) => r.department === this.selectedDeptFilter);
+    const dept = this.appliedDept();
+    if (dept !== 'ALL') {
+      list = list.filter((r) => r.department === dept);
     }
 
-    if (this.selectedYearFilter !== 'ALL') {
-      list = list.filter((r) => r.visitDate.endsWith(this.selectedYearFilter));
+    const year = this.appliedYear();
+    if (year !== 'ALL') {
+      list = list.filter((r) => r.visitDate.endsWith(year));
     }
 
     return list;

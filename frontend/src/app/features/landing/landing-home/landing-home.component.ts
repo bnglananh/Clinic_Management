@@ -28,7 +28,6 @@ interface PublicDoctor {
   specialty: string;
   room: string;
   scheduleDays: string;
-  avatarUrl: string;
   experience: string;
 }
 
@@ -109,16 +108,34 @@ interface PublicDoctor {
 
           <!-- Action Buttons -->
           <div class="header-actions">
-            <a routerLink="/auth/login" class="nav-account-btn" title="Cổng đăng nhập và đăng ký tài khoản">
-              <span class="account-avatar-badge">
-                <app-clinic-icon name="user" [size]="14"></app-clinic-icon>
-              </span>
-              <span class="account-text-group">
-                <span class="acc-main">Đăng nhập</span>
-                <span class="acc-slash">/</span>
-                <span class="acc-sub">Đăng ký</span>
-              </span>
-            </a>
+            @if (currentUser()) {
+              <a
+                [routerLink]="currentUser()?.role === 'PATIENT' ? '/patient/dashboard' : '/reception'"
+                class="nav-account-btn logged-in"
+                title="Vào Cổng Dịch Vụ"
+              >
+                <span class="account-avatar-badge">
+                  <app-clinic-icon name="user" [size]="14"></app-clinic-icon>
+                </span>
+                <span class="account-text-group">
+                  <span class="acc-main">{{ currentUser()?.role === 'PATIENT' ? 'Cổng Bệnh Nhân' : 'Khu Vực Làm Việc' }}</span>
+                </span>
+              </a>
+              <button (click)="logout()" class="btn-logout-icon" title="Đăng xuất">
+                <app-clinic-icon name="logout" [size]="15"></app-clinic-icon>
+              </button>
+            } @else {
+              <a routerLink="/auth/login" class="nav-account-btn" title="Cổng đăng nhập và đăng ký tài khoản">
+                <span class="account-avatar-badge">
+                  <app-clinic-icon name="user" [size]="14"></app-clinic-icon>
+                </span>
+                <span class="account-text-group">
+                  <span class="acc-main">Đăng nhập</span>
+                  <span class="acc-slash">/</span>
+                  <span class="acc-sub">Đăng ký</span>
+                </span>
+              </a>
+            }
             <button (click)="goToBooking()" class="btn-primary-teal">
               <app-clinic-icon name="calendar" [size]="15"></app-clinic-icon>
               <span>Đặt lịch khám</span>
@@ -408,7 +425,13 @@ interface PublicDoctor {
 
                 <!-- Body Content: Serif Title (2-line clamp) & Description (2-line clamp) -->
                 <div class="card-body-content">
-                  <h3 class="svc-card-title font-serif">{{ svc.name }}</h3>
+                  <h3
+                    class="svc-card-title font-serif clickable-title"
+                    (click)="viewServiceDetail(svc.code)"
+                    title="Xem chi tiết dịch vụ & máy móc thiết bị hiện đại"
+                  >
+                    {{ svc.name }}
+                  </h3>
                   <p class="svc-card-desc">{{ svc.description }}</p>
                 </div>
 
@@ -437,21 +460,34 @@ interface PublicDoctor {
                     </div>
                   </div>
 
-                  <button
-                    type="button"
-                    class="btn-luxury-book"
-                    [class.btn-loading]="bookingLoadingCode() === svc.code"
-                    (click)="handleBookService(svc)"
-                    [attr.aria-label]="'Đặt khám: ' + svc.name"
-                  >
-                    @if (bookingLoadingCode() === svc.code) {
-                      <span class="btn-spinner"></span>
-                      <span>Đang mở...</span>
-                    } @else {
-                      <span>Đặt khám</span>
-                      <app-clinic-icon name="arrow-right" [size]="16" class="btn-arrow-icon"></app-clinic-icon>
-                    }
-                  </button>
+                  <div class="card-action-btns">
+                    <button
+                      type="button"
+                      class="btn-detail-outline"
+                      (click)="viewServiceDetail(svc.code)"
+                      title="Xem chi tiết dịch vụ, máy móc & quy trình"
+                      [attr.aria-label]="'Chi tiết dịch vụ ' + svc.name"
+                    >
+                      <app-clinic-icon name="eye" [size]="14"></app-clinic-icon>
+                      <span>Chi tiết</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      class="btn-luxury-book"
+                      [class.btn-loading]="bookingLoadingCode() === svc.code"
+                      (click)="handleBookService(svc)"
+                      [attr.aria-label]="'Đặt khám: ' + svc.name"
+                    >
+                      @if (bookingLoadingCode() === svc.code) {
+                        <span class="btn-spinner"></span>
+                        <span>Đang mở...</span>
+                      } @else {
+                        <span>Đặt khám</span>
+                        <app-clinic-icon name="arrow-right" [size]="16" class="btn-arrow-icon"></app-clinic-icon>
+                      }
+                    </button>
+                  </div>
                 </div>
               </article>
             }
@@ -963,6 +999,41 @@ interface PublicDoctor {
               color: #0E4A55;
             }
           }
+        }
+
+        &.logged-in {
+          border-color: #B8955A;
+          background: #FAF8F5;
+
+          .account-avatar-badge {
+            background: linear-gradient(135deg, #0E4A55 0%, #B8955A 100%);
+            font-weight: 700;
+            font-size: 0.72rem;
+          }
+
+          .acc-main {
+            color: #0E4A55;
+          }
+        }
+      }
+
+      .btn-logout-icon {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        border: 1px solid #D2DCDE;
+        background: #FFFFFF;
+        color: #718096;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        &:hover {
+          color: #9B3D45;
+          border-color: #9B3D45;
+          background: #FFF5F5;
         }
       }
 
@@ -2045,11 +2116,63 @@ interface PublicDoctor {
           justify-content: space-between;
           align-items: flex-end;
           padding-top: 6px;
+          gap: 12px;
 
           @media (max-width: 767px) {
             flex-direction: column;
             align-items: stretch;
             gap: 14px;
+          }
+        }
+
+        .card-action-btns {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+
+          @media (max-width: 767px) {
+            width: 100%;
+            flex-direction: row;
+          }
+        }
+
+        .btn-detail-outline {
+          height: 44px;
+          min-height: 44px;
+          padding: 0 14px;
+          border-radius: 12px;
+          border: 1.5px solid #E4DED2;
+          background: #FAF8F5;
+          color: #0E4A55;
+          font-size: 0.84rem;
+          font-weight: 600;
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          cursor: pointer;
+          transition: all 220ms ease;
+          white-space: nowrap;
+
+          &:hover {
+            background: #E6F4F5;
+            border-color: #0E4A55;
+            color: #0E4A55;
+            transform: translateY(-1px);
+          }
+
+          @media (max-width: 767px) {
+            flex: 1;
+            justify-content: center;
+          }
+        }
+
+        .clickable-title {
+          cursor: pointer;
+          transition: color 200ms ease;
+
+          &:hover {
+            color: #0E4A55;
+            text-decoration: underline;
           }
         }
 
@@ -2724,6 +2847,21 @@ export class LandingHomeComponent implements AfterViewInit {
   private authService = inject(AuthService);
   private router = inject(Router);
 
+  currentUser = this.authService.currentUser;
+
+  userMonogram = computed(() => {
+    const user = this.currentUser();
+    if (!user || !user.fullName) return 'PA';
+    const name = user.fullName.trim();
+    const parts = name.split(/\s+/);
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+  });
+
+  logout(): void {
+    this.authService.logout();
+  }
+
   isScrolled = signal<boolean>(false);
   activeSection = signal<string>('hero');
 
@@ -2930,7 +3068,6 @@ export class LandingHomeComponent implements AfterViewInit {
       room: 'Phòng khám Nội 101',
       scheduleDays: 'Thứ 2 – Thứ 7 (Ca Sáng & Chiều)',
       experience: '22 năm kinh nghiệm',
-      avatarUrl: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=350&auto=format&fit=crop&q=80',
     },
     {
       id: 'doc-02',
@@ -2940,7 +3077,6 @@ export class LandingHomeComponent implements AfterViewInit {
       room: 'Phòng khám Nội 102',
       scheduleDays: 'Thứ 2 – Chủ Nhật (Ca Sáng)',
       experience: '14 năm kinh nghiệm',
-      avatarUrl: 'https://images.unsplash.com/photo-1594824813589-3543d8a7c1ad?w=350&auto=format&fit=crop&q=80',
     },
     {
       id: 'doc-03',
@@ -2950,7 +3086,6 @@ export class LandingHomeComponent implements AfterViewInit {
       room: 'Phòng khám Nội 103',
       scheduleDays: 'Thứ 2 – Thứ 6 (Ca Sáng)',
       experience: '16 năm kinh nghiệm',
-      avatarUrl: 'https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=350&auto=format&fit=crop&q=80',
     },
   ];
 
@@ -3074,5 +3209,9 @@ export class LandingHomeComponent implements AfterViewInit {
     } else {
       this.router.navigate(['/patient/booking']);
     }
+  }
+
+  viewServiceDetail(code: string): void {
+    this.router.navigate(['/services', code]);
   }
 }

@@ -6,12 +6,12 @@ export const publicLandingGuard: CanActivateFn = () => {
   const authService = inject(AuthService);
   const user = authService.currentUser();
 
-  // If already logged in, redirect directly to their respective role portal
-  if (user && user.role) {
+  // If already logged in as internal staff (ADMIN, DOCTOR, RECEPTIONIST), redirect to staff workspace
+  if (user && user.role && user.role !== 'PATIENT') {
     authService.redirectAfterLogin(user.role);
     return false;
   }
 
-  // Not logged in: allow viewing the public clinic landing portal
+  // Not logged in or logged in as PATIENT: allow viewing the full clinic landing portal
   return true;
 };

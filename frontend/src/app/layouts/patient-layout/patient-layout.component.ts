@@ -15,7 +15,7 @@ import { NotificationCenterComponent } from '../../shared/components/notificatio
       <!-- Luxury Top Navigation -->
       <header class="patient-header glass-header">
         <div class="header-inner">
-          <div class="brand-zone">
+          <a routerLink="/" class="brand-zone" style="text-decoration: none;" title="Về trang chủ phòng khám">
             <div class="brand-symbol">
               <app-clinic-icon name="medical-cross" [size]="20" color="#ECC880"></app-clinic-icon>
             </div>
@@ -23,16 +23,24 @@ import { NotificationCenterComponent } from '../../shared/components/notificatio
               <span class="brand-name font-serif">SMART CLINIC</span>
               <span class="brand-portal">CỔNG BỆNH NHÂN</span>
             </div>
-          </div>
+          </a>
 
           <!-- Main Top Menu -->
           <nav class="patient-nav">
+            <a
+              routerLink="/"
+              class="nav-link"
+              title="Trang chủ phòng khám"
+            >
+              <app-clinic-icon name="home" [size]="15"></app-clinic-icon>
+              <span>Trang chủ</span>
+            </a>
             <a
               routerLink="/patient/dashboard"
               routerLinkActive="active"
               class="nav-link"
             >
-              Trang chủ
+              Tiến trình khám
             </a>
             <a
               routerLink="/patient/booking"
@@ -48,7 +56,7 @@ import { NotificationCenterComponent } from '../../shared/components/notificatio
               class="nav-link"
             >
               <app-clinic-icon name="clock" [size]="15"></app-clinic-icon>
-              <span>Số thứ tự hôm nay</span>
+              <span>Số thứ tự</span>
             </a>
             <a
               routerLink="/patient/records"
@@ -64,15 +72,7 @@ import { NotificationCenterComponent } from '../../shared/components/notificatio
               class="nav-link"
             >
               <app-clinic-icon name="credit-card" [size]="15"></app-clinic-icon>
-              <span>Hóa đơn viện phí</span>
-            </a>
-            <a
-              routerLink="/patient/profile"
-              routerLinkActive="active"
-              class="nav-link"
-            >
-              <app-clinic-icon name="user" [size]="15"></app-clinic-icon>
-              <span>Hồ sơ cá nhân</span>
+              <span>Hóa đơn</span>
             </a>
           </nav>
 
@@ -81,19 +81,24 @@ import { NotificationCenterComponent } from '../../shared/components/notificatio
             <!-- Notification Center -->
             <app-notification-center></app-notification-center>
 
-            <!-- Patient Avatar & Info -->
-            <div class="patient-profile">
-              <a routerLink="/patient/profile" class="patient-profile-link" title="Quản lý hồ sơ & thông tin cá nhân">
-                <div class="patient-avatar-badge font-serif" [title]="currentUser()?.fullName || 'Bệnh nhân'">
+            <!-- Patient Avatar & Profile Button -->
+            <div class="patient-profile-wrap">
+              <a routerLink="/patient/profile" class="patient-profile-chip" title="Hồ sơ cá nhân & Cài đặt tài khoản">
+                <div class="patient-avatar-circle font-serif">
                   {{ patientMonogram() }}
                 </div>
-                <div class="patient-name-box">
-                  <span class="p-name">{{ currentUser()?.fullName }}</span>
-                  <span class="p-type">Hạng Vàng VIP</span>
+                <div class="patient-name-block">
+                  <span class="patient-user-name">{{ currentUser()?.fullName || 'Phạm Văn An' }}</span>
+                  <span class="patient-vip-badge">
+                    <app-clinic-icon name="sparkle" [size]="10" color="#B8955A"></app-clinic-icon>
+                    <span>VIP Vàng</span>
+                  </span>
                 </div>
+                <app-clinic-icon name="chevron-right" [size]="13" class="profile-arrow-icon"></app-clinic-icon>
               </a>
-              <button (click)="logout()" class="logout-link" title="Đăng xuất">
-                <app-clinic-icon name="logout" [size]="16"></app-clinic-icon>
+
+              <button (click)="logout()" class="patient-logout-btn" title="Đăng xuất tài khoản">
+                <app-clinic-icon name="logout" [size]="15"></app-clinic-icon>
               </button>
             </div>
           </div>
@@ -237,76 +242,110 @@ import { NotificationCenterComponent } from '../../shared/components/notificatio
       }
 
 
-      .patient-profile {
+      .patient-profile-wrap {
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 8px;
         padding-left: 12px;
-        border-left: 1px solid rgba(228, 222, 210, 0.7);
+        border-left: 1.5px solid rgba(228, 222, 210, 0.8);
+        flex-shrink: 0;
 
-        .patient-profile-link {
-          display: flex;
+        .patient-profile-chip {
+          display: inline-flex;
           align-items: center;
           gap: 10px;
           text-decoration: none;
           cursor: pointer;
-          border-radius: 8px;
-          padding: 3px 6px;
-          transition: background-color 0.15s ease;
+          background: #FFFFFF;
+          border: 1px solid rgba(184, 149, 90, 0.4);
+          border-radius: 999px;
+          padding: 4px 12px 4px 5px;
+          white-space: nowrap;
+          flex-shrink: 0;
+          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+          box-shadow: 0 1px 4px rgba(184, 149, 90, 0.08);
 
           &:hover {
-            background-color: rgba(14, 74, 85, 0.06);
-            .p-name {
+            background-color: #FAF8F5;
+            border-color: #B8955A;
+            box-shadow: 0 3px 12px rgba(184, 149, 90, 0.16);
+            transform: translateY(-1px);
+
+            .patient-user-name {
+              color: #0E4A55;
+            }
+
+            .profile-arrow-icon {
+              transform: translateX(2px);
               color: #0E4A55;
             }
           }
         }
 
-        .patient-avatar-badge {
-          width: 38px;
-          height: 38px;
+        .patient-avatar-circle {
+          width: 32px;
+          height: 32px;
           border-radius: 50%;
-          background: rgba(184, 149, 90, 0.15);
-          color: #B8955A;
-          border: 1.5px solid rgba(184, 149, 90, 0.4);
+          background: linear-gradient(135deg, #0E4A55 0%, #1A6472 100%);
+          color: #ECC880;
           display: flex;
           align-items: center;
           justify-content: center;
           font-weight: 700;
-          font-size: 0.85rem;
+          font-size: 0.82rem;
           letter-spacing: 0.5px;
           flex-shrink: 0;
+          box-shadow: 0 2px 6px rgba(14, 74, 85, 0.2);
         }
 
-        .patient-name-box {
+        .patient-name-block {
           display: flex;
           flex-direction: column;
+          line-height: 1.2;
+          white-space: nowrap;
         }
 
-        .p-name {
-          font-size: 0.875rem;
-          font-weight: 600;
+        .patient-user-name {
+          font-size: 0.85rem;
+          font-weight: 700;
           color: #1C2733;
+          white-space: nowrap;
           transition: color 0.15s ease;
         }
 
-        .p-type {
-          font-size: 0.7rem;
-          color: #B8955A;
+        .patient-vip-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 3px;
+          font-size: 0.68rem;
+          color: #8C6F34;
           font-weight: 600;
+          white-space: nowrap;
         }
 
-        .logout-link {
-          background: transparent;
-          border: none;
-          color: #8C96A2;
-          font-size: 1.2rem;
+        .profile-arrow-icon {
+          color: #B8955A;
+          transition: transform 0.2s ease, color 0.2s ease;
+        }
+
+        .patient-logout-btn {
+          width: 34px;
+          height: 34px;
+          border-radius: 50%;
+          background: #FFFFFF;
+          border: 1px solid rgba(228, 222, 210, 0.9);
+          color: #718096;
+          display: flex;
+          align-items: center;
+          justify-content: center;
           cursor: pointer;
-          padding: 4px;
-          border-radius: 6px;
+          transition: all 0.2s ease;
 
           &:hover {
             color: #9B3D45;
+            background: #FFF5F5;
+            border-color: rgba(155, 61, 69, 0.3);
+            transform: scale(1.05);
           }
         }
       }

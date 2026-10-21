@@ -70,7 +70,7 @@ export class BillingService {
   generateVietQrUrl(bill: Bill): string {
     // VietQR quick format using Vietcombank mock clinic account
     const bankCode = 'VCB'; // Vietcombank
-    const accountNo = '0903123456';
+    const accountNo = '1040394574';
     const amount = bill.totalAmount;
     const desc = encodeURIComponent(`${bill.billCode} ${bill.patientCode}`);
     return `https://img.vietqr.io/image/${bankCode}-${accountNo}-compact2.png?amount=${amount}&addInfo=${desc}&accountName=PHONG%20KHAM%20SMART%20CLINIC`;

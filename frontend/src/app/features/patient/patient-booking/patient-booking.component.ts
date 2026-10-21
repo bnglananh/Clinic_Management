@@ -25,7 +25,6 @@ interface DoctorOption {
   departmentName: string;
   experienceYears: number;
   rating: number;
-  avatarUrl: string;
 }
 
 interface TimeSlotOption {
@@ -101,6 +100,16 @@ interface TimeSlotOption {
         <div class="step-card">
           <h2 class="step-heading">Bước 1: Chọn Chuyên Khoa Phù Hợp</h2>
           <p class="step-desc">Vui lòng chọn chuyên khoa theo tình trạng sức khỏe hoặc triệu chứng hiện tại của quý khách.</p>
+
+          <div class="service-detail-hint-banner">
+            <app-clinic-icon name="sparkle" [size]="15" color="#0E4A55"></app-clinic-icon>
+            <span class="hint-msg">
+              Quý khách muốn tìm hiểu kỹ thuật, quy trình & hệ thống máy móc hiện đại của phòng khám?
+            </span>
+            <a [routerLink]="['/services', getServiceCodeForDept(selectedDept()?.id)]" target="_blank" class="hint-cta">
+              Xem chi tiết dịch vụ & máy móc thiết bị →
+            </a>
+          </div>
 
           <div class="dept-grid">
             @for (dept of departments; track dept.id) {
@@ -453,6 +462,36 @@ interface TimeSlotOption {
           max-width: 600px;
           margin: 0 auto;
           line-height: 1.5;
+        }
+      }
+
+      .service-detail-hint-banner {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px 12px;
+        background: #F0FDF4;
+        border: 1px solid #CCFBF1;
+        border-radius: 12px;
+        padding: 10px 16px;
+        margin-bottom: 20px;
+        font-size: 0.85rem;
+        color: #0E4A55;
+
+        .hint-msg {
+          font-weight: 500;
+        }
+
+        .hint-cta {
+          color: #0E4A55;
+          font-weight: 700;
+          text-decoration: underline;
+          cursor: pointer;
+          transition: color 0.2s ease;
+
+          &:hover {
+            color: #B8955A;
+          }
         }
       }
 
@@ -1230,6 +1269,8 @@ export class PatientBookingComponent implements OnInit {
 
   ngOnInit(): void {
     const serviceId = this.route.snapshot.queryParamMap.get('serviceId');
+    const doctorId = this.route.snapshot.queryParamMap.get('doctorId');
+
     if (serviceId) {
       if (serviceId.includes('TIMMACH') || serviceId.includes('ECG')) {
         this.selectedDept.set(this.departments[0]);
@@ -1239,20 +1280,54 @@ export class PatientBookingComponent implements OnInit {
         this.selectedDept.set(this.departments[1]);
         this.selectedDoctor.set(this.doctors[1]);
         this.currentStep.set(2);
-      } else if (serviceId.includes('BUNGTQ')) {
+      } else if (serviceId.includes('BUNGTQ') || serviceId.includes('XR')) {
         this.selectedDept.set(this.departments[2]);
         this.selectedDoctor.set(this.doctors[2]);
         this.currentStep.set(2);
       }
     }
+
+    if (doctorId) {
+      const matchDoc = this.doctors.find(
+        (d) =>
+          d.id.toLowerCase() === doctorId.toLowerCase() ||
+          (doctorId === 'doc-01' && d.id === 'DOC-01') ||
+          (doctorId === 'doc-02' && d.id === 'DOC-02') ||
+          (doctorId === 'doc-03' && d.id === 'DOC-03') ||
+          (doctorId === 'doc-04' && d.id === 'DOC-04')
+      );
+      if (matchDoc) {
+        this.selectedDoctor.set(matchDoc);
+        const matchDept = this.departments.find((dep) => dep.id === matchDoc.departmentId);
+        if (matchDept) {
+          this.selectedDept.set(matchDept);
+        }
+        this.currentStep.set(3); // Directly to date & time
+      }
+    }
+  }
+
+  getServiceCodeForDept(deptId?: string): string {
+    switch (deptId) {
+      case 'DEP-CARDIO':
+        return 'KB-TIMMACH';
+      case 'DEP-INTERNAL':
+        return 'KB-NOITQ';
+      case 'DEP-DIGEST':
+        return 'US-BUNGTQ';
+      case 'DEP-ENT':
+        return 'KB-NOITQ';
+      default:
+        return 'KB-TIMMACH';
+    }
   }
 
   // Doctor list
   doctors: DoctorOption[] = [
-    { id: 'DOC-01', name: 'TS.BS Trần Minh Hoàng', title: 'Bác sĩ Chuyên khoa II', departmentId: 'DEP-CARDIO', departmentName: 'Khoa Tim Mạch', experienceYears: 18, rating: 4.9, avatarUrl: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=150&auto=format&fit=crop&q=80' },
-    { id: 'DOC-02', name: 'ThS.BS Nguyễn Thị Mai Lan', title: 'Thạc sĩ Bác sĩ', departmentId: 'DEP-INTERNAL', departmentName: 'Khoa Nội Tổng Quát', experienceYears: 12, rating: 4.8, avatarUrl: 'https://images.unsplash.com/photo-1594824813589-3543d8a7c1ad?w=150&auto=format&fit=crop&q=80' },
-    { id: 'DOC-03', name: 'BS.CKI Lê Quốc Hưng', title: 'Bác sĩ CKI', departmentId: 'DEP-DIGEST', departmentName: 'Khoa Tiêu Hóa', experienceYears: 15, rating: 4.9, avatarUrl: 'https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=150&auto=format&fit=crop&q=80' },
-    { id: 'DOC-04', name: 'TS.BS Phạm Đức Trí', title: 'Tiến sĩ Y Khoa', departmentId: 'DEP-ENT', departmentName: 'Khoa Tai Mũi Họng', experienceYears: 20, rating: 4.95, avatarUrl: 'https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=150&auto=format&fit=crop&q=80' },
+    { id: 'DOC-01', name: 'TS.BS Trần Minh Hoàng', title: 'Bác sĩ Chuyên khoa II', departmentId: 'DEP-CARDIO', departmentName: 'Khoa Tim Mạch', experienceYears: 18, rating: 4.9 },
+    { id: 'DOC-02', name: 'ThS.BS Nguyễn Thị Mai Lan', title: 'Thạc sĩ Bác sĩ', departmentId: 'DEP-INTERNAL', departmentName: 'Khoa Nội Tổng Quát', experienceYears: 12, rating: 4.8 },
+    { id: 'DOC-03', name: 'BS.CKI Lê Quốc Hưng', title: 'Bác sĩ CKI', departmentId: 'DEP-DIGEST', departmentName: 'Khoa Tiêu Hóa', experienceYears: 15, rating: 4.9 },
+    { id: 'DOC-04', name: 'TS.BS Phạm Đức Trí', title: 'Tiến sĩ Y Khoa', departmentId: 'DEP-ENT', departmentName: 'Khoa Tai Mũi Họng', experienceYears: 20, rating: 4.95 },
   ];
 
   // Selected entities
