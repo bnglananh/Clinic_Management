@@ -4,6 +4,7 @@ import {
   PharmacyDrugItem,
   MedicalServiceItem,
   DoctorSchedule,
+  PatientAccount,
   AccountStatus,
   DrugStatus,
 } from '../models/admin.model';
@@ -12,6 +13,7 @@ import {
   MOCK_PHARMACY_DRUGS,
   MOCK_MEDICAL_SERVICES,
   MOCK_DOCTOR_SCHEDULES,
+  MOCK_PATIENT_ACCOUNTS,
 } from '../mock-data/admin-mock-data';
 
 @Injectable({
@@ -23,12 +25,14 @@ export class AdminService {
   private pharmacyDrugsSignal = signal<PharmacyDrugItem[]>(MOCK_PHARMACY_DRUGS);
   private medicalServicesSignal = signal<MedicalServiceItem[]>(MOCK_MEDICAL_SERVICES);
   private doctorSchedulesSignal = signal<DoctorSchedule[]>(MOCK_DOCTOR_SCHEDULES);
+  private patientAccountsSignal = signal<PatientAccount[]>(MOCK_PATIENT_ACCOUNTS);
 
   // Read-only Signal accessors
   readonly staffAccounts = this.staffAccountsSignal.asReadonly();
   readonly pharmacyDrugs = this.pharmacyDrugsSignal.asReadonly();
   readonly medicalServices = this.medicalServicesSignal.asReadonly();
   readonly doctorSchedules = this.doctorSchedulesSignal.asReadonly();
+  readonly patientAccounts = this.patientAccountsSignal.asReadonly();
 
   // Computed state
   readonly criticalStockDrugs = computed(() =>
@@ -165,4 +169,93 @@ export class AdminService {
       })
     );
   }
+
+  deleteSchedule(id: string): void {
+    this.doctorSchedulesSignal.update((list) => list.filter((s) => s.id !== id));
+  }
+
+  copyWeekSchedule(sourceDates: string[], targetDates: string[]): number {
+    const current = this.doctorSchedulesSignal();
+    const newItems: DoctorSchedule[] = [];
+    let count = 0;
+
+    sourceDates.forEach((srcDate, idx) => {
+      const tgtDate = targetDates[idx];
+      if (!tgtDate) return;
+      const srcShifts = current.filter((s) => s.date === srcDate && s.status === 'CONFIRMED');
+      srcShifts.forEach((s) => {
+        const exists = current.some(
+          (c) => c.doctorId === s.doctorId && c.date === tgtDate && c.shift === s.shift
+        );
+        if (!exists) {
+          count++;
+          newItems.push({
+            ...s,
+            id: `SCH-${String(current.length + newItems.length + 1).padStart(2, '0')}`,
+            date: tgtDate,
+            bookedPatients: 0,
+            status: 'CONFIRMED',
+          });
+        }
+      });
+    });
+
+    if (newItems.length > 0) {
+      this.doctorSchedulesSignal.update((list) => [...newItems, ...list]);
+    }
+    return count;
+  }
+
+  // --- Patient Account Management Actions ---
+  togglePatientAccountStatus(id: string): void {
+    this.patientAccountsSignal.update((list) =>
+      list.map((p) => {
+        if (p.id === id) {
+          const newStatus: AccountStatus = p.status === 'ACTIVE' ? 'LOCKED' : 'ACTIVE';
+          return { ...p, status: newStatus };
+        }
+        return p;
+      })
+    );
+  }
+
+  resetPatientPassword(id: string): string {
+    const tempPass = 'SmartClinic@' + Math.floor(1000 + Math.random() * 9000);
+    // In realistic system, would call API to hash and email to patient
+    return tempPass;
+  }
+
+  createPatientAccount(data: {
+    fullName: string;
+    phone: string;
+    email: string;
+    cccd: string;
+    gender: 'NAM' | 'NU' | 'KHAC';
+    dateOfBirth: string;
+    address?: string;
+    membershipTier?: 'STANDARD' | 'SILVER' | 'GOLD' | 'VIP';
+  }): PatientAccount {
+    const nextNum = this.patientAccountsSignal().length + 1;
+    const newAccount: PatientAccount = {
+      id: `PA-${String(nextNum).padStart(2, '0')}`,
+      patientCode: `BN-2026-${String(890 + nextNum).padStart(4, '0')}`,
+      username: data.phone.replace(/\s+/g, ''),
+      fullName: data.fullName.trim(),
+      email: data.email.trim(),
+      phone: data.phone.trim(),
+      cccd: data.cccd.trim(),
+      gender: data.gender,
+      dateOfBirth: data.dateOfBirth,
+      address: data.address || 'TP. Hồ Chí Minh',
+      status: 'ACTIVE',
+      membershipTier: data.membershipTier || 'STANDARD',
+      totalVisits: 0,
+      registeredAt: new Date().toISOString().split('T')[0],
+      lastLoginAt: 'Chưa đăng nhập',
+    };
+
+    this.patientAccountsSignal.update((list) => [newAccount, ...list]);
+    return newAccount;
+  }
 }
+

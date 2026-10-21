@@ -126,7 +126,7 @@ class BillingControllerTest {
                 .billId("bill-001")
                 .billCode("HD-2026-0041")
                 .amount(1020000)
-                .qrImageUrl("https://img.vietqr.io/image/VCB-0903123456-compact2.png")
+                .qrImageUrl("https://img.vietqr.io/image/VCB-1040394574-compact2.png")
                 .status("PENDING_CONFIRMATION")
                 .build();
 

@@ -13,6 +13,7 @@ export type SupportedStatus =
   | 'NORMAL'
   | 'PRIORITY'
   | 'EMERGENCY'
+  | 'SKIPPED'
   | 'LOCKED';
 
 interface StatusConfig {
@@ -105,6 +106,13 @@ const STATUS_MAP: Record<SupportedStatus, StatusConfig> = {
     borderColor: '#9B3D45',
     dotColor: '#9B3D45',
     hasPulse: true,
+  },
+  SKIPPED: {
+    label: 'Đã qua lượt',
+    bgColor: 'rgba(100, 116, 139, 0.12)',
+    textColor: '#475569',
+    borderColor: 'rgba(100, 116, 139, 0.35)',
+    dotColor: '#64748B',
   },
   LOCKED: {
     label: 'Đã khóa',

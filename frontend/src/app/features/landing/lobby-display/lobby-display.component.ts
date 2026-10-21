@@ -51,7 +51,7 @@ export interface ClinicRoomStation {
         <div class="header-right">
           <!-- Quick Ticket Lookup -->
           <div class="search-box">
-            <app-clinic-icon name="search" [size]="15" color="#B8955A"></app-clinic-icon>
+            <app-clinic-icon name="search" [size]="16" color="#ECC880"></app-clinic-icon>
             <input
               type="text"
               [ngModel]="searchQuery()"
@@ -409,43 +409,65 @@ export interface ClinicRoomStation {
         position: relative;
         display: flex;
         align-items: center;
-        background: rgba(255, 255, 255, 0.07);
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        border-radius: 10px;
-        padding: 0 12px;
+        background: rgba(255, 255, 255, 0.08) !important;
+        border: 1.5px solid rgba(236, 200, 128, 0.45) !important;
+        border-radius: 9999px !important;
+        padding: 0 14px;
         gap: 8px;
-        transition: all 0.2s ease;
+        transition: all 0.25s ease;
+        backdrop-filter: blur(8px);
+
+        &:hover {
+          border-color: rgba(236, 200, 128, 0.75) !important;
+          background: rgba(255, 255, 255, 0.12) !important;
+        }
 
         &:focus-within {
-          border-color: #B8955A;
-          background: rgba(255, 255, 255, 0.12);
-          box-shadow: 0 0 12px rgba(184, 149, 90, 0.25);
+          border-color: #ECC880 !important;
+          background: rgba(255, 255, 255, 0.16) !important;
+          box-shadow: 0 0 16px rgba(236, 200, 128, 0.35) !important;
         }
 
         .search-input {
-          background: transparent;
-          border: none;
-          outline: none;
-          color: #FFFFFF;
-          font-size: 0.8125rem;
-          width: 270px;
-          height: 38px;
+          background: transparent !important;
+          background-color: transparent !important;
+          border: none !important;
+          outline: none !important;
+          box-shadow: none !important;
+          color: #FFFFFF !important;
+          -webkit-text-fill-color: #FFFFFF !important;
+          font-size: 0.95rem !important;
+          font-weight: 600 !important;
+          letter-spacing: 0.5px;
+          width: 290px;
+          height: 40px;
+          padding: 0 !important;
 
           &::placeholder {
-            color: rgba(255, 255, 255, 0.45);
+            color: rgba(255, 255, 255, 0.55) !important;
+            -webkit-text-fill-color: rgba(255, 255, 255, 0.55) !important;
+            font-weight: 400;
           }
         }
 
         .btn-clear-search {
-          background: transparent;
+          background: rgba(255, 255, 255, 0.15);
           border: none;
-          color: rgba(255, 255, 255, 0.6);
-          font-size: 1.2rem;
+          color: #ECC880;
+          font-size: 1.1rem;
           cursor: pointer;
-          padding: 0 4px;
+          width: 20px;
+          height: 20px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 0;
           line-height: 1;
+          transition: all 0.2s ease;
 
           &:hover {
+            background: rgba(236, 200, 128, 0.4);
             color: #FFFFFF;
           }
         }

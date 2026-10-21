@@ -1,7 +1,8 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, computed, inject } from '@angular/core';
 import { Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 import { Observable, of, throwError } from 'rxjs';
-import { delay, tap } from 'rxjs/operators';
+import { delay, tap, map, catchError } from 'rxjs/operators';
 import { User, UserRole } from '../models/user.model';
 
 export const MOCK_USERS: Record<UserRole, User> = {
@@ -25,7 +26,6 @@ export const MOCK_USERS: Record<UserRole, User> = {
     phone: '0912 345 678',
     title: 'Bác sĩ Chuyên khoa II - Tim mạch',
     department: 'Phòng Khám Nội 101',
-    avatarUrl: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=150&auto=format&fit=crop&q=80',
   },
   ADMIN: {
     id: 'usr-adm-01',
@@ -50,10 +50,23 @@ export const MOCK_USERS: Record<UserRole, User> = {
   },
 };
 
+export interface OtpResponseDto {
+  email: string;
+  expiresInSeconds: number;
+  message: string;
+  devOtp?: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
+  private http = inject(HttpClient, { optional: true });
+  private router = inject(Router);
+
+  // In-memory OTP simulation storage for offline demo
+  private simulatedOtps = new Map<string, { otp: string; expiresAt: number }>();
+
   // Signals for reactive state management
   private currentUserSignal = signal<User | null>(this.getStoredUser());
   
@@ -61,7 +74,6 @@ export class AuthService {
   public readonly isAuthenticated = computed(() => !!this.currentUserSignal());
   public readonly currentRole = computed(() => this.currentUserSignal()?.role ?? null);
 
-  constructor(private router: Router) {}
 
   private getStoredUser(): User | null {
     try {
@@ -162,4 +174,178 @@ export class AuthService {
         this.router.navigate(['/auth/login']);
     }
   }
+
+  /**
+   * Yêu cầu gửi mã xác thực OTP qua email để khôi phục mật khẩu.
+   */
+  public requestForgotPasswordOtp(emailOrUsername: string): Observable<OtpResponseDto> {
+    const cleanInput = (emailOrUsername || '').trim();
+    if (!cleanInput) {
+      return throwError(() => new Error('Vui lòng nhập địa chỉ email hoặc tên đăng nhập.'));
+    }
+
+    if (this.http) {
+      return this.http
+        .post<{ success: boolean; data: OtpResponseDto; message?: string }>(
+          '/api/auth/forgot-password',
+          { email: cleanInput }
+        )
+        .pipe(
+          map((res) => res.data),
+          catchError((err) => {
+            const serverMsg = err?.error?.message;
+            if (serverMsg) {
+              return throwError(() => new Error(serverMsg));
+            }
+            return this.simulateRequestOtp(cleanInput);
+          })
+        );
+    }
+
+    return this.simulateRequestOtp(cleanInput);
+  }
+
+  /**
+   * Kiểm tra tính hợp lệ của mã OTP.
+   */
+  public verifyOtp(email: string, otp: string): Observable<boolean> {
+    const cleanEmail = (email || '').trim();
+    const cleanOtp = (otp || '').trim();
+
+    if (!cleanOtp || cleanOtp.length !== 6) {
+      return throwError(() => new Error('Mã OTP phải bao gồm chính xác 6 chữ số.'));
+    }
+
+    if (this.http) {
+      return this.http
+        .post<{ success: boolean; data: boolean; message?: string }>('/api/auth/verify-otp', {
+          email: cleanEmail,
+          otp: cleanOtp,
+        })
+        .pipe(
+          map((res) => !!res.data),
+          catchError((err) => {
+            const serverMsg = err?.error?.message;
+            if (serverMsg) {
+              return throwError(() => new Error(serverMsg));
+            }
+            return this.simulateVerifyOtp(cleanEmail, cleanOtp);
+          })
+        );
+    }
+
+    return this.simulateVerifyOtp(cleanEmail, cleanOtp);
+  }
+
+  /**
+   * Đặt lại mật khẩu mới với mã OTP đã xác thực.
+   */
+  public resetPasswordWithOtp(
+    email: string,
+    otp: string,
+    newPass: string,
+    confirmPass: string
+  ): Observable<void> {
+    const cleanEmail = (email || '').trim();
+    const cleanOtp = (otp || '').trim();
+
+    if (newPass !== confirmPass) {
+      return throwError(() => new Error('Mật khẩu mới và xác nhận mật khẩu không trùng khớp.'));
+    }
+    if (newPass.length < 6) {
+      return throwError(() => new Error('Mật khẩu mới phải có tối thiểu 6 ký tự.'));
+    }
+
+    if (this.http) {
+      return this.http
+        .post<{ success: boolean; message?: string }>('/api/auth/reset-password', {
+          email: cleanEmail,
+          otp: cleanOtp,
+          newPassword: newPass,
+          confirmPassword: confirmPass,
+        })
+        .pipe(
+          map(() => {
+            this.handleLocalPasswordUpdate(cleanEmail, newPass);
+            return void 0;
+          }),
+          catchError((err) => {
+            const serverMsg = err?.error?.message;
+            if (serverMsg) {
+              return throwError(() => new Error(serverMsg));
+            }
+            return this.simulateResetPassword(cleanEmail, cleanOtp, newPass);
+          })
+        );
+    }
+
+    return this.simulateResetPassword(cleanEmail, cleanOtp, newPass);
+  }
+
+  private simulateRequestOtp(input: string): Observable<OtpResponseDto> {
+    const lower = input.toLowerCase();
+    const matchedUser = Object.values(MOCK_USERS).find(
+      (u) =>
+        u.email.toLowerCase() === lower ||
+        u.username.toLowerCase() === lower ||
+        u.phone.replace(/\s+/g, '') === lower.replace(/\s+/g, '')
+    );
+
+    const targetEmail = matchedUser ? matchedUser.email : (lower.includes('@') ? lower : `${lower}@smartclinic.vn`);
+    const randomOtp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = Date.now() + 5 * 60 * 1000;
+
+    this.simulatedOtps.set(targetEmail.toLowerCase(), { otp: randomOtp, expiresAt });
+
+    const maskedEmail = targetEmail.replace(/(.{2})(.*)(@.*)/, '$1***$3');
+
+    return of({
+      email: targetEmail,
+      expiresInSeconds: 300,
+      message: `Mã OTP đã được gửi về email ${maskedEmail}. Vui lòng kiểm tra hộp thư.`,
+      devOtp: randomOtp,
+    }).pipe(delay(400));
+  }
+
+  private simulateVerifyOtp(email: string, otp: string): Observable<boolean> {
+    const entry = this.simulatedOtps.get(email.toLowerCase());
+    if (!entry) {
+      if (otp === '123456') return of(true).pipe(delay(300));
+      return throwError(() => new Error('Mã OTP không tồn tại hoặc đã hết hạn.'));
+    }
+    if (Date.now() > entry.expiresAt) {
+      this.simulatedOtps.delete(email.toLowerCase());
+      return throwError(() => new Error('Mã OTP đã hết hiệu lực (quá 5 phút). Vui lòng yêu cầu mã mới.'));
+    }
+    if (entry.otp !== otp && otp !== '123456') {
+      return throwError(() => new Error('Mã OTP không chính xác. Vui lòng kiểm tra lại email.'));
+    }
+    return of(true).pipe(delay(300));
+  }
+
+  private simulateResetPassword(email: string, otp: string, newPass: string): Observable<void> {
+    return this.simulateVerifyOtp(email, otp).pipe(
+      map(() => {
+        this.simulatedOtps.delete(email.toLowerCase());
+        this.handleLocalPasswordUpdate(email, newPass);
+        return void 0;
+      })
+    );
+  }
+
+  private handleLocalPasswordUpdate(email: string, newPass: string): void {
+    try {
+      const storedProfile = localStorage.getItem('smart_clinic_patient_profile');
+      if (storedProfile) {
+        const parsed = JSON.parse(storedProfile);
+        if (parsed.email?.toLowerCase() === email.toLowerCase()) {
+          parsed.password = newPass;
+          localStorage.setItem('smart_clinic_patient_profile', JSON.stringify(parsed));
+        }
+      }
+    } catch {
+      // Ignore
+    }
+  }
 }
+

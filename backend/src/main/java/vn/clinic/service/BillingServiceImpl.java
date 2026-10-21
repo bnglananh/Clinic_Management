@@ -41,7 +41,7 @@ public class BillingServiceImpl implements BillingService {
     }
 
     private static final String BANK_CODE = "VCB";
-    private static final String ACCOUNT_NO = "0903123456";
+    private static final String ACCOUNT_NO = "1040394574";
     private static final String ACCOUNT_NAME = "PHONG KHAM SMART CLINIC";
 
     @Override

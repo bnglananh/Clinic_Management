@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { BillingService } from '../../../core/services/billing.service';
+import { AuthService } from '../../../core/services/auth.service';
+import { UserProfileService } from '../../../core/services/user-profile.service';
 import { Bill } from '../../../core/models/billing.model';
 import { StatusTagComponent } from '../../../shared/components/status-tag/status-tag.component';
 import { VndCurrencyPipe } from '../../../shared/pipes/vnd-currency.pipe';
@@ -121,6 +123,16 @@ import { ClinicIconComponent } from '../../../shared/components/clinic-icon/clin
                 </div>
               </div>
             </div>
+          } @empty {
+            <div class="empty-bills-card clinic-card">
+              <div class="empty-icon-wrap">
+                <app-clinic-icon name="receipt" [size]="44" color="#B8955A"></app-clinic-icon>
+              </div>
+              <h3 class="font-serif empty-title">Chưa Có Hóa Đơn Viện Phí</h3>
+              <p class="empty-desc">
+                Quý khách hiện chưa có phát sinh viện phí hoặc tất cả chi phí đã được xử lý xong.
+              </p>
+            </div>
           }
         </div>
       </div>
@@ -163,7 +175,7 @@ import { ClinicIconComponent } from '../../../shared/components/clinic-icon/clin
                 </div>
                 <div class="t-row">
                   <span class="tl">Số tài khoản:</span>
-                  <strong class="font-mono text-teal">0903 123 456</strong>
+                  <strong class="font-mono text-teal">1040394574</strong>
                 </div>
                 <div class="t-row highlight-row">
                   <span class="tl">Số tiền thanh toán:</span>
@@ -445,6 +457,43 @@ import { ClinicIconComponent } from '../../../shared/components/clinic-icon/clin
         }
       }
 
+      .empty-bills-card {
+        background: #FFFFFF;
+        border: 1.5px dashed #D5CDBD;
+        border-radius: 18px;
+        padding: 48px 24px;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+
+        .empty-icon-wrap {
+          width: 72px;
+          height: 72px;
+          border-radius: 50%;
+          background: rgba(184, 149, 90, 0.12);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-bottom: 4px;
+        }
+
+        .empty-title {
+          font-size: 1.25rem;
+          color: #1C2733;
+          margin: 0;
+        }
+
+        .empty-desc {
+          color: #718096;
+          font-size: 0.9rem;
+          max-width: 460px;
+          margin: 0;
+          line-height: 1.5;
+        }
+      }
+
       /* Modal QR */
       .modal-overlay {
         position: fixed;
@@ -593,10 +642,35 @@ import { ClinicIconComponent } from '../../../shared/components/clinic-icon/clin
 })
 export class PatientBillingComponent {
   billingService = inject(BillingService);
+  private authService = inject(AuthService);
+  private userProfileService = inject(UserProfileService);
 
   activeQrBill = signal<Bill | null>(null);
 
-  myBills = this.billingService.bills;
+  // Filter bills strictly for the currently logged-in patient
+  myBills = computed(() => {
+    const user = this.authService.currentUser();
+    const profile = this.userProfileService.profile();
+    const allBills = this.billingService.bills();
+
+    const currentName = (user?.fullName || profile?.fullName || 'Phạm Văn An').trim().toLowerCase();
+    const currentPhone = (user?.phone || profile?.phone || '0977 889 900').replace(/\s+/g, '');
+    const currentPatientCode = (profile?.patientCode || 'BN-2026-0895').trim().toLowerCase();
+    const currentUserId = user?.id || 'usr-pat-01';
+
+    return allBills.filter((b) => {
+      const bName = (b.patientName || '').trim().toLowerCase();
+      const bPhone = (b.phone || '').replace(/\s+/g, '');
+      const bCode = (b.patientCode || '').trim().toLowerCase();
+
+      return (
+        b.patientId === currentUserId ||
+        (currentPhone && bPhone === currentPhone) ||
+        (currentPatientCode && bCode === currentPatientCode) ||
+        bName === currentName
+      );
+    });
+  });
 
   totalSpent = computed(() =>
     this.myBills().reduce((sum, b) => sum + b.totalAmount, 0)

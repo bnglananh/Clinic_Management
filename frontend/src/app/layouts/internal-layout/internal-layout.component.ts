@@ -549,7 +549,8 @@ export class InternalLayoutComponent {
     if (role === 'ADMIN') {
       return [
         { title: 'Tổng quan & Báo cáo', path: '/admin/dashboard', icon: 'activity' },
-        { title: 'Tài khoản & Phân quyền', path: '/admin/users', icon: 'shield' },
+        { title: 'Tài khoản nhân viên & RBAC', path: '/admin/users', icon: 'shield' },
+        { title: 'Tài khoản bệnh nhân', path: '/admin/patients', icon: 'user' },
         { title: 'Danh mục & Tồn kho thuốc', path: '/admin/pharmacy', icon: 'pill', badge: 'Cảnh báo' },
         { title: 'Danh mục dịch vụ y tế', path: '/admin/services', icon: 'flask' },
         { title: 'Lịch làm việc bác sĩ', path: '/admin/schedules', icon: 'calendar' },

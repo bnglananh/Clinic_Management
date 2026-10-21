@@ -126,7 +126,7 @@ import { ClinicIconComponent } from '../../../shared/components/clinic-icon/clin
         <div class="form-group">
           <div class="label-row">
             <label class="form-label" for="password">Mật khẩu</label>
-            <a href="javascript:void(0)" class="forgot-link">Quên mật khẩu?</a>
+            <a routerLink="/auth/forgot-password" class="forgot-link">Quên mật khẩu?</a>
           </div>
           <div class="input-wrapper">
             <span class="input-icon">

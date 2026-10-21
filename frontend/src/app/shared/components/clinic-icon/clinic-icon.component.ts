@@ -48,6 +48,10 @@ export type ClinicIconName =
   | 'wallet'
   | 'download'
   | 'plus'
+  | 'key'
+  | 'check-circle'
+  | 'mail-check'
+  | 'circle'
   | 'x';
 
 @Component({
@@ -252,6 +256,22 @@ export type ClinicIconName =
         }
         @case ('download') {
           <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" />
+        }
+        @case ('key') {
+          <circle cx="7.5" cy="15.5" r="5.5" />
+          <path d="m21 2-9.6 9.6M15.5 7.5l3 3M18.5 4.5l3 3" />
+        }
+        @case ('check-circle') {
+          <circle cx="12" cy="12" r="10" />
+          <path d="m9 12 2 2 4-4" />
+        }
+        @case ('mail-check') {
+          <path d="M22 13V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v12c0 1.1.9 2 2 2h9" />
+          <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+          <path d="m16 19 2 2 4-4" />
+        }
+        @case ('circle') {
+          <circle cx="12" cy="12" r="10" />
         }
         @default {
           <circle cx="12" cy="12" r="10" />
