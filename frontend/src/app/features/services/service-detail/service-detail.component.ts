@@ -33,9 +33,11 @@ import { ServiceDetail } from '../../../core/models/service-detail.model';
             <a routerLink="/" fragment="process" class="nav-link">Quy Trình Khám</a>
             <a routerLink="/" fragment="benefits" class="nav-link">Lợi Ích</a>
             <a routerLink="/" fragment="contact" class="nav-link">Liên Hệ</a>
-            <a routerLink="/lobby-display" class="nav-link highlight-lobby">
-              <span class="pulse-dot"></span> Bảng gọi số sảnh chờ
-            </a>
+            @if (!isAuthenticated()) {
+              <a routerLink="/lobby-display" class="nav-link highlight-lobby" title="Màn hình gọi số sảnh chờ phòng khám">
+                <span class="pulse-dot"></span> Bảng gọi số sảnh chờ
+              </a>
+            }
           </nav>
 
           <!-- Right Action Controls -->
@@ -975,6 +977,8 @@ import { ServiceDetail } from '../../../core/models/service-detail.model';
           background: #FAF9F6;
           box-shadow: 0 2px 8px rgba(14, 74, 85, 0.12);
         }
+      }
+
       .user-profile-widget {
         display: inline-flex;
         align-items: center;
@@ -2096,7 +2100,6 @@ import { ServiceDetail } from '../../../core/models/service-detail.model';
           }
         }
       }
-    }
 
       .lab-quality-assurance-card {
         display: flex;

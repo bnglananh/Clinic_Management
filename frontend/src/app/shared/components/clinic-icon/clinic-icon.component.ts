@@ -44,6 +44,7 @@ export type ClinicIconName =
   | 'arrow-left'
   | 'chevron-right'
   | 'chevron-left'
+  | 'chevron-down'
   | 'receipt'
   | 'wallet'
   | 'download'
@@ -245,6 +246,9 @@ export type ClinicIconName =
         }
         @case ('chevron-left') {
           <path d="m15 18-6-6 6-6" />
+        }
+        @case ('chevron-down') {
+          <path d="m6 9 6 6 6-6" />
         }
         @case ('receipt') {
           <path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z" />
