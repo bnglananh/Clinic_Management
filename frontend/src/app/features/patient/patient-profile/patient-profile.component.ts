@@ -211,7 +211,7 @@ type ProfileTab = 'general' | 'medical' | 'security' | 'ecard';
 
                   <!-- Mã bệnh nhân (Readonly) -->
                   <div class="form-group">
-                    <label class="form-label">Mã bệnh nhân (Cố định)</label>
+                    <label class="form-label">Mã bệnh nhân</label>
                     <div class="readonly-badge-input">
                       <app-clinic-icon name="ticket" [size]="14"></app-clinic-icon>
                       <span>{{ profile()?.patientCode }}</span>

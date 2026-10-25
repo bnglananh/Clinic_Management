@@ -586,17 +586,42 @@ import { ClinicIconComponent } from '../../../shared/components/clinic-icon/clin
       }
 
       .btn-gold {
-        background: #B8955A;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: linear-gradient(135deg, #B8955A 0%, #A58046 50%, #8F6C34 100%);
         color: #FFFFFF;
-        border: none;
+        border: 1px solid rgba(255, 255, 255, 0.25);
         padding: 9px 18px;
         border-radius: 10px;
-        font-weight: 600;
+        font-weight: 650;
         font-size: 0.875rem;
+        letter-spacing: 0.01em;
         cursor: pointer;
-        transition: all 0.2s ease;
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        box-shadow: 0 4px 14px rgba(184, 149, 90, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+
+        app-clinic-icon {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          transition: transform 0.2s ease;
+        }
+
         &:hover {
-          background: #a3824b;
+          background: linear-gradient(135deg, #C5A368 0%, #B08B51 50%, #99763B 100%);
+          transform: translateY(-2px);
+          box-shadow: 0 6px 20px rgba(184, 149, 90, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+
+          app-clinic-icon {
+            transform: scale(1.12);
+          }
+        }
+
+        &:active {
+          transform: translateY(0);
+          box-shadow: 0 2px 8px rgba(184, 149, 90, 0.28);
         }
       }
 

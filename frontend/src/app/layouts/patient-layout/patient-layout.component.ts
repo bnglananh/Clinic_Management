@@ -117,7 +117,7 @@ import { NotificationCenterComponent } from '../../shared/components/notificatio
         <div class="footer-inner">
           <div class="footer-left">
             <span class="f-brand">Smart Clinic EMR</span>
-            <span class="f-text">• Hotline Cấp Cứu 24/7: <strong>1900 6868</strong> • Địa chỉ: 120 Hai Bà Trưng, Q.1, TP.HCM</span>
+            <span class="f-text">• Hotline Cấp Cứu 24/7: <strong>1900 6868</strong> • Địa chỉ: 341/13A Khuông Việt, P. Phú Trung, Q. Tân Phú, TP.HCM</span>
           </div>
           <div class="footer-right">
             <span>© 2026 Smart Clinic Healthcare System</span>

@@ -119,7 +119,7 @@ export type VitalType = 'bp' | 'heartRate' | 'temperature' | 'bmi' | 'spo2';
       .vital-card {
         background: #FFFFFF;
         border-radius: 12px;
-        padding: 14px 16px;
+        padding: 12px 14px;
         border: 1px solid #E4DED2;
         transition: all 0.2s ease;
         position: relative;
@@ -242,23 +242,33 @@ export type VitalType = 'bp' | 'heartRate' | 'temperature' | 'bmi' | 'spo2';
         gap: 4px;
 
         .slash {
-          font-size: 1.3rem;
+          font-size: 1.25rem;
           color: #8C96A2;
           font-weight: 600;
+          line-height: 1;
         }
       }
 
       .vital-input {
-        width: 62px;
-        font-size: 1.35rem;
+        width: 68px;
+        font-size: 1.3rem;
         font-weight: 700;
         color: #1C2733;
-        padding: 4px 8px;
+        padding: 4px 4px;
+        text-align: center;
         border: 1px solid #E2DCD0;
         border-radius: 10px;
         background: #FFFFFF;
         outline: none;
+        box-sizing: border-box;
         transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        -moz-appearance: textfield;
+
+        &::-webkit-outer-spin-button,
+        &::-webkit-inner-spin-button {
+          -webkit-appearance: none;
+          margin: 0;
+        }
 
         &:hover {
           border-color: #C8BFB0;
@@ -271,13 +281,14 @@ export type VitalType = 'bp' | 'heartRate' | 'temperature' | 'bmi' | 'spo2';
         }
 
         &.single-input {
-          width: 80px;
+          width: 82px;
+          text-align: center;
         }
       }
 
       .bmi-sub-inputs {
         display: flex;
-        gap: 10px;
+        gap: 8px;
         margin-top: 6px;
 
         .sub-input-label {
@@ -288,14 +299,23 @@ export type VitalType = 'bp' | 'heartRate' | 'temperature' | 'bmi' | 'spo2';
           color: #5B6672;
 
           .sub-input {
-            width: 52px;
+            width: 56px;
             font-size: 0.85rem;
             font-weight: 600;
-            padding: 3px 6px;
+            padding: 3px 4px;
+            text-align: center;
             border: 1px solid #E2DCD0;
             border-radius: 8px;
             background: #FFFFFF;
+            box-sizing: border-box;
             transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            -moz-appearance: textfield;
+
+            &::-webkit-outer-spin-button,
+            &::-webkit-inner-spin-button {
+              -webkit-appearance: none;
+              margin: 0;
+            }
 
             &:hover {
               border-color: #C8BFB0;

@@ -275,7 +275,7 @@ import { PharmacyDrugItem } from '../../../core/models/admin.model';
                   </div>
                   <div>
                     <h1 class="clinic-official-name">PHÒNG KHÁM ĐA KHOA QUỐC TẾ SMART CLINIC</h1>
-                    <p class="clinic-address">123 Nguyễn Thị Minh Khai, Phường Bến Thành, Quận 1, TP. Hồ Chí Minh</p>
+                    <p class="clinic-address">341/13A Khuông Việt, Phường Phú Trung, Quận Tân Phú, TP. Hồ Chí Minh</p>
                     <p class="clinic-sub-meta">Hotline: 1900 6868 • Email: bcaudit&#64;smartclinic.vn • Website: smartclinic.vn</p>
                   </div>
                 </div>

@@ -841,9 +841,14 @@ export class ServiceDetailService {
   }
 
   getServiceByCode(code: string): Observable<ServiceDetail | undefined> {
-    const found = this.servicesCatalog.find(
-      (s) => s.code.toLowerCase() === (code || '').toLowerCase()
-    );
+    const rawCode = (code || '').trim().toLowerCase();
+    const hyphenated = rawCode.replace(/\s+/g, '-');
+    const spaceSeparated = rawCode.replace(/-/g, ' ');
+
+    const found = this.servicesCatalog.find((s) => {
+      const c = s.code.toLowerCase();
+      return c === rawCode || c === hyphenated || c.replace(/-/g, ' ') === spaceSeparated;
+    });
     return of(found).pipe(delay(50));
   }
 

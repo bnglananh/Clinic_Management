@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, OnInit, AfterViewInit, ElementRef, ViewChild } from '@angular/core';
+import { Component, inject, signal, computed, OnInit, AfterViewInit, ElementRef, ViewChild, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -101,29 +101,130 @@ interface PublicDoctor {
             >
               Liên Hệ
             </a>
-            <a routerLink="/lobby-display" class="nav-link highlight-lobby">
-              <span class="pulse-dot"></span> Bảng gọi số sảnh chờ
-            </a>
+            @if (!currentUser()) {
+              <a routerLink="/lobby-display" class="nav-link highlight-lobby" title="Màn hình gọi số sảnh chờ phòng khám">
+                <span class="pulse-dot"></span> Bảng gọi số sảnh chờ
+              </a>
+            }
           </nav>
 
           <!-- Action Buttons -->
           <div class="header-actions">
             @if (currentUser()) {
-              <a
-                [routerLink]="currentUser()?.role === 'PATIENT' ? '/patient/dashboard' : '/reception'"
-                class="nav-account-btn logged-in"
-                title="Vào Cổng Dịch Vụ"
-              >
-                <span class="account-avatar-badge">
-                  <app-clinic-icon name="user" [size]="14"></app-clinic-icon>
-                </span>
-                <span class="account-text-group">
-                  <span class="acc-main">{{ currentUser()?.role === 'PATIENT' ? 'Cổng Bệnh Nhân' : 'Khu Vực Làm Việc' }}</span>
-                </span>
-              </a>
-              <button (click)="logout()" class="btn-logout-icon" title="Đăng xuất">
-                <app-clinic-icon name="logout" [size]="15"></app-clinic-icon>
-              </button>
+              <div class="user-menu-wrapper" (click)="$event.stopPropagation()">
+                <button
+                  type="button"
+                  class="user-profile-trigger"
+                  [class.active]="isUserMenuOpen()"
+                  (click)="toggleUserMenu($event)"
+                  title="Tài khoản cá nhân"
+                >
+                  <div class="avatar-ring font-serif">
+                    @if (currentUser()?.avatarUrl) {
+                      <img [src]="currentUser()?.avatarUrl" [alt]="currentUser()?.fullName" class="user-avatar-img" />
+                    } @else {
+                      <span class="avatar-monogram">{{ userMonogram() }}</span>
+                    }
+                  </div>
+                  <div class="user-info-text">
+                    <span class="user-name">{{ currentUser()?.fullName || 'Bệnh nhân' }}</span>
+                    <span class="user-badge">
+                      <app-clinic-icon name="sparkle" [size]="10" color="#B8955A"></app-clinic-icon>
+                      <span>{{ currentUser()?.role === 'PATIENT' ? 'Bệnh nhân' : 'Nhân viên y tế' }}</span>
+                    </span>
+                  </div>
+                  <app-clinic-icon
+                    name="chevron-down"
+                    [size]="13"
+                    class="menu-arrow"
+                    [class.rotated]="isUserMenuOpen()"
+                  ></app-clinic-icon>
+                </button>
+
+                <!-- Luxury Dropdown Panel -->
+                @if (isUserMenuOpen()) {
+                  <div class="user-dropdown-panel animate-fade-in-up">
+                    <div class="dropdown-header">
+                      <div class="header-avatar-circle font-serif">
+                        {{ userMonogram() }}
+                      </div>
+                      <div class="header-details">
+                        <span class="header-name">{{ currentUser()?.fullName }}</span>
+                        <span class="header-email">{{ currentUser()?.email || 'Tài khoản Smart Clinic' }}</span>
+                        <span class="header-rank-pill">
+                          <app-clinic-icon name="sparkle" [size]="10" color="#B8955A"></app-clinic-icon>
+                          <span>{{ currentUser()?.title || (currentUser()?.role === 'PATIENT' ? 'Bệnh nhân thân thiết' : 'Cán bộ y tế') }}</span>
+                        </span>
+                      </div>
+                    </div>
+
+                    <div class="dropdown-divider"></div>
+
+                    @if (currentUser()?.role === 'PATIENT') {
+                      <div class="dropdown-nav-group">
+                        <a routerLink="/patient/dashboard" (click)="closeUserMenu()" class="dropdown-item">
+                          <span class="item-icon"><app-clinic-icon name="activity" [size]="15"></app-clinic-icon></span>
+                          <div class="item-text">
+                            <span class="item-title">Tiến trình khám</span>
+                            <span class="item-sub">Theo dõi các phòng khám hôm nay</span>
+                          </div>
+                        </a>
+                        <a routerLink="/patient/queue" (click)="closeUserMenu()" class="dropdown-item">
+                          <span class="item-icon"><app-clinic-icon name="clock" [size]="15"></app-clinic-icon></span>
+                          <div class="item-text">
+                            <span class="item-title">Số thứ tự khám</span>
+                            <span class="item-sub">Xem lượt gọi tại phòng khám</span>
+                          </div>
+                        </a>
+                        <a routerLink="/patient/records" (click)="closeUserMenu()" class="dropdown-item">
+                          <span class="item-icon"><app-clinic-icon name="clipboard" [size]="15"></app-clinic-icon></span>
+                          <div class="item-text">
+                            <span class="item-title">Hồ sơ sức khỏe EMR</span>
+                            <span class="item-sub">Kết quả cận lâm sàng & đơn thuốc</span>
+                          </div>
+                        </a>
+                        <a routerLink="/patient/billing" (click)="closeUserMenu()" class="dropdown-item">
+                          <span class="item-icon"><app-clinic-icon name="credit-card" [size]="15"></app-clinic-icon></span>
+                          <div class="item-text">
+                            <span class="item-title">Hóa đơn & Viện phí</span>
+                            <span class="item-sub">Tra cứu lịch sử thanh toán</span>
+                          </div>
+                        </a>
+                        <a routerLink="/patient/profile" (click)="closeUserMenu()" class="dropdown-item">
+                          <span class="item-icon"><app-clinic-icon name="user" [size]="15"></app-clinic-icon></span>
+                          <div class="item-text">
+                            <span class="item-title">Thông tin tài khoản</span>
+                            <span class="item-sub">Cài đặt cá nhân & bảo mật</span>
+                          </div>
+                        </a>
+                      </div>
+                    } @else {
+                      <div class="dropdown-nav-group">
+                        <a
+                          [routerLink]="currentUser()?.role === 'DOCTOR' ? '/doctor' : currentUser()?.role === 'ADMIN' ? '/admin' : '/reception'"
+                          (click)="closeUserMenu()"
+                          class="dropdown-item"
+                        >
+                          <span class="item-icon"><app-clinic-icon name="user" [size]="15"></app-clinic-icon></span>
+                          <div class="item-text">
+                            <span class="item-title">Khu vực làm việc</span>
+                            <span class="item-sub">Bảng điều khiển nghiệp vụ y tế</span>
+                          </div>
+                        </a>
+                      </div>
+                    }
+
+                    <div class="dropdown-divider"></div>
+
+                    <div class="dropdown-footer">
+                      <button type="button" class="btn-dropdown-logout" (click)="logout()">
+                        <app-clinic-icon name="logout" [size]="15"></app-clinic-icon>
+                        <span>Đăng xuất tài khoản</span>
+                      </button>
+                    </div>
+                  </div>
+                }
+              </div>
             } @else {
               <a routerLink="/auth/login" class="nav-account-btn" title="Cổng đăng nhập và đăng ký tài khoản">
                 <span class="account-avatar-badge">
@@ -675,7 +776,7 @@ interface PublicDoctor {
                 </span>
                 <div class="c-details">
                   <span class="c-label">Địa chỉ phòng khám:</span>
-                  <span class="c-value font-bold">123 Đường Sức Khỏe, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh</span>
+                  <span class="c-value font-bold">341/13A Khuông Việt, Phường Phú Trung, Quận Tân Phú, TP. Hồ Chí Minh</span>
                 </div>
               </div>
 
@@ -713,21 +814,53 @@ interface PublicDoctor {
 
           <div class="contact-map-mockup">
             <div class="map-card">
-              <div class="map-badge">VỊ TRÍ TRUNG TÂM QUẬN 1</div>
-              <div class="map-visual">
-                <div class="map-grid-lines"></div>
-                <div class="map-pin-pulse">
-                  <span class="pin-symbol">
-                    <app-clinic-icon name="medical-cross" [size]="16" color="#ffffff"></app-clinic-icon>
-                  </span>
-                  <span class="pin-label">Smart Clinic EMR</span>
+              <div class="map-badge-bar">
+                <div class="map-badge">
+                  <app-clinic-icon name="map-pin" [size]="13" color="#ECC880"></app-clinic-icon>
+                  <span>VỊ TRÍ PHÒNG KHÁM • QUẬN TÂN PHÚ, TP.HCM</span>
                 </div>
+                <a
+                  href="https://www.google.com/maps/dir/?api=1&destination=341%2F13A+Khu%C3%B4ng+Vi%E1%BB%87t%2C+Ph%C3%BA+Trung%2C+T%C3%A2n+Ph%C3%BA%2C+H%E1%BB%93+Ch%C3%AD+Minh"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="btn-directions-link"
+                  title="Mở chỉ đường trên Google Maps"
+                >
+                  <app-clinic-icon name="arrow-right" [size]="12"></app-clinic-icon>
+                  <span>Chỉ đường</span>
+                </a>
               </div>
+
+              <div class="map-visual map-google-frame">
+                <iframe
+                  title="Bản đồ vị trí Smart Clinic - 341/13A Khuông Việt, Tân Phú, TP.HCM"
+                  src="https://maps.google.com/maps?q=341%2F13A+Khu%C3%B4ng+Vi%E1%BB%87t%2C+Ph%C3%BA+Trung%2C+T%C3%A2n+Ph%C3%BA%2C+H%E1%BB%93+Ch%C3%AD+Minh&t=&z=16&ie=UTF8&iwloc=&output=embed"
+                  width="100%"
+                  height="285"
+                  style="border:0;"
+                  allowfullscreen=""
+                  loading="lazy"
+                  referrerpolicy="no-referrer-when-downgrade"
+                ></iframe>
+              </div>
+
               <div class="map-footer">
-                <span style="display: inline-flex; align-items: center; gap: 8px;">
-                  <app-clinic-icon name="car" [size]="16" color="#5E8B7E"></app-clinic-icon>
-                  Có bãi đỗ xe ô tô & xe máy miễn phí cho bệnh nhân
-                </span>
+                <div class="map-footer-left">
+                  <span class="footer-parking">
+                    <app-clinic-icon name="car" [size]="16" color="#5E8B7E"></app-clinic-icon>
+                    <span>Có bãi đỗ xe ô tô & xe máy miễn phí cho bệnh nhân</span>
+                  </span>
+                </div>
+                <a
+                  href="https://www.google.com/maps/search/?api=1&query=341%2F13A+Khu%C3%B4ng+Vi%E1%BB%87t%2C+Ph%C3%BA+Trung%2C+T%C3%A2n+Ph%C3%BA%2C+H%E1%BB%93+Ch%C3%AD+Minh"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="btn-open-full-map"
+                  title="Mở bản đồ lớn trên Google Maps"
+                >
+                  <span>Mở bản đồ lớn</span>
+                  <app-clinic-icon name="chevron-right" [size]="13"></app-clinic-icon>
+                </a>
               </div>
             </div>
           </div>
@@ -746,6 +879,10 @@ interface PublicDoctor {
               <p class="f-desc">
                 Hệ thống phòng khám đa khoa quốc tế ứng dụng công nghệ EMR hiện đại hàng đầu Việt Nam.
               </p>
+              <div class="f-address-pill">
+                <app-clinic-icon name="map-pin" [size]="14" color="#ECC880"></app-clinic-icon>
+                <span>341/13A Khuông Việt, P. Phú Trung, Q. Tân Phú, TP.HCM</span>
+              </div>
             </div>
 
             <div class="footer-links-group">
@@ -1000,40 +1137,272 @@ interface PublicDoctor {
             }
           }
         }
+      }
 
-        &.logged-in {
-          border-color: #B8955A;
-          background: #FAF8F5;
+      .user-menu-wrapper {
+        position: relative;
+        display: inline-block;
+      }
 
-          .account-avatar-badge {
-            background: linear-gradient(135deg, #0E4A55 0%, #B8955A 100%);
+      .user-profile-trigger {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        background: #FFFFFF;
+        border: 1.5px solid #E2D9C8;
+        padding: 4px 14px 4px 5px;
+        border-radius: 999px;
+        cursor: pointer;
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        box-shadow: 0 2px 8px rgba(14, 74, 85, 0.06);
+
+        .avatar-ring {
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, #0E4A55 0%, #17383E 100%);
+          border: 1.5px solid #ECC880;
+          color: #ECC880;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: 700;
+          font-size: 0.8rem;
+          flex-shrink: 0;
+          overflow: hidden;
+          box-shadow: 0 2px 6px rgba(14, 74, 85, 0.25);
+
+          .user-avatar-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+          }
+        }
+
+        .user-info-text {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          line-height: 1.15;
+          text-align: left;
+
+          .user-name {
+            font-size: 0.84rem;
             font-weight: 700;
-            font-size: 0.72rem;
+            color: #1C2733;
+            max-width: 140px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            transition: color 0.2s ease;
           }
 
-          .acc-main {
+          .user-badge {
+            font-size: 0.6875rem;
+            font-weight: 600;
+            color: #8C6D34;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+          }
+        }
+
+        .menu-arrow {
+          color: #7A8894;
+          transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), color 0.2s ease;
+
+          &.rotated {
+            transform: rotate(180deg);
             color: #0E4A55;
+          }
+        }
+
+        &:hover,
+        &.active {
+          border-color: #0E4A55;
+          background: #FAF9F6;
+          box-shadow: 0 4px 14px rgba(14, 74, 85, 0.12);
+          transform: translateY(-1px);
+
+          .user-info-text .user-name {
+            color: #0E4A55;
+          }
+
+          .avatar-ring {
+            border-color: #B8955A;
           }
         }
       }
 
-      .btn-logout-icon {
-        width: 34px;
-        height: 34px;
-        border-radius: 50%;
-        border: 1px solid #D2DCDE;
+      .user-dropdown-panel {
+        position: absolute;
+        top: calc(100% + 10px);
+        right: 0;
+        min-width: 285px;
         background: #FFFFFF;
-        color: #718096;
+        border: 1px solid rgba(228, 222, 210, 0.95);
+        border-radius: 16px;
+        box-shadow: 0 18px 40px rgba(14, 74, 85, 0.16), 0 4px 12px rgba(0, 0, 0, 0.05);
+        z-index: 1000;
+        padding: 8px;
+        transform-origin: top right;
+      }
+
+      .dropdown-header {
         display: flex;
         align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: all 0.2s ease;
+        gap: 12px;
+        padding: 12px;
+        background: #FAF8F5;
+        border-radius: 12px;
 
-        &:hover {
+        .header-avatar-circle {
+          width: 42px;
+          height: 42px;
+          border-radius: 50%;
+          background: #0E4A55;
+          border: 2px solid #ECC880;
+          color: #ECC880;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 1.05rem;
+          font-weight: 700;
+          flex-shrink: 0;
+        }
+
+        .header-details {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+          min-width: 0;
+
+          .header-name {
+            font-size: 0.92rem;
+            font-weight: 700;
+            color: #1C2733;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+
+          .header-email {
+            font-size: 0.72rem;
+            color: #6C7A87;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+
+          .header-rank-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.6875rem;
+            font-weight: 650;
+            color: #8C6D34;
+            background: rgba(184, 149, 90, 0.12);
+            padding: 2px 8px;
+            border-radius: 999px;
+            margin-top: 2px;
+            width: fit-content;
+          }
+        }
+      }
+
+      .dropdown-divider {
+        height: 1px;
+        background: #EAE4D7;
+        margin: 8px 4px;
+      }
+
+      .dropdown-nav-group {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+
+        .dropdown-item {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 8px 10px;
+          border-radius: 10px;
+          text-decoration: none;
+          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+          cursor: pointer;
+
+          .item-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            background: #F0F6F7;
+            color: #0E4A55;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.2s ease;
+          }
+
+          .item-text {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+
+            .item-title {
+              font-size: 0.82rem;
+              font-weight: 650;
+              color: #1C2733;
+              transition: color 0.2s ease;
+            }
+
+            .item-sub {
+              font-size: 0.6875rem;
+              color: #7A8894;
+            }
+          }
+
+          &:hover {
+            background: #F8F5EE;
+            transform: translateX(3px);
+
+            .item-icon {
+              background: #0E4A55;
+              color: #FFFFFF;
+            }
+
+            .item-text .item-title {
+              color: #0E4A55;
+            }
+          }
+        }
+      }
+
+      .dropdown-footer {
+        padding: 4px;
+
+        .btn-dropdown-logout {
+          width: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          padding: 9px 14px;
+          border: 1px solid #F0D5D8;
+          background: #FFF9F9;
           color: #9B3D45;
-          border-color: #9B3D45;
-          background: #FFF5F5;
+          border-radius: 10px;
+          font-size: 0.82rem;
+          font-weight: 650;
+          cursor: pointer;
+          transition: all 0.2s ease;
+
+          &:hover {
+            background: #FDE8EA;
+            border-color: #E2A6AD;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 6px rgba(155, 61, 69, 0.12);
+          }
         }
       }
 
@@ -2674,61 +3043,100 @@ interface PublicDoctor {
           border: 1px solid #E4DED2;
           border-radius: 20px;
           overflow: hidden;
-          box-shadow: 0 12px 32px rgba(28, 39, 51, 0.06);
+          box-shadow: 0 12px 32px rgba(28, 39, 51, 0.08);
+          display: flex;
+          flex-direction: column;
         }
 
-        .map-badge {
+        .map-badge-bar {
           background: #1C2733;
-          color: #E6CE9F;
-          font-size: 0.72rem;
-          font-weight: 700;
-          letter-spacing: 0.08em;
-          padding: 8px 16px;
-        }
-
-        .map-visual {
-          height: 260px;
-          background: #EAE6DC;
-          position: relative;
           display: flex;
           align-items: center;
-          justify-content: center;
-          overflow: hidden;
+          justify-content: space-between;
+          padding: 10px 18px;
+          gap: 12px;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 
-          .map-grid-lines {
-            position: absolute;
-            inset: 0;
-            background-image: linear-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
-            background-size: 24px 24px;
+          .map-badge {
+            color: #ECC880;
+            font-size: 0.72rem;
+            font-weight: 750;
+            letter-spacing: 0.06em;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
           }
 
-          .map-pin-pulse {
-            position: relative;
-            background: #0E4A55;
+          .btn-directions-link {
             color: #FFFFFF;
-            padding: 8px 16px;
+            background: rgba(184, 149, 90, 0.25);
+            border: 1px solid rgba(184, 149, 90, 0.5);
+            text-decoration: none;
+            padding: 4px 10px;
             border-radius: 999px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            font-size: 0.7rem;
             font-weight: 700;
-            font-size: 0.875rem;
-            box-shadow: 0 8px 20px rgba(14, 74, 85, 0.35);
-            border: 2px solid #B8955A;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.2s ease;
 
-            .pin-symbol {
-              color: #B8955A;
+            &:hover {
+              background: #B8955A;
+              color: #FFFFFF;
+              transform: translateX(2px);
             }
           }
         }
 
+        .map-visual {
+          height: 285px;
+          background: #EAE6DC;
+          position: relative;
+          overflow: hidden;
+
+          iframe {
+            width: 100%;
+            height: 100%;
+            display: block;
+            border: none;
+          }
+        }
+
         .map-footer {
-          padding: 14px 20px;
-          font-size: 0.8125rem;
+          padding: 12px 18px;
+          font-size: 0.8rem;
           color: #5E8B7E;
           font-weight: 600;
           background: #FAF8F5;
+          border-top: 1px solid #EFEAE2;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          flex-wrap: wrap;
+          gap: 10px;
+
+          .map-footer-left .footer-parking {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+          }
+
+          .btn-open-full-map {
+            color: #0E4A55;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 0.78rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.2s ease;
+
+            &:hover {
+              color: #B8955A;
+              transform: translateX(2px);
+            }
+          }
         }
       }
 
@@ -2777,6 +3185,16 @@ interface PublicDoctor {
           color: rgba(255, 255, 255, 0.88);
           line-height: 1.6;
           max-width: 320px;
+        }
+
+        .f-address-pill {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          color: #ECC880;
+          font-size: 0.78rem;
+          font-weight: 600;
+          line-height: 1.5;
         }
       }
 
@@ -2858,7 +3276,31 @@ export class LandingHomeComponent implements AfterViewInit {
     return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
   });
 
+  isUserMenuOpen = signal<boolean>(false);
+
+  toggleUserMenu(event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.isUserMenuOpen.update((v) => !v);
+  }
+
+  closeUserMenu(): void {
+    this.isUserMenuOpen.set(false);
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    if (this.isUserMenuOpen()) {
+      const target = event.target as HTMLElement;
+      if (!target?.closest?.('.user-menu-wrapper')) {
+        this.isUserMenuOpen.set(false);
+      }
+    }
+  }
+
   logout(): void {
+    this.closeUserMenu();
     this.authService.logout();
   }
 

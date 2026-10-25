@@ -31,7 +31,7 @@ import { ClinicIconComponent } from '../clinic-icon/clinic-icon.component';
               <app-clinic-icon name="medical-cross" [size]="20" color="#ECC880"></app-clinic-icon>
             </div>
             <h2 class="receipt-brand font-serif">SMART CLINIC EMR</h2>
-            <p class="receipt-addr">120 Hai Bà Trưng, P. Bến Nghé, Quận 1, TP.HCM</p>
+            <p class="receipt-addr">341/13A Khuông Việt, P. Phú Trung, Q. Tân Phú, TP.HCM</p>
             <p class="receipt-hotline">Hotline: 1900 6868</p>
             <div class="receipt-divider"></div>
             <h3 class="receipt-title">PHIẾU SỐ THỨ TỰ KHÁM BỆNH</h3>
