@@ -1,5 +1,6 @@
-import { Injectable, signal, computed, inject } from '@angular/core';
-import { Observable, of } from 'rxjs';
+import { Injectable, signal, computed, inject, effect } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable, ReplaySubject, Subject, of, catchError, debounceTime, map, switchMap, tap, throwError } from 'rxjs';
 import {
   MedicalRecord,
   VitalSigns,
@@ -14,13 +15,28 @@ import {
 import {
   MOCK_ICD10_LIST,
   MOCK_MEDICINES,
-  MOCK_DRUG_INTERACTIONS,
   MOCK_AVAILABLE_SERVICES,
-  MOCK_VITAL_HISTORY,
   INITIAL_ACTIVE_RECORD,
 } from '../mock-data/doctor-mock-data';
 import { QueueService } from './queue.service';
 import { NotificationService } from './notification.service';
+import { AuthService, apiErrorMessage } from './auth.service';
+import { ApiResponse, unwrap } from './api';
+import { Patient } from '../models/patient.model';
+
+/** Kết quả kiểm tra an toàn đơn thuốc từ backend (đồ thị dược lý Neo4j). */
+interface SafetyReport {
+  blocking: boolean;
+  interactions: DrugInteractionWarning[];
+  contraindications: { drug: string; ingredient: string; icdCode: string; diseaseName: string; reason: string }[];
+  allergyAlerts: { drug: string; ingredient: string; matchedBy: string; allergyNote: string }[];
+  unknownDrugs: string[];
+}
+
+interface VitalPointDto {
+  recordedAt: string;
+  vitals: { bloodPressure: string; heartRate: number; temperature: number; weight: number; height: number; bmi: number };
+}
 
 @Injectable({
   providedIn: 'root',
@@ -28,6 +44,12 @@ import { NotificationService } from './notification.service';
 export class MedicalService {
   private queueService = inject(QueueService);
   private notifService = inject(NotificationService);
+  private http = inject(HttpClient);
+  private auth = inject(AuthService);
+
+  /** Kết quả kiểm tra an toàn đơn thuốc gần nhất (Neo4j). */
+  private safetyReport = signal<SafetyReport | null>(null);
+  private safetyCheck$ = new Subject<void>();
 
   // Active Medical Record Signal
   private activeRecordSignal = signal<MedicalRecord>(INITIAL_ACTIVE_RECORD);
@@ -42,53 +64,62 @@ export class MedicalService {
   readonly medicines = signal<MedicineItem[]>(MOCK_MEDICINES);
   readonly availableServices = signal<ClinicalServiceOrder[]>(MOCK_AVAILABLE_SERVICES);
 
-  // Computed: Detect Drug-Drug Interactions in current prescription
+  /** Tương tác thuốc - thuốc trong đơn hiện tại (truy vấn đồ thị Neo4j qua backend). */
   readonly currentInteractions = computed<DrugInteractionWarning[]>(() => {
-    const record = this.activeRecordSignal();
-    const prescriptions = record.prescriptions;
+    const prescriptions = this.activeRecordSignal().prescriptions;
     if (!prescriptions || prescriptions.length < 2) return [];
-
-    const activeIngredients = prescriptions.map((p) => p.activeIngredient.toLowerCase());
-    const warnings: DrugInteractionWarning[] = [];
-
-    for (const rule of MOCK_DRUG_INTERACTIONS) {
-      const drugA = rule.drugA.toLowerCase();
-      const drugB = rule.drugB.toLowerCase();
-      const hasA = activeIngredients.some((ing) => ing.includes(drugA));
-      const hasB = activeIngredients.some((ing) => ing.includes(drugB));
-
-      if (hasA && hasB) {
-        warnings.push(rule);
-      }
-    }
-
-    return warnings;
+    // Backend trả về mã thuốc đã gửi đi; hiển thị lại bằng tên thuốc trong đơn
+    const nameOf = (term: string) =>
+      prescriptions.find((p) => p.medicineCode === term)?.medicineName ?? term;
+    return (this.safetyReport()?.interactions ?? []).map((i) => ({
+      ...i,
+      drugA: nameOf(i.drugA),
+      drugB: nameOf(i.drugB),
+    }));
   });
 
-  // Computed: Allergy check
+  /** Cảnh báo dị ứng (theo hoạt chất / nhóm thuốc) và chống chỉ định theo bệnh nền. */
   readonly allergyWarnings = computed<string[]>(() => {
-    const record = this.activeRecordSignal();
-    const allergies = record.allergies || [];
-    const prescriptions = record.prescriptions || [];
-    const alerts: string[] = [];
-
-    for (const allergy of allergies) {
-      const lowerAllergy = allergy.toLowerCase();
-      for (const rx of prescriptions) {
-        if (
-          rx.medicineName.toLowerCase().includes(lowerAllergy) ||
-          rx.activeIngredient.toLowerCase().includes(lowerAllergy) ||
-          (lowerAllergy.includes('penicillin') && rx.activeIngredient.toLowerCase().includes('amoxicillin')) ||
-          (lowerAllergy.includes('aspirin') && rx.activeIngredient.toLowerCase().includes('aspirin'))
-        ) {
-          alerts.push(
-            `CẢNH BÁO DỊ ỨNG: Bệnh nhân có tiền sử dị ứng với "${allergy}", trùng với thuốc "${rx.medicineName}" (${rx.activeIngredient})!`
-          );
-        }
-      }
-    }
-    return alerts;
+    if (!this.activeRecordSignal().prescriptions?.length) return [];
+    const report = this.safetyReport();
+    if (!report) return [];
+    return [
+      ...report.allergyAlerts.map(
+        (a) => `CẢNH BÁO DỊ ỨNG: Tiền sử "${a.allergyNote}" trùng với thuốc "${a.drug}" (${a.ingredient} – nhóm ${a.matchedBy})!`
+      ),
+      ...report.contraindications.map(
+        (c) => `CHỐNG CHỈ ĐỊNH: ${c.drug} (${c.ingredient}) với ${c.icdCode} – ${c.diseaseName}: ${c.reason}`
+      ),
+    ];
   });
+
+  constructor() {
+    // Mỗi khi đơn thuốc / chẩn đoán thay đổi → kiểm tra lại trên đồ thị (gộp các thay đổi liên tiếp)
+    this.safetyCheck$
+      .pipe(
+        debounceTime(300),
+        switchMap(() => {
+          const record = this.activeRecordSignal();
+          if (!record.prescriptions?.length) return of(null);
+          return unwrap(
+            this.http.post<ApiResponse<SafetyReport>>('/api/prescriptions/safety-check', {
+              drugs: record.prescriptions.map((p) => p.medicineCode || p.medicineName),
+              patientId: record.patientId,
+              icdCodes: record.diagnoses.map((d) => d.code),
+              allergies: record.allergies ?? [],
+            })
+          ).pipe(catchError(() => of(null)));
+        })
+      )
+      .subscribe((report) => this.safetyReport.set(report));
+
+    effect(() => {
+      const record = this.activeRecordSignal();
+      record.prescriptions?.length;
+      record.diagnoses?.length;
+      this.safetyCheck$.next();
+    });
+  }
 
   /**
    * Load record for specific patient/ticket
@@ -96,7 +127,7 @@ export class MedicalService {
   loadRecordForTicket(ticketNumber: string, patientName: string, patientId: string): void {
     const current = this.activeRecordSignal();
     // If same ticket, don't re-create
-    if (current.ticketNumber === ticketNumber && !current.isLocked) {
+    if (current.ticketNumber === ticketNumber && current.patientId === patientId && !current.isLocked) {
       return;
     }
 
@@ -117,14 +148,14 @@ export class MedicalService {
       patientGender: 'MALE',
       patientCode: `BN-${ticketNumber}`,
       ticketNumber: ticketNumber,
-      doctorId: 'DOC-01',
-      doctorName: 'TS.BS Trần Minh Hoàng',
+      doctorId: this.auth.currentUser()?.id ?? 'usr-doc-01',
+      doctorName: this.auth.currentUser()?.fullName ?? 'Bác sĩ khám',
       department: 'Nội tổng quát',
       roomName: 'Phòng khám Nội 101',
       visitDate: new Date().toISOString(),
       chiefComplaint: '',
       clinicalSymptoms: '',
-      allergies: ['Penicillin (Phát ban)'],
+      allergies: [],
       vitals: {
         temperature: 36.8,
         bloodPressureSystolic: 120,
@@ -149,6 +180,29 @@ export class MedicalService {
     };
 
     this.activeRecordSignal.set(newRecord);
+
+    // Bổ sung thông tin thật từ hồ sơ bệnh nhân (MongoDB): mã BN, ngày sinh, giới tính, dị ứng
+    if (patientId) {
+      unwrap(this.http.get<ApiResponse<Patient>>(`/api/patients/${patientId}`))
+        .pipe(catchError(() => of(null)))
+        .subscribe((patient) => {
+          if (!patient) return;
+          this.activeRecordSignal.update((r) =>
+            r.id !== newRecord.id
+              ? r
+              : {
+                  ...r,
+                  patientCode: patient.patientCode,
+                  patientName: patient.fullName,
+                  patientDob: patient.dateOfBirth,
+                  patientGender: patient.gender === 'NAM' ? 'MALE' : 'FEMALE',
+                  allergies: patient.allergyHistory
+                    ? patient.allergyHistory.split(/,\s*/).filter((a) => a.trim().length > 0)
+                    : [],
+                }
+          );
+        });
+    }
   }
 
   /**
@@ -364,20 +418,7 @@ export class MedicalService {
    */
   checkDdi(prescriptions: PrescriptionItem[]): DrugInteractionWarning[] {
     if (!prescriptions || prescriptions.length < 2) return [];
-    const activeIngredients = prescriptions.map((p) => p.activeIngredient.toLowerCase());
-    const warnings: DrugInteractionWarning[] = [];
-
-    for (const rule of MOCK_DRUG_INTERACTIONS) {
-      const drugA = rule.drugA.toLowerCase();
-      const drugB = rule.drugB.toLowerCase();
-      const hasA = activeIngredients.some((ing) => ing.includes(drugA));
-      const hasB = activeIngredients.some((ing) => ing.includes(drugB));
-
-      if (hasA && hasB) {
-        warnings.push(rule);
-      }
-    }
-    return warnings;
+    return this.safetyReport()?.interactions ?? [];
   }
 
   /**
@@ -394,28 +435,71 @@ export class MedicalService {
    */
   completeAndLockRecord(): Observable<MedicalRecord> {
     const current = this.activeRecordSignal();
-    const completedRecord: MedicalRecord = {
-      ...current,
-      status: 'COMPLETED',
-      isLocked: true,
-      completedAt: new Date().toISOString(),
+    const v = current.vitals;
+    const payload = {
+      visitId: current.visitId,
+      patientId: current.patientId,
+      department: current.department,
+      doctorName: current.doctorName,
+      roomName: current.roomName,
+      chiefComplaint: current.chiefComplaint,
+      clinicalSymptoms: current.clinicalSymptoms,
+      vitals: {
+        bloodPressure: `${v.bloodPressureSystolic}/${v.bloodPressureDiastolic}`,
+        heartRate: v.heartRate,
+        temperature: v.temperature,
+        weight: v.weight,
+        height: v.height,
+        bmi: v.bmi,
+        spo2: v.spo2,
+      },
+      diagnoses: current.diagnoses.map((d) => ({ code: d.code, nameVi: d.nameVi, isPrimary: !!d.isPrimary })),
+      services: current.services.map((sv) => ({
+        category: sv.category,
+        name: sv.serviceName,
+        result: sv.resultSummary,
+        price: sv.price,
+        status: sv.status,
+      })),
+      prescriptions: current.prescriptions.map((rx) => ({
+        name: rx.medicineName,
+        strength: rx.strength,
+        dosage: rx.dosage,
+        quantity: rx.totalQuantity,
+        unit: rx.unit,
+        instructions: rx.instructions,
+      })),
+      doctorAdvice: current.doctorAdvice,
+      followUpDays: current.followUpDays,
     };
 
-    this.activeRecordSignal.set(completedRecord);
-
-    // Save to archive
-    this.recordsArchiveSignal.update((archive) => {
-      const filtered = archive.filter((r) => r.id !== completedRecord.id);
-      return [completedRecord, ...filtered];
-    });
-
-    // Update queue status in QueueService to COMPLETED
-    const ticket = this.queueService.queueTickets().find((t) => t.ticketNumber === current.ticketNumber);
-    if (ticket) {
-      this.queueService.updateTicketStatus(ticket.id, 'COMPLETED');
-    }
-
-    return of(completedRecord);
+    // Lưu bệnh án (MongoDB, sinh hiệu ghi thêm vào Cassandra) rồi khóa – mỗi bước được ghi audit log
+    const result = new ReplaySubject<MedicalRecord>(1);
+    unwrap(this.http.post<ApiResponse<{ id: string }>>('/api/records', payload))
+      .pipe(
+        switchMap((saved) => unwrap(this.http.patch<ApiResponse<{ id: string }>>(`/api/records/${saved.id}/lock`, {}))),
+        map((locked): MedicalRecord => ({
+          ...current,
+          id: locked.id,
+          status: 'COMPLETED',
+          isLocked: true,
+          completedAt: new Date().toISOString(),
+        })),
+        tap((completedRecord) => {
+          this.activeRecordSignal.set(completedRecord);
+          this.recordsArchiveSignal.update((archive) => [
+            completedRecord,
+            ...archive.filter((r) => r.id !== completedRecord.id),
+          ]);
+          const ticket = this.queueService.queueTickets().find((t) => t.ticketNumber === current.ticketNumber);
+          if (ticket) {
+            this.queueService.updateTicketStatus(ticket.id, 'COMPLETED');
+          }
+        }),
+        catchError((err) => throwError(() => new Error(apiErrorMessage(err, 'Không lưu được bệnh án.'))))
+      )
+      .subscribe(result);
+    return result.asObservable();
   }
 
   /**
@@ -454,13 +538,27 @@ export class MedicalService {
    * Get vital trends time-series for a patient (Simulates Cassandra query)
    */
   getVitalHistory(patientId: string): Observable<VitalHistoryPoint[]> {
-    const history = MOCK_VITAL_HISTORY[patientId] || [
-      { date: '01/01/2026', systolic: 130, diastolic: 85, heartRate: 80, temperature: 36.7, bmi: 23.0, weight: 67 },
-      { date: '15/01/2026', systolic: 125, diastolic: 82, heartRate: 78, temperature: 36.6, bmi: 23.2, weight: 67.5 },
-      { date: '01/02/2026', systolic: 122, diastolic: 80, heartRate: 75, temperature: 36.8, bmi: 23.1, weight: 67.2 },
-      { date: '20/02/2026', systolic: 128, diastolic: 84, heartRate: 79, temperature: 36.7, bmi: 23.3, weight: 67.8 },
-      { date: '05/03/2026', systolic: 120, diastolic: 80, heartRate: 74, temperature: 36.5, bmi: 23.0, weight: 67.0 },
-    ];
-    return of(history);
+    return unwrap(
+      this.http.get<ApiResponse<VitalPointDto[]>>(`/api/records/patient/${patientId}/vitals-history?limit=12`)
+    ).pipe(
+      map((points) =>
+        points
+          .slice()
+          .reverse() // Cassandra trả mới nhất trước; biểu đồ vẽ từ cũ đến mới
+          .map((p) => {
+            const [systolic, diastolic] = (p.vitals.bloodPressure || '0/0').split('/').map((x) => Number(x) || 0);
+            return {
+              date: new Date(p.recordedAt).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' }),
+              systolic,
+              diastolic,
+              heartRate: p.vitals.heartRate,
+              temperature: p.vitals.temperature,
+              bmi: p.vitals.bmi,
+              weight: p.vitals.weight,
+            };
+          })
+      ),
+      catchError(() => of([]))
+    );
   }
 }

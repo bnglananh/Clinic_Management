@@ -1,5 +1,6 @@
 package vn.clinic.repository;
 
+import vn.clinic.config.StorageMode;
 import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Repository;
 import vn.clinic.model.StockTransaction;
@@ -13,6 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Repository
+@StorageMode.Memory
 public class InMemoryStockTransactionRepository implements StockTransactionRepository {
 
     private final Map<String, StockTransaction> transactionStore = new ConcurrentHashMap<>();

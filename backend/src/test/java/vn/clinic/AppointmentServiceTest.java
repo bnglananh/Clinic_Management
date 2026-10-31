@@ -1,5 +1,6 @@
 package vn.clinic;
 
+import vn.clinic.store.memory.InMemoryStores;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -38,7 +39,7 @@ class AppointmentServiceTest {
         notifRepo.initMockData();
         NotificationServiceImpl notifService = new NotificationServiceImpl(notifRepo);
 
-        appointmentService = new AppointmentServiceImpl(appointmentRepo, patientRepo, notifService);
+        appointmentService = new AppointmentServiceImpl(appointmentRepo, patientRepo, notifService, new InMemoryStores.InMemorySlotLockStore(), new InMemoryStores.InMemoryLeaderboard());
     }
 
     @Test

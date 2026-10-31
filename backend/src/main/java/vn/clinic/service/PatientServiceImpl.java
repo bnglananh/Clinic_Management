@@ -1,5 +1,7 @@
 package vn.clinic.service;
 
+import vn.clinic.audit.Audited;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import vn.clinic.dto.*;
@@ -52,6 +54,7 @@ public class PatientServiceImpl implements PatientService {
         return PatientDto.fromEntity(patient);
     }
 
+    @Audited(entity = "PATIENT", action = "CREATE", summary = "Tạo hồ sơ bệnh nhân")
     @Override
     public PatientDto createPatient(CreatePatientRequest request) {
         // Kiểm tra tính duy nhất (trùng CCCD hoặc SĐT) trước khi tạo mới hồ sơ
@@ -94,6 +97,7 @@ public class PatientServiceImpl implements PatientService {
         return PatientDto.fromEntity(saved);
     }
 
+    @Audited(entity = "PATIENT", action = "UPDATE", id = "id", summary = "Cập nhật hồ sơ bệnh nhân")
     @Override
     public PatientDto updatePatient(String id, UpdatePatientRequest request) {
         PatientProfile patient = findOrThrow(id);

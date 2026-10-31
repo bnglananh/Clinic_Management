@@ -92,4 +92,27 @@ public class AppointmentController {
         AppointmentDto updated = appointmentService.cancelAppointment(id, request);
         return ResponseEntity.ok(ApiResponse.success(updated, "Hủy lịch hẹn thành công"));
     }
+
+    // =========================================================================
+    // Giữ chỗ khung giờ (Redis TTL 10 phút) & bảng xếp hạng bác sĩ (Redis ZSET)
+    // =========================================================================
+    @PostMapping("/slot-locks")
+    public ResponseEntity<ApiResponse<SlotLockDto>> lockSlot(@Valid @RequestBody SlotLockRequest request) {
+        SlotLockDto lock = appointmentService.lockSlot(request);
+        return ResponseEntity.ok(ApiResponse.success(lock, "Đã giữ chỗ khung giờ trong 10 phút"));
+    }
+
+    @PostMapping("/slot-locks/release")
+    public ResponseEntity<ApiResponse<Void>> releaseSlot(@Valid @RequestBody SlotLockRequest request) {
+        appointmentService.releaseSlot(request);
+        return ResponseEntity.ok(ApiResponse.success(null, "Đã nhả khung giờ"));
+    }
+
+    @GetMapping("/leaderboard/doctors")
+    public ResponseEntity<ApiResponse<List<LeaderboardEntryDto>>> doctorLeaderboard(
+            @RequestParam(required = false) String month,
+            @RequestParam(defaultValue = "5") int limit) {
+        return ResponseEntity.ok(ApiResponse.success(
+                appointmentService.getDoctorLeaderboard(month, limit), "Bảng xếp hạng bác sĩ theo lượt đặt lịch"));
+    }
 }

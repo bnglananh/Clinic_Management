@@ -1,5 +1,6 @@
 package vn.clinic.repository;
 
+import vn.clinic.config.StorageMode;
 import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Repository;
 import vn.clinic.model.PriorityLevel;
@@ -12,6 +13,7 @@ import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 @Repository
+@StorageMode.Memory
 public class InMemoryQueueTicketRepository implements QueueTicketRepository {
 
     // Using ordered list to maintain ticket position in queue accurately

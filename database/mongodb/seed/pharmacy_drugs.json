@@ -1,0 +1,217 @@
+[{
+	"_id": "DRUG-01",
+	"code": "AUG1G",
+	"name": "Augmentin 1g",
+	"activeIngredient": "Amoxicillin + Clavulanic Acid",
+	"strength": "875mg/125mg",
+	"unit": "Hộp 14 viên",
+	"importPrice": {
+		"$numberDecimal": "165000"
+	},
+	"salePrice": {
+		"$numberDecimal": "195000"
+	},
+	"stockQuantity": 4,
+	"minAlertThreshold": 10,
+	"batchNumber": "AG-2025-09",
+	"expiryDate": "2027-06-30",
+	"manufacturer": "GlaxoSmithKline (Pháp)",
+	"status": "ACTIVE",
+	"createdAt": {
+		"$date": "2026-08-02T01:08:49.765Z"
+	},
+	"updatedAt": {
+		"$date": "2026-10-31T01:08:49.765Z"
+	},
+	"_class": "vn.clinic.model.PharmacyDrug"
+},
+{
+	"_id": "DRUG-02",
+	"code": "PAN500",
+	"name": "Panadol Extra",
+	"activeIngredient": "Paracetamol + Caffeine",
+	"strength": "500mg/65mg",
+	"unit": "Hộp 15 vỉ",
+	"importPrice": {
+		"$numberDecimal": "120000"
+	},
+	"salePrice": {
+		"$numberDecimal": "145000"
+	},
+	"stockQuantity": 7,
+	"minAlertThreshold": 10,
+	"batchNumber": "PD-2026-01",
+	"expiryDate": "2028-01-15",
+	"manufacturer": "Sanofi (Việt Nam)",
+	"status": "ACTIVE",
+	"createdAt": {
+		"$date": "2026-08-12T01:08:49.765Z"
+	},
+	"updatedAt": {
+		"$date": "2026-10-31T01:08:49.765Z"
+	},
+	"_class": "vn.clinic.model.PharmacyDrug"
+},
+{
+	"_id": "DRUG-03",
+	"code": "NEX40",
+	"name": "Nexium 40mg",
+	"activeIngredient": "Esomeprazole",
+	"strength": "40mg",
+	"unit": "Hộp 28 viên",
+	"importPrice": {
+		"$numberDecimal": "320000"
+	},
+	"salePrice": {
+		"$numberDecimal": "380000"
+	},
+	"stockQuantity": 9,
+	"minAlertThreshold": 10,
+	"batchNumber": "NX-2025-11",
+	"expiryDate": "2027-11-20",
+	"manufacturer": "AstraZeneca (Thụy Điển)",
+	"status": "ACTIVE",
+	"createdAt": {
+		"$date": "2026-08-22T01:08:49.765Z"
+	},
+	"updatedAt": {
+		"$date": "2026-10-31T01:08:49.765Z"
+	},
+	"_class": "vn.clinic.model.PharmacyDrug"
+},
+{
+	"_id": "DRUG-04",
+	"code": "AML05",
+	"name": "Amlor 5mg",
+	"activeIngredient": "Amlodipine Besylate",
+	"strength": "5mg",
+	"unit": "Hộp 30 viên",
+	"importPrice": {
+		"$numberDecimal": "180000"
+	},
+	"salePrice": {
+		"$numberDecimal": "220000"
+	},
+	"stockQuantity": 24,
+	"minAlertThreshold": 10,
+	"batchNumber": "AM-2025-04",
+	"expiryDate": "2027-08-10",
+	"manufacturer": "Pfizer (Mỹ)",
+	"status": "ACTIVE",
+	"createdAt": {
+		"$date": "2026-09-01T01:08:49.765Z"
+	},
+	"updatedAt": {
+		"$date": "2026-10-31T01:08:49.765Z"
+	},
+	"_class": "vn.clinic.model.PharmacyDrug"
+},
+{
+	"_id": "DRUG-05",
+	"code": "GLU850",
+	"name": "Glucophage 850mg",
+	"activeIngredient": "Metformin Hydrochloride",
+	"strength": "850mg",
+	"unit": "Hộp 50 viên",
+	"importPrice": {
+		"$numberDecimal": "110000"
+	},
+	"salePrice": {
+		"$numberDecimal": "135000"
+	},
+	"stockQuantity": 45,
+	"minAlertThreshold": 10,
+	"batchNumber": "GL-2025-10",
+	"expiryDate": "2027-12-05",
+	"manufacturer": "Merck Santé (Đức)",
+	"status": "ACTIVE",
+	"createdAt": {
+		"$date": "2026-09-11T01:08:49.765Z"
+	},
+	"updatedAt": {
+		"$date": "2026-10-31T01:08:49.765Z"
+	},
+	"_class": "vn.clinic.model.PharmacyDrug"
+},
+{
+	"_id": "DRUG-06",
+	"code": "PLA75",
+	"name": "Plavix 75mg",
+	"activeIngredient": "Clopidogrel",
+	"strength": "75mg",
+	"unit": "Hộp 30 viên",
+	"importPrice": {
+		"$numberDecimal": "450000"
+	},
+	"salePrice": {
+		"$numberDecimal": "530000"
+	},
+	"stockQuantity": 18,
+	"minAlertThreshold": 10,
+	"batchNumber": "PL-2025-08",
+	"expiryDate": "2027-05-25",
+	"manufacturer": "Sanofi Winthrop (Pháp)",
+	"status": "ACTIVE",
+	"createdAt": {
+		"$date": "2026-09-21T01:08:49.765Z"
+	},
+	"updatedAt": {
+		"$date": "2026-10-31T01:08:49.765Z"
+	},
+	"_class": "vn.clinic.model.PharmacyDrug"
+},
+{
+	"_id": "DRUG-07",
+	"code": "ASP81",
+	"name": "Aspirin pH8",
+	"activeIngredient": "Aspirin",
+	"strength": "100mg",
+	"unit": "Hộp 100 viên",
+	"importPrice": {
+		"$numberDecimal": "85000"
+	},
+	"salePrice": {
+		"$numberDecimal": "110000"
+	},
+	"stockQuantity": 62,
+	"minAlertThreshold": 10,
+	"batchNumber": "AS-2025-12",
+	"expiryDate": "2028-02-18",
+	"manufacturer": "Stella Pharm (Việt Nam)",
+	"status": "ACTIVE",
+	"createdAt": {
+		"$date": "2026-10-01T01:08:49.765Z"
+	},
+	"updatedAt": {
+		"$date": "2026-10-31T01:08:49.765Z"
+	},
+	"_class": "vn.clinic.model.PharmacyDrug"
+},
+{
+	"_id": "DRUG-08",
+	"code": "SIM10",
+	"name": "Zocor 10mg (Ngừng kinh doanh)",
+	"activeIngredient": "Simvastatin",
+	"strength": "10mg",
+	"unit": "Hộp 30 viên",
+	"importPrice": {
+		"$numberDecimal": "190000"
+	},
+	"salePrice": {
+		"$numberDecimal": "230000"
+	},
+	"stockQuantity": 0,
+	"minAlertThreshold": 10,
+	"batchNumber": "ZC-2024-01",
+	"expiryDate": "2025-12-31",
+	"manufacturer": "MSD (Mỹ)",
+	"status": "DISCONTINUED",
+	"createdAt": {
+		"$date": "2026-07-23T01:08:49.765Z"
+	},
+	"updatedAt": {
+		"$date": "2026-10-31T01:08:49.765Z"
+	},
+	"_class": "vn.clinic.model.PharmacyDrug"
+}]
+

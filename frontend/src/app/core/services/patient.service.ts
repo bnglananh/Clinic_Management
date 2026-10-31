@@ -1,36 +1,52 @@
-import { Injectable, signal } from '@angular/core';
-import { Observable, of } from 'rxjs';
-import { delay, tap } from 'rxjs/operators';
+import { Injectable, signal, inject, effect } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable, ReplaySubject, of, catchError, map, tap, throwError } from 'rxjs';
 import { Patient } from '../models/patient.model';
-import { MOCK_PATIENTS } from '../mock-data/reception-mock-data';
+import { ApiResponse, unwrap } from './api';
+import { AuthService, apiErrorMessage } from './auth.service';
 
+/** Hồ sơ bệnh nhân (MongoDB collection patients) – dành cho lễ tân, bác sĩ, quản trị. */
 @Injectable({
   providedIn: 'root',
 })
 export class PatientService {
-  private patientsSignal = signal<Patient[]>(MOCK_PATIENTS);
+  private http = inject(HttpClient);
+  private auth = inject(AuthService);
+
+  private patientsSignal = signal<Patient[]>([]);
   public readonly patients = this.patientsSignal.asReadonly();
 
+  constructor() {
+    effect(() => {
+      const role = this.auth.currentRole();
+      if (role && role !== 'PATIENT') {
+        this.getPatients().subscribe();
+      } else {
+        this.patientsSignal.set([]);
+      }
+    });
+  }
+
+  /** Tìm theo tên / mã BN / SĐT / CCCD (tìm kiếm chạy trên MongoDB). */
   getPatients(searchQuery?: string): Observable<Patient[]> {
-    let list = this.patientsSignal();
-    if (searchQuery && searchQuery.trim()) {
-      const q = searchQuery.toLowerCase().trim();
-      list = list.filter(
-        (p) =>
-          p.fullName.toLowerCase().includes(q) ||
-          p.cccd.includes(q) ||
-          p.phone.includes(q) ||
-          p.patientCode.toLowerCase().includes(q)
-      );
-    }
-    return of(list).pipe(delay(250));
+    const q = searchQuery?.trim();
+    const params = q ? new HttpParams().set('q', q) : undefined;
+    return unwrap(this.http.get<ApiResponse<Patient[]>>('/api/patients', { params })).pipe(
+      tap((list) => {
+        if (!q) this.patientsSignal.set(list);
+      }),
+      catchError(() => of(q ? [] : this.patientsSignal()))
+    );
   }
 
   getPatientById(id: string): Observable<Patient | undefined> {
-    const found = this.patientsSignal().find((p) => p.id === id);
-    return of(found).pipe(delay(150));
+    return unwrap(this.http.get<ApiResponse<Patient>>(`/api/patients/${id}`)).pipe(
+      map((p) => p ?? undefined),
+      catchError(() => of(undefined))
+    );
   }
 
+  /** Kiểm tra nhanh trên danh sách đã tải; backend vẫn kiểm tra lại khi lưu (BR-03). */
   checkDuplicateCccd(cccd: string, excludeId?: string): boolean {
     const cleaned = cccd.trim();
     return this.patientsSignal().some(
@@ -41,40 +57,34 @@ export class PatientService {
   checkDuplicatePhone(phone: string, excludeId?: string): boolean {
     const cleaned = phone.replace(/\s+/g, '');
     return this.patientsSignal().some(
-      (p) => p.phone.replace(/\s+/g, '') === cleaned && (!excludeId || p.id !== excludeId)
+      (p) => p.phone?.replace(/\s+/g, '') === cleaned && (!excludeId || p.id !== excludeId)
     );
   }
 
   createPatient(data: Omit<Patient, 'id' | 'patientCode' | 'createdAt' | 'totalVisits'>): Observable<Patient> {
-    const currentList = this.patientsSignal();
-    const newSeq = currentList.length + 900;
-    const newPatient: Patient = {
-      ...data,
-      id: `p-${Date.now()}`,
-      patientCode: `BN-2026-0${newSeq}`,
-      createdAt: new Date().toISOString(),
-      totalVisits: 1,
-    };
-
-    return of(newPatient).pipe(
-      delay(300),
-      tap((created) => {
-        this.patientsSignal.update((list) => [created, ...list]);
-      })
+    return this.eager(
+      unwrap(this.http.post<ApiResponse<Patient>>('/api/patients', data)).pipe(
+        tap((created) => this.patientsSignal.update((list) => [created, ...list])),
+        catchError((err) => throwError(() => new Error(apiErrorMessage(err))))
+      )
     );
   }
 
   updatePatient(id: string, updates: Partial<Patient>): Observable<Patient | null> {
-    let updated: Patient | null = null;
-    this.patientsSignal.update((list) =>
-      list.map((item) => {
-        if (item.id === id) {
-          updated = { ...item, ...updates };
-          return updated;
-        }
-        return item;
-      })
+    return this.eager(
+      unwrap(this.http.put<ApiResponse<Patient>>(`/api/patients/${id}`, updates)).pipe(
+        tap((updated) =>
+          this.patientsSignal.update((list) => list.map((p) => (p.id === id ? updated : p)))
+        ),
+        map((p): Patient | null => p),
+        catchError((err) => throwError(() => new Error(apiErrorMessage(err))))
+      )
     );
-    return of(updated).pipe(delay(250));
+  }
+
+  private eager<T>(source: Observable<T>): Observable<T> {
+    const result = new ReplaySubject<T>(1);
+    source.subscribe(result);
+    return result.asObservable();
   }
 }

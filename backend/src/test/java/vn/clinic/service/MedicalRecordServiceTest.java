@@ -35,7 +35,8 @@ class MedicalRecordServiceTest {
 
         medicalRecordService = new MedicalRecordServiceImpl(
                 medicalRecordRepository,
-                patientProfileRepository
+                patientProfileRepository,
+                new vn.clinic.store.memory.InMemoryTimeSeriesStores.InMemoryVitalSignsHistoryStore()
         );
     }
 

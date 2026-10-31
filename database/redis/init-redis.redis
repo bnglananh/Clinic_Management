@@ -1,0 +1,12 @@
+SELECT 0
+HSET otp:reset:demo.patient@example.com code 482913 failedAttempts 0
+EXPIRE otp:reset:demo.patient@example.com 300
+SET slot:lock:usr-doc-01:2026-12-15:08:00-08:30 usr-pat-02 EX 600
+SET counter:ticket:A:2026-12-15 9 EX 129600
+INCR counter:ticket:A:2026-12-15
+SET counter:ticket:B:2026-12-15 9 EX 129600
+ZADD leaderboard:doctors:2026-10 14 "TS.BS Trần Minh Hoàng" 9 "BSCKII Nguyễn Hoàng Long" 6 "ThS.BS Vũ Hải Đăng"
+EXPIRE leaderboard:doctors:2026-10 34560000
+ZADD leaderboard:doctors:2026-11 3 "TS.BS Trần Minh Hoàng" 2 "ThS.BS Vũ Hải Đăng"
+EXPIRE leaderboard:doctors:2026-11 34560000
+ZINCRBY leaderboard:doctors:2026-11 1 "BSCKII Nguyễn Hoàng Long"

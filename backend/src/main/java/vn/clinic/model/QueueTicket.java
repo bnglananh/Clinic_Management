@@ -27,4 +27,5 @@ public class QueueTicket {
     private String checkinTime;        // Dấu thời gian tiếp nhận (ISO)
     private String notes;              // Ghi chú tiếp nhận điều phối
     private String appointmentId;      // Mã lịch hẹn gốc (nếu check-in từ lịch hẹn)
+    private Double sortOrder;          // Vị trí trong hàng đợi (nhỏ hơn = được gọi trước); do tầng lưu trữ quản lý
 }

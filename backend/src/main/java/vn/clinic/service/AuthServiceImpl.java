@@ -1,6 +1,9 @@
 package vn.clinic.service;
 
+import vn.clinic.audit.Audited;
+
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import vn.clinic.dto.ForgotPasswordRequest;
 import vn.clinic.dto.OtpResponse;
@@ -12,14 +15,13 @@ import vn.clinic.model.PatientProfile;
 import vn.clinic.model.StaffAccount;
 import vn.clinic.repository.PatientProfileRepository;
 import vn.clinic.repository.StaffAccountRepository;
+import vn.clinic.store.OtpStore;
 
 import java.security.SecureRandom;
-import java.time.Instant;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @Service
@@ -31,29 +33,25 @@ public class AuthServiceImpl implements AuthService {
     private final PatientProfileRepository patientProfileRepository;
     private final StaffAccountRepository staffAccountRepository;
     private final EmailService emailService;
+    private final OtpStore otpStore;
+    private final boolean exposeDevOtp;
     private final SecureRandom secureRandom = new SecureRandom();
 
-    // Lưu trữ thông tin OTP theo địa chỉ email dạng in thường
-    private final Map<String, OtpEntry> otpStorage = new ConcurrentHashMap<>();
-
+    /**
+     * @param otpStore     nơi lưu OTP có thời hạn (Redis khi chạy thật)
+     * @param exposeDevOtp true = trả mã OTP trong response để demo khi chưa cấu hình SMTP.
+     *                     Mặc định false vì lộ OTP cho phép chiếm tài khoản chỉ bằng email.
+     */
     public AuthServiceImpl(PatientProfileRepository patientProfileRepository,
                            StaffAccountRepository staffAccountRepository,
-                           EmailService emailService) {
+                           EmailService emailService,
+                           OtpStore otpStore,
+                           @Value("${clinic.auth.expose-dev-otp:false}") boolean exposeDevOtp) {
         this.patientProfileRepository = patientProfileRepository;
         this.staffAccountRepository = staffAccountRepository;
         this.emailService = emailService;
-    }
-
-    private static class OtpEntry {
-        final String otpCode;
-        final Instant expiryTime;
-        int failedAttempts;
-
-        OtpEntry(String otpCode, Instant expiryTime) {
-            this.otpCode = otpCode;
-            this.expiryTime = expiryTime;
-            this.failedAttempts = 0;
-        }
+        this.otpStore = otpStore;
+        this.exposeDevOtp = exposeDevOtp;
     }
 
     @Override
@@ -103,9 +101,8 @@ public class AuthServiceImpl implements AuthService {
         int randomCode = secureRandom.nextInt(900000) + 100000;
         String otpCode = String.valueOf(randomCode);
 
-        // Lưu vào bộ nhớ tạm thời
-        Instant expiryTime = Instant.now().plusSeconds(OTP_EXPIRY_SECONDS);
-        otpStorage.put(targetEmail.toLowerCase(), new OtpEntry(otpCode, expiryTime));
+        // Lưu vào Redis với TTL – hết hạn sẽ tự biến mất
+        otpStore.save(targetEmail, otpCode, Duration.ofSeconds(OTP_EXPIRY_SECONDS));
 
         // Gửi email
         emailService.sendOtpEmail(targetEmail, fullName, otpCode, OTP_EXPIRY_SECONDS / 60);
@@ -116,36 +113,31 @@ public class AuthServiceImpl implements AuthService {
                 .email(targetEmail)
                 .expiresInSeconds(OTP_EXPIRY_SECONDS)
                 .message("Mã xác thực OTP đã được gửi đến hộp thư " + maskEmail(targetEmail) + ". Vui lòng kiểm tra email để tiếp tục.")
-                .devOtp(otpCode) // Hỗ trợ trải nghiệm nhanh
+                .devOtp(exposeDevOtp ? otpCode : null)
                 .build();
     }
 
     @Override
     public boolean verifyOtp(VerifyOtpRequest request) {
         String emailKey = request.getEmail().trim().toLowerCase();
-        OtpEntry entry = otpStorage.get(emailKey);
+        // Key Redis tự hết hạn sau 5 phút, nên "không tìm thấy" bao gồm cả trường hợp đã quá hạn
+        OtpStore.OtpRecord entry = otpStore.find(emailKey)
+                .orElseThrow(() -> new BusinessRuleException(
+                        "Mã OTP không tồn tại hoặc đã hết hiệu lực (quá 5 phút). Vui lòng yêu cầu mã OTP mới."));
 
-        if (entry == null) {
-            throw new BusinessRuleException("Yêu cầu xác thực OTP không tồn tại hoặc đã hết hạn. Vui lòng gửi lại yêu cầu mới.");
-        }
-
-        if (Instant.now().isAfter(entry.expiryTime)) {
-            otpStorage.remove(emailKey);
-            throw new BusinessRuleException("Mã OTP đã hết hiệu lực (quá 5 phút). Vui lòng yêu cầu mã OTP mới.");
-        }
-
-        if (!entry.otpCode.equals(request.getOtp().trim())) {
-            entry.failedAttempts++;
-            if (entry.failedAttempts >= MAX_FAILED_ATTEMPTS) {
-                otpStorage.remove(emailKey);
+        if (!entry.code().equals(request.getOtp().trim())) {
+            int failed = otpStore.incrementFailedAttempts(emailKey);
+            if (failed >= MAX_FAILED_ATTEMPTS) {
+                otpStore.delete(emailKey);
                 throw new BusinessRuleException("Bạn đã nhập sai mã OTP quá " + MAX_FAILED_ATTEMPTS + " lần. Yêu cầu đã bị hủy để đảm bảo an toàn.");
             }
-            throw new BusinessRuleException("Mã OTP không chính xác. Bạn còn " + (MAX_FAILED_ATTEMPTS - entry.failedAttempts) + " lần thử.");
+            throw new BusinessRuleException("Mã OTP không chính xác. Bạn còn " + (MAX_FAILED_ATTEMPTS - failed) + " lần thử.");
         }
 
         return true;
     }
 
+    @Audited(entity = "AUTH", action = "RESET_PASSWORD_OTP", id = "request.email", summary = "Đặt lại mật khẩu bằng OTP")
     @Override
     public void resetPasswordWithOtp(ResetPasswordWithOtpRequest request) {
         // Xác thực mã OTP trước
@@ -167,7 +159,7 @@ public class AuthServiceImpl implements AuthService {
         Optional<PatientProfile> patientOpt = patientProfileRepository.findByEmail(targetEmail);
         if (patientOpt.isPresent()) {
             PatientProfile patient = patientOpt.get();
-            patient.setPassword(request.getNewPassword());
+            patient.setPassword(vn.clinic.security.Passwords.hash(request.getNewPassword()));
             patient.setUpdatedAt(LocalDate.now().format(DateTimeFormatter.ISO_DATE));
             patientProfileRepository.save(patient);
             updated = true;
@@ -178,7 +170,7 @@ public class AuthServiceImpl implements AuthService {
         Optional<StaffAccount> staffOpt = staffAccountRepository.findByEmail(targetEmail);
         if (staffOpt.isPresent()) {
             StaffAccount staff = staffOpt.get();
-            staff.setPassword(request.getNewPassword());
+            staff.setPassword(vn.clinic.security.Passwords.hash(request.getNewPassword()));
             staff.setUpdatedAt(LocalDate.now().format(DateTimeFormatter.ISO_DATE));
             staffAccountRepository.save(staff);
             updated = true;
@@ -190,7 +182,7 @@ public class AuthServiceImpl implements AuthService {
         }
 
         // Xóa mã OTP sau khi đổi mật khẩu thành công để tránh tái sử dụng
-        otpStorage.remove(targetEmail);
+        otpStore.delete(targetEmail);
     }
 
     private String maskEmail(String email) {

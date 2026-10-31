@@ -3635,9 +3635,7 @@ export class LandingHomeComponent implements AfterViewInit {
 
   goToBooking(serviceName?: string): void {
     if (!this.authService.isAuthenticated()) {
-      this.authService.login('PATIENT').subscribe(() => {
-        this.router.navigate(['/patient/booking']);
-      });
+      this.router.navigate(['/auth/login'], { queryParams: { returnUrl: '/patient/booking' } });
     } else {
       this.router.navigate(['/patient/booking']);
     }
@@ -3645,9 +3643,7 @@ export class LandingHomeComponent implements AfterViewInit {
 
   goToBookingWithDoctor(doctorName: string): void {
     if (!this.authService.isAuthenticated()) {
-      this.authService.login('PATIENT').subscribe(() => {
-        this.router.navigate(['/patient/booking']);
-      });
+      this.router.navigate(['/auth/login'], { queryParams: { returnUrl: '/patient/booking' } });
     } else {
       this.router.navigate(['/patient/booking']);
     }

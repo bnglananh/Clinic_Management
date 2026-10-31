@@ -1,0 +1,15 @@
+KEYS *
+TYPE otp:reset:demo.patient@example.com
+HGETALL otp:reset:demo.patient@example.com
+TTL otp:reset:demo.patient@example.com
+HINCRBY otp:reset:demo.patient@example.com failedAttempts 1
+GET slot:lock:usr-doc-01:2026-12-15:08:00-08:30
+TTL slot:lock:usr-doc-01:2026-12-15:08:00-08:30
+SET slot:lock:usr-doc-01:2026-12-15:08:00-08:30 usr-pat-99 NX EX 600
+SCAN 0 MATCH counter:ticket:* COUNT 100
+INCR counter:ticket:A:2026-12-15
+TTL counter:ticket:A:2026-12-15
+ZREVRANGE leaderboard:doctors:2026-10 0 2 WITHSCORES
+ZSCORE leaderboard:doctors:2026-10 "TS.BS Trần Minh Hoàng"
+ZREVRANK leaderboard:doctors:2026-10 "ThS.BS Vũ Hải Đăng"
+INFO keyspace

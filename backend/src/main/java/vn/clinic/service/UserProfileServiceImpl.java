@@ -84,7 +84,7 @@ public class UserProfileServiceImpl implements UserProfileService {
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy hồ sơ cá nhân của người dùng: " + resolvedId));
 
         // Nếu mật khẩu hiện tại không chính xác, hệ thống thông báo lỗi
-        if (!request.getCurrentPassword().equals(profile.getPassword())) {
+        if (!vn.clinic.security.Passwords.matches(request.getCurrentPassword(), profile.getPassword())) {
             log.warn("Password change failed: Incorrect current password for user: {}", resolvedId);
             throw new BusinessRuleException("Mật khẩu hiện tại không chính xác. Vui lòng kiểm tra lại.");
         }
@@ -103,7 +103,7 @@ public class UserProfileServiceImpl implements UserProfileService {
             throw new BusinessRuleException("Mật khẩu mới phải có tối thiểu 6 ký tự để đảm bảo an toàn.");
         }
 
-        profile.setPassword(request.getNewPassword());
+        profile.setPassword(vn.clinic.security.Passwords.hash(request.getNewPassword()));
         profile.setUpdatedAt(LocalDate.now().format(DateTimeFormatter.ISO_DATE));
         patientProfileRepository.save(profile);
         log.info("Password changed successfully for user: {}", resolvedId);

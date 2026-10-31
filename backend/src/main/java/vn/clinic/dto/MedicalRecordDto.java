@@ -42,6 +42,7 @@ public class MedicalRecordDto {
 
     private String doctorAdvice;
     private Integer followUpDays;
+    @com.fasterxml.jackson.annotation.JsonProperty("isLocked")
     private boolean isLocked;
     private int version;
     private String createdAt;

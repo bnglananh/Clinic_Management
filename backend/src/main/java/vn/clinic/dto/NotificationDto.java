@@ -20,6 +20,7 @@ public class NotificationDto {
     private String typeDescription;
     private String referenceId;
     private String channel;
+    @com.fasterxml.jackson.annotation.JsonProperty("isRead")
     private boolean isRead;
     private String readAt;
     private String createdAt;

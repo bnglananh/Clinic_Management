@@ -1,0 +1,127 @@
+[{
+	"_id": "SCH-04",
+	"doctorId": "STAFF-03",
+	"doctorName": "BS.CKI Lê Quốc Hưng",
+	"specialty": "Tiêu Hóa",
+	"roomName": "Phòng khám Nội 103",
+	"date": {
+		"$date": "2026-10-30T17:00:00Z"
+	},
+	"shift": "MORNING",
+	"status": "CONFIRMED",
+	"maxPatients": 20,
+	"bookedPatients": 16,
+	"createdAt": {
+		"$date": "2026-10-26T01:08:49.795Z"
+	},
+	"updatedAt": {
+		"$date": "2026-10-31T01:08:49.795Z"
+	},
+	"_class": "vn.clinic.model.DoctorSchedule"
+},
+{
+	"_id": "SCH-01",
+	"doctorId": "STAFF-01",
+	"doctorName": "TS.BS Trần Minh Hoàng",
+	"specialty": "Tim Mạch",
+	"roomName": "Phòng khám Nội 101",
+	"date": {
+		"$date": "2026-10-30T17:00:00Z"
+	},
+	"shift": "MORNING",
+	"status": "CONFIRMED",
+	"maxPatients": 25,
+	"bookedPatients": 18,
+	"createdAt": {
+		"$date": "2026-10-26T01:08:49.795Z"
+	},
+	"updatedAt": {
+		"$date": "2026-10-31T01:08:49.795Z"
+	},
+	"_class": "vn.clinic.model.DoctorSchedule"
+},
+{
+	"_id": "SCH-03",
+	"doctorId": "STAFF-02",
+	"doctorName": "ThS.BS Nguyễn Thị Mai Lan",
+	"specialty": "Nội Tổng Quát",
+	"roomName": "Phòng khám Nội 102",
+	"date": {
+		"$date": "2026-10-30T17:00:00Z"
+	},
+	"shift": "MORNING",
+	"status": "CONFIRMED",
+	"maxPatients": 30,
+	"bookedPatients": 24,
+	"createdAt": {
+		"$date": "2026-10-26T01:08:49.795Z"
+	},
+	"updatedAt": {
+		"$date": "2026-10-31T01:08:49.795Z"
+	},
+	"_class": "vn.clinic.model.DoctorSchedule"
+},
+{
+	"_id": "SCH-02",
+	"doctorId": "STAFF-01",
+	"doctorName": "TS.BS Trần Minh Hoàng",
+	"specialty": "Tim Mạch",
+	"roomName": "Phòng khám Nội 101",
+	"date": {
+		"$date": "2026-10-30T17:00:00Z"
+	},
+	"shift": "AFTERNOON",
+	"status": "CONFIRMED",
+	"maxPatients": 20,
+	"bookedPatients": 12,
+	"createdAt": {
+		"$date": "2026-10-26T01:08:49.795Z"
+	},
+	"updatedAt": {
+		"$date": "2026-10-31T01:08:49.795Z"
+	},
+	"_class": "vn.clinic.model.DoctorSchedule"
+},
+{
+	"_id": "SCH-06",
+	"doctorId": "STAFF-03",
+	"doctorName": "BS.CKI Lê Quốc Hưng",
+	"specialty": "Tiêu Hóa",
+	"roomName": "Phòng khám Nội 103",
+	"date": {
+		"$date": "2026-10-31T17:00:00Z"
+	},
+	"shift": "MORNING",
+	"status": "LEAVE",
+	"maxPatients": 0,
+	"bookedPatients": 0,
+	"createdAt": {
+		"$date": "2026-10-26T01:08:49.795Z"
+	},
+	"updatedAt": {
+		"$date": "2026-10-31T01:08:49.795Z"
+	},
+	"_class": "vn.clinic.model.DoctorSchedule"
+},
+{
+	"_id": "SCH-05",
+	"doctorId": "STAFF-02",
+	"doctorName": "ThS.BS Nguyễn Thị Mai Lan",
+	"specialty": "Nội Tổng Quát",
+	"roomName": "Phòng khám Nội 102",
+	"date": {
+		"$date": "2026-10-31T17:00:00Z"
+	},
+	"shift": "MORNING",
+	"status": "CONFIRMED",
+	"maxPatients": 30,
+	"bookedPatients": 15,
+	"createdAt": {
+		"$date": "2026-10-26T01:08:49.795Z"
+	},
+	"updatedAt": {
+		"$date": "2026-10-31T01:08:49.795Z"
+	},
+	"_class": "vn.clinic.model.DoctorSchedule"
+}]
+

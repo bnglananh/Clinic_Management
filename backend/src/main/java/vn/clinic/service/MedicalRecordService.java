@@ -18,4 +18,7 @@ public interface MedicalRecordService {
     MedicalRecordDto createRecord(CreateMedicalRecordRequest request);
 
     MedicalRecordDto lockRecord(String id);
+
+    /** Lịch sử sinh hiệu theo thời gian (Cassandra patient_vital_signs), mới nhất trước. */
+    java.util.List<vn.clinic.dto.VitalSignsPointDto> getVitalSignsHistory(String patientId, int limit);
 }

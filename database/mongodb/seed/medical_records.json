@@ -1,0 +1,198 @@
+[{
+	"_id": "REC-01",
+	"visitCode": "EMR-2026-0012",
+	"visitId": "vis-001",
+	"patientId": "p-004",
+	"patientCode": "BN-2026-0885",
+	"patientName": "Đặng Kim Chi",
+	"patientGender": "NỮ",
+	"patientDob": "1989-12-05",
+	"department": "Khoa Tim Mạch",
+	"doctorName": "Trần Minh Hoàng",
+	"doctorTitle": "TS.BS",
+	"roomName": "Phòng khám Nội 101",
+	"visitDate": "2026-02-15",
+	"chiefComplaint": "Đau đầu âm ỉ vùng sau gáy, chóng mặt nhẹ khi thay đổi tư thế.",
+	"clinicalSymptoms": "Bệnh nhân có triệu chứng căng thẳng, huyết áp dao động, đau nửa đầu nhẹ.",
+	"allergies": [
+		"Penicillin",
+		"Aspirin"
+	],
+	"vitals": {
+		"bloodPressure": "142/90 mmHg",
+		"heartRate": 84,
+		"temperature": 36.7,
+		"weight": 69.0,
+		"height": 170.0,
+		"bmi": 23.9,
+		"spo2": 98.0
+	},
+	"diagnoses": [
+		{
+			"code": "I10",
+			"nameVi": "Tăng huyết áp vô căn (nguyên phát)",
+			"isPrimary": true
+		},
+		{
+			"code": "E78.2",
+			"nameVi": "Tăng lipid máu hỗn hợp",
+			"isPrimary": false
+		}
+	],
+	"services": [
+		{
+			"category": "CẬN LÂM SÀNG",
+			"name": "Điện tâm đồ vi tính 12 chuyển đạo (ECG)",
+			"result": "Nhịp xoang đều 80ck/p, dày thất trái nhẹ.",
+			"price": 150000.0,
+			"status": "COMPLETED"
+		},
+		{
+			"category": "XÉT NGHIỆM",
+			"name": "Bộ mỡ máu toàn phần (Cholesterol, Triglyceride)",
+			"result": "Cholesterol: 6.2 mmol/L (Cao), Triglyceride: 2.8 mmol/L.",
+			"price": 200000.0,
+			"status": "COMPLETED"
+		}
+	],
+	"prescriptions": [
+		{
+			"name": "Amlor (Amlodipine)",
+			"strength": "5mg",
+			"dosage": "1 viên/ngày (uống vào 8h sáng sau ăn)",
+			"quantity": 30,
+			"unit": "Viên",
+			"instructions": "Uống sau ăn sáng"
+		}
+	],
+	"doctorAdvice": "Uống thuốc đều đặn vào mỗi buổi sáng. Ăn nhạt (<5g muối/ngày), hạn chế mỡ động vật. Đo huyết áp mỗi sáng tại nhà.",
+	"followUpDays": 30,
+	"isLocked": true,
+	"version": 1,
+	"createdAt": "2026-02-15T09:30:00Z",
+	"updatedAt": "2026-02-15T10:15:00Z",
+	"_class": "vn.clinic.model.MedicalRecord"
+},
+{
+	"_id": "REC-02",
+	"visitCode": "EMR-2026-0008",
+	"visitId": "vis-002",
+	"patientId": "p-002",
+	"patientCode": "BN-2026-0892",
+	"patientName": "Lê Thị Thu Thảo",
+	"patientGender": "NỮ",
+	"patientDob": "1995-10-22",
+	"department": "Khoa Tiêu Hóa",
+	"doctorName": "Lê Quốc Hưng",
+	"doctorTitle": "BS.CKI",
+	"roomName": "Phòng khám Nội 103",
+	"visitDate": "2026-01-25",
+	"chiefComplaint": "Ợ chua nóng rát sau xương ức, đầy bụng khó tiêu sau bữa tối.",
+	"clinicalSymptoms": "Ợ nóng, trào ngược thực quản khi nằm ngửa.",
+	"allergies": [],
+	"vitals": {
+		"bloodPressure": "135/85 mmHg",
+		"heartRate": 78,
+		"temperature": 36.8,
+		"weight": 70.0,
+		"height": 170.0,
+		"bmi": 24.2,
+		"spo2": 99.0
+	},
+	"diagnoses": [
+		{
+			"code": "K21.0",
+			"nameVi": "Bệnh trào ngược dạ dày - thực quản có viêm thực quản",
+			"isPrimary": true
+		}
+	],
+	"services": [
+		{
+			"category": "CHẨN ĐOÁN HÌNH ẢNH",
+			"name": "Siêu âm ổ bụng tổng quát màu Doppler",
+			"result": "Gan nhiễm mỡ độ 1. Không sỏi túi mật.",
+			"price": 300000.0,
+			"status": "COMPLETED"
+		}
+	],
+	"prescriptions": [
+		{
+			"name": "Nexium (Omeprazole)",
+			"strength": "20mg",
+			"dosage": "1 viên/ngày (trước ăn sáng 30 phút)",
+			"quantity": 14,
+			"unit": "Viên",
+			"instructions": "Uống trước ăn sáng"
+		}
+	],
+	"doctorAdvice": "Không nằm ngay sau khi ăn tối (chờ ít nhất 2 tiếng). Tránh uống cà phê, nước ngọt có ga và đồ chua cay.",
+	"followUpDays": 14,
+	"isLocked": true,
+	"version": 1,
+	"createdAt": "2026-01-25T08:45:00Z",
+	"updatedAt": "2026-01-25T09:20:00Z",
+	"_class": "vn.clinic.model.MedicalRecord"
+},
+{
+	"_id": "REC-03",
+	"visitCode": "EMR-2026-0002",
+	"visitId": "vis-003",
+	"patientId": "p-001",
+	"patientCode": "BN-2026-0891",
+	"patientName": "Nguyễn Văn Hùng",
+	"patientGender": "NAM",
+	"patientDob": "1982-05-14",
+	"department": "Khoa Nội Tổng Quát",
+	"doctorName": "Nguyễn Thị Mai Lan",
+	"doctorTitle": "ThS.BS",
+	"roomName": "Phòng khám Nội 102",
+	"visitDate": "2026-01-10",
+	"chiefComplaint": "Ho có đờm trắng đục, rát họng, sốt nhẹ về chiều.",
+	"clinicalSymptoms": "Họng đỏ sung huyết, amidan sưng nhẹ, không giả mạc.",
+	"allergies": [
+		"Paracetamol (dị ứng nhẹ)"
+	],
+	"vitals": {
+		"bloodPressure": "130/82 mmHg",
+		"heartRate": 88,
+		"temperature": 37.8,
+		"weight": 70.0,
+		"height": 170.0,
+		"bmi": 24.2,
+		"spo2": 97.0
+	},
+	"diagnoses": [
+		{
+			"code": "J06.9",
+			"nameVi": "Nhiễm trùng đường hô hấp trên cấp tính",
+			"isPrimary": true
+		}
+	],
+	"services": [
+		{
+			"category": "XÉT NGHIỆM",
+			"name": "Tổng phân tích tế bào máu ngoại vi (CBC)",
+			"result": "Bạch cầu tăng nhẹ (10.5 G/L), Neutrophil 72%.",
+			"price": 120000.0,
+			"status": "COMPLETED"
+		}
+	],
+	"prescriptions": [
+		{
+			"name": "Augmentin 1g",
+			"strength": "1000mg",
+			"dosage": "1 viên x 2 lần/ngày sau ăn",
+			"quantity": 14,
+			"unit": "Viên",
+			"instructions": "Kháng sinh uống 7 ngày"
+		}
+	],
+	"doctorAdvice": "Súc miệng nước muối sinh lý 3 lần/ngày. Uống nhiều nước ấm (2 lít/ngày). Đeo khẩu trang khi ra ngoài.",
+	"followUpDays": 7,
+	"isLocked": true,
+	"version": 1,
+	"createdAt": "2026-01-10T14:15:00Z",
+	"updatedAt": "2026-01-10T15:00:00Z",
+	"_class": "vn.clinic.model.MedicalRecord"
+}]
+

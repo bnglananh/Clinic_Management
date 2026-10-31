@@ -1,54 +1,18 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
-import { Observable, of, throwError } from 'rxjs';
-import { delay, tap, map, catchError } from 'rxjs/operators';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { Observable, throwError } from 'rxjs';
+import { tap, map, catchError } from 'rxjs/operators';
 import { User, UserRole } from '../models/user.model';
 
-export const MOCK_USERS: Record<UserRole, User> = {
-  RECEPTIONIST: {
-    id: 'usr-rec-01',
-    username: 'letan',
-    fullName: 'Nguyễn Thị Mai',
-    role: 'RECEPTIONIST',
-    email: 'mai.nguyen@smartclinic.vn',
-    phone: '0903 123 456',
-    title: 'Trưởng nhóm Tiếp đón & Thu ngân',
-    department: 'Khoa Khám Bệnh',
-    avatarUrl: 'https://images.unsplash.com/photo-1594824813589-3543d8a7c1ad?w=150&auto=format&fit=crop&q=80',
-  },
-  DOCTOR: {
-    id: 'usr-doc-01',
-    username: 'bacsi',
-    fullName: 'TS.BS Trần Minh Hoàng',
-    role: 'DOCTOR',
-    email: 'hoang.tran@smartclinic.vn',
-    phone: '0912 345 678',
-    title: 'Bác sĩ Chuyên khoa II - Tim mạch',
-    department: 'Phòng Khám Nội 101',
-  },
-  ADMIN: {
-    id: 'usr-adm-01',
-    username: 'admin',
-    fullName: 'Lê Hoàng Sơn',
-    role: 'ADMIN',
-    email: 'son.le@smartclinic.vn',
-    phone: '0988 777 666',
-    title: 'Quản trị viên Hệ thống Y tế',
-    department: 'Ban Giám Đốc & CNTT',
-    avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-  },
-  PATIENT: {
-    id: 'usr-pat-01',
-    username: 'benhnhan',
-    fullName: 'Phạm Văn An',
-    role: 'PATIENT',
-    email: 'an.pham@gmail.com',
-    phone: '0977 889 900',
-    title: 'Bệnh nhân thân thiết (Hạng Vàng)',
-    avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
-  },
+/** Tài khoản demo (mật khẩu 123456) – dùng cho nút chọn vai trò nhanh ở trang đăng nhập. */
+export const DEMO_ACCOUNTS: Record<UserRole, string> = {
+  RECEPTIONIST: 'letan',
+  DOCTOR: 'bacsi',
+  ADMIN: 'admin',
+  PATIENT: 'benhnhan',
 };
+export const DEMO_PASSWORD = '123456';
 
 export interface OtpResponseDto {
   email: string;
@@ -57,50 +21,55 @@ export interface OtpResponseDto {
   devOtp?: string;
 }
 
+interface ApiResponse<T> {
+  success: boolean;
+  message?: string;
+  data: T;
+}
+
+interface LoginResponseDto {
+  accessToken: string;
+  tokenType: string;
+  expiresInSeconds: number;
+  user: User;
+}
+
+const USER_KEY = 'smart_clinic_user';
+const TOKEN_KEY = 'smart_clinic_token';
+
+/** Lấy thông báo lỗi tiếng Việt từ response của backend. */
+export function apiErrorMessage(err: unknown, fallback = 'Đã xảy ra lỗi. Vui lòng thử lại.'): string {
+  if (err instanceof HttpErrorResponse) {
+    if (err.status === 0) return 'Không kết nối được máy chủ. Vui lòng kiểm tra backend đã chạy chưa.';
+    return err.error?.message || fallback;
+  }
+  return err instanceof Error ? err.message : fallback;
+}
+
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
-  private http = inject(HttpClient, { optional: true });
+  private http = inject(HttpClient);
   private router = inject(Router);
 
-  // In-memory OTP simulation storage for offline demo
-  private simulatedOtps = new Map<string, { otp: string; expiresAt: number }>();
+  private currentUserSignal = signal<User | null>(this.read<User>(USER_KEY));
+  private tokenSignal = signal<string | null>(localStorage.getItem(TOKEN_KEY));
 
-  // Signals for reactive state management
-  private currentUserSignal = signal<User | null>(this.getStoredUser());
-  
   public readonly currentUser = this.currentUserSignal.asReadonly();
-  public readonly isAuthenticated = computed(() => !!this.currentUserSignal());
+  public readonly token = this.tokenSignal.asReadonly();
+  public readonly isAuthenticated = computed(() => !!this.currentUserSignal() && !!this.tokenSignal());
   public readonly currentRole = computed(() => this.currentUserSignal()?.role ?? null);
 
-
-  private getStoredUser(): User | null {
-    try {
-      const stored = localStorage.getItem('smart_clinic_user');
-      if (stored) {
-        return JSON.parse(stored) as User;
-      }
-    } catch {
-      // Fallback
-    }
-    // Unauthenticated guest visitor by default
-    return null;
-  }
-
-  login(role: UserRole, returnUrl?: string): Observable<User> {
-    const user = MOCK_USERS[role];
-    return of(user).pipe(
-      delay(300),
-      tap((loggedInUser) => {
-        this.setUser(loggedInUser);
-        if (returnUrl) {
-          this.router.navigateByUrl(returnUrl);
-        } else {
-          this.redirectAfterLogin(loggedInUser.role);
-        }
-      })
-    );
+  /** Đăng nhập bằng tên đăng nhập / email / SĐT. Backend trả về JWT. */
+  login(username: string, password: string, returnUrl?: string): Observable<User> {
+    return this.http
+      .post<ApiResponse<LoginResponseDto>>('/api/auth/login', { username: username.trim(), password })
+      .pipe(
+        map((res) => this.startSession(res.data)),
+        tap((user) => this.navigateAfterLogin(user.role, returnUrl)),
+        catchError((err) => throwError(() => new Error(apiErrorMessage(err, 'Đăng nhập thất bại.'))))
+      );
   }
 
   registerPatient(data: {
@@ -112,240 +81,144 @@ export class AuthService {
     identityCardNumber?: string;
     password: string;
   }): Observable<User> {
-    const newUser: User = {
-      id: `usr-pat-${Date.now().toString().slice(-4)}`,
-      username: data.phone,
-      fullName: data.fullName,
-      role: 'PATIENT',
-      email: data.email,
-      phone: data.phone,
-      title: 'Bệnh nhân mới đăng ký',
-      avatarUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
-    };
-    return of(newUser).pipe(
-      delay(400),
-      tap((registeredUser) => {
-        this.setUser(registeredUser);
-        this.redirectAfterLogin('PATIENT');
-      })
+    return this.http.post<ApiResponse<LoginResponseDto>>('/api/auth/register', data).pipe(
+      map((res) => this.startSession(res.data)),
+      tap(() => this.redirectAfterLogin('PATIENT')),
+      catchError((err) => throwError(() => new Error(apiErrorMessage(err, 'Đăng ký thất bại.'))))
     );
   }
 
+  /** Chuyển nhanh sang tài khoản demo của vai trò khác (chỉ phục vụ trình diễn). */
   switchRole(role: UserRole): void {
-    const targetUser = MOCK_USERS[role];
-    this.setUser(targetUser);
-    this.redirectAfterLogin(role);
+    this.revokeCurrentToken();
+    this.clearSession();
+    this.login(DEMO_ACCOUNTS[role], DEMO_PASSWORD).subscribe({
+      error: () => this.router.navigate(['/auth/login']),
+    });
   }
 
   logout(): void {
-    this.currentUserSignal.set(null);
-    localStorage.removeItem('smart_clinic_user');
+    this.revokeCurrentToken();
+    this.clearSession();
     this.router.navigate(['/']);
+  }
+
+  /** Gọi khi backend trả 401: token hết hạn hoặc đã bị thu hồi. */
+  handleSessionExpired(): void {
+    if (!this.tokenSignal()) return;
+    this.clearSession();
+    this.router.navigate(['/auth/login'], { queryParams: { expired: 1 } });
   }
 
   public updateCurrentUser(updates: Partial<User>): void {
     const current = this.currentUserSignal();
     if (current) {
       const updated = { ...current, ...updates };
-      this.setUser(updated);
+      this.currentUserSignal.set(updated);
+      localStorage.setItem(USER_KEY, JSON.stringify(updated));
     }
-  }
-
-  private setUser(user: User): void {
-    this.currentUserSignal.set(user);
-    localStorage.setItem('smart_clinic_user', JSON.stringify(user));
   }
 
   public redirectAfterLogin(role: UserRole): void {
-    switch (role) {
-      case 'RECEPTIONIST':
-        this.router.navigate(['/reception']);
-        break;
-      case 'DOCTOR':
-        this.router.navigate(['/doctor']);
-        break;
-      case 'ADMIN':
-        this.router.navigate(['/admin']);
-        break;
-      case 'PATIENT':
-        this.router.navigate(['/patient']);
-        break;
-      default:
-        this.router.navigate(['/auth/login']);
-    }
+    const home: Record<UserRole, string> = {
+      RECEPTIONIST: '/reception',
+      DOCTOR: '/doctor',
+      ADMIN: '/admin',
+      PATIENT: '/patient',
+    };
+    this.router.navigate([home[role] ?? '/auth/login']);
   }
 
-  /**
-   * Yêu cầu gửi mã xác thực OTP qua email để khôi phục mật khẩu.
-   */
+  // ---------------------------------------------------------------------
+  // Quên mật khẩu (OTP lưu trên Redis, hết hạn sau 5 phút)
+  // ---------------------------------------------------------------------
+
   public requestForgotPasswordOtp(emailOrUsername: string): Observable<OtpResponseDto> {
     const cleanInput = (emailOrUsername || '').trim();
     if (!cleanInput) {
       return throwError(() => new Error('Vui lòng nhập địa chỉ email hoặc tên đăng nhập.'));
     }
-
-    if (this.http) {
-      return this.http
-        .post<{ success: boolean; data: OtpResponseDto; message?: string }>(
-          '/api/auth/forgot-password',
-          { email: cleanInput }
-        )
-        .pipe(
-          map((res) => res.data),
-          catchError((err) => {
-            const serverMsg = err?.error?.message;
-            if (serverMsg) {
-              return throwError(() => new Error(serverMsg));
-            }
-            return this.simulateRequestOtp(cleanInput);
-          })
-        );
-    }
-
-    return this.simulateRequestOtp(cleanInput);
+    return this.http
+      .post<ApiResponse<OtpResponseDto>>('/api/auth/forgot-password', { email: cleanInput })
+      .pipe(
+        map((res) => res.data),
+        catchError((err) => throwError(() => new Error(apiErrorMessage(err))))
+      );
   }
 
-  /**
-   * Kiểm tra tính hợp lệ của mã OTP.
-   */
   public verifyOtp(email: string, otp: string): Observable<boolean> {
-    const cleanEmail = (email || '').trim();
     const cleanOtp = (otp || '').trim();
-
     if (!cleanOtp || cleanOtp.length !== 6) {
       return throwError(() => new Error('Mã OTP phải bao gồm chính xác 6 chữ số.'));
     }
-
-    if (this.http) {
-      return this.http
-        .post<{ success: boolean; data: boolean; message?: string }>('/api/auth/verify-otp', {
-          email: cleanEmail,
-          otp: cleanOtp,
-        })
-        .pipe(
-          map((res) => !!res.data),
-          catchError((err) => {
-            const serverMsg = err?.error?.message;
-            if (serverMsg) {
-              return throwError(() => new Error(serverMsg));
-            }
-            return this.simulateVerifyOtp(cleanEmail, cleanOtp);
-          })
-        );
-    }
-
-    return this.simulateVerifyOtp(cleanEmail, cleanOtp);
+    return this.http
+      .post<ApiResponse<boolean>>('/api/auth/verify-otp', { email: (email || '').trim(), otp: cleanOtp })
+      .pipe(
+        map((res) => !!res.data),
+        catchError((err) => throwError(() => new Error(apiErrorMessage(err))))
+      );
   }
 
-  /**
-   * Đặt lại mật khẩu mới với mã OTP đã xác thực.
-   */
-  public resetPasswordWithOtp(
-    email: string,
-    otp: string,
-    newPass: string,
-    confirmPass: string
-  ): Observable<void> {
-    const cleanEmail = (email || '').trim();
-    const cleanOtp = (otp || '').trim();
-
+  public resetPasswordWithOtp(email: string, otp: string, newPass: string, confirmPass: string): Observable<void> {
     if (newPass !== confirmPass) {
       return throwError(() => new Error('Mật khẩu mới và xác nhận mật khẩu không trùng khớp.'));
     }
     if (newPass.length < 6) {
       return throwError(() => new Error('Mật khẩu mới phải có tối thiểu 6 ký tự.'));
     }
-
-    if (this.http) {
-      return this.http
-        .post<{ success: boolean; message?: string }>('/api/auth/reset-password', {
-          email: cleanEmail,
-          otp: cleanOtp,
-          newPassword: newPass,
-          confirmPassword: confirmPass,
-        })
-        .pipe(
-          map(() => {
-            this.handleLocalPasswordUpdate(cleanEmail, newPass);
-            return void 0;
-          }),
-          catchError((err) => {
-            const serverMsg = err?.error?.message;
-            if (serverMsg) {
-              return throwError(() => new Error(serverMsg));
-            }
-            return this.simulateResetPassword(cleanEmail, cleanOtp, newPass);
-          })
-        );
-    }
-
-    return this.simulateResetPassword(cleanEmail, cleanOtp, newPass);
-  }
-
-  private simulateRequestOtp(input: string): Observable<OtpResponseDto> {
-    const lower = input.toLowerCase();
-    const matchedUser = Object.values(MOCK_USERS).find(
-      (u) =>
-        u.email.toLowerCase() === lower ||
-        u.username.toLowerCase() === lower ||
-        u.phone.replace(/\s+/g, '') === lower.replace(/\s+/g, '')
-    );
-
-    const targetEmail = matchedUser ? matchedUser.email : (lower.includes('@') ? lower : `${lower}@smartclinic.vn`);
-    const randomOtp = Math.floor(100000 + Math.random() * 900000).toString();
-    const expiresAt = Date.now() + 5 * 60 * 1000;
-
-    this.simulatedOtps.set(targetEmail.toLowerCase(), { otp: randomOtp, expiresAt });
-
-    const maskedEmail = targetEmail.replace(/(.{2})(.*)(@.*)/, '$1***$3');
-
-    return of({
-      email: targetEmail,
-      expiresInSeconds: 300,
-      message: `Mã OTP đã được gửi về email ${maskedEmail}. Vui lòng kiểm tra hộp thư.`,
-      devOtp: randomOtp,
-    }).pipe(delay(400));
-  }
-
-  private simulateVerifyOtp(email: string, otp: string): Observable<boolean> {
-    const entry = this.simulatedOtps.get(email.toLowerCase());
-    if (!entry) {
-      if (otp === '123456') return of(true).pipe(delay(300));
-      return throwError(() => new Error('Mã OTP không tồn tại hoặc đã hết hạn.'));
-    }
-    if (Date.now() > entry.expiresAt) {
-      this.simulatedOtps.delete(email.toLowerCase());
-      return throwError(() => new Error('Mã OTP đã hết hiệu lực (quá 5 phút). Vui lòng yêu cầu mã mới.'));
-    }
-    if (entry.otp !== otp && otp !== '123456') {
-      return throwError(() => new Error('Mã OTP không chính xác. Vui lòng kiểm tra lại email.'));
-    }
-    return of(true).pipe(delay(300));
-  }
-
-  private simulateResetPassword(email: string, otp: string, newPass: string): Observable<void> {
-    return this.simulateVerifyOtp(email, otp).pipe(
-      map(() => {
-        this.simulatedOtps.delete(email.toLowerCase());
-        this.handleLocalPasswordUpdate(email, newPass);
-        return void 0;
+    return this.http
+      .post<ApiResponse<void>>('/api/auth/reset-password', {
+        email: (email || '').trim(),
+        otp: (otp || '').trim(),
+        newPassword: newPass,
+        confirmPassword: confirmPass,
       })
-    );
+      .pipe(
+        map(() => void 0),
+        catchError((err) => throwError(() => new Error(apiErrorMessage(err))))
+      );
   }
 
-  private handleLocalPasswordUpdate(email: string, newPass: string): void {
+  // ---------------------------------------------------------------------
+
+  private startSession(res: LoginResponseDto): User {
+    localStorage.setItem(TOKEN_KEY, res.accessToken);
+    localStorage.setItem(USER_KEY, JSON.stringify(res.user));
+    this.tokenSignal.set(res.accessToken);
+    this.currentUserSignal.set(res.user);
+    return res.user;
+  }
+
+  private clearSession(): void {
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
+    this.tokenSignal.set(null);
+    this.currentUserSignal.set(null);
+  }
+
+  /** Báo backend thu hồi token (đưa vào blacklist Redis); lỗi mạng thì bỏ qua. */
+  private revokeCurrentToken(): void {
+    const token = this.tokenSignal();
+    if (!token) return;
+    this.http
+      .post('/api/auth/logout', {}, { headers: { Authorization: `Bearer ${token}` } })
+      .subscribe({ error: () => undefined });
+  }
+
+  private navigateAfterLogin(role: UserRole, returnUrl?: string): void {
+    if (returnUrl) {
+      this.router.navigateByUrl(returnUrl);
+    } else {
+      this.redirectAfterLogin(role);
+    }
+  }
+
+  private read<T>(key: string): T | null {
     try {
-      const storedProfile = localStorage.getItem('smart_clinic_patient_profile');
-      if (storedProfile) {
-        const parsed = JSON.parse(storedProfile);
-        if (parsed.email?.toLowerCase() === email.toLowerCase()) {
-          parsed.password = newPass;
-          localStorage.setItem('smart_clinic_patient_profile', JSON.stringify(parsed));
-        }
-      }
+      const raw = localStorage.getItem(key);
+      return raw ? (JSON.parse(raw) as T) : null;
     } catch {
-      // Ignore
+      return null;
     }
   }
 }
-
