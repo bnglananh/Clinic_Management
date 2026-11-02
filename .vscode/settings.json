@@ -3,5 +3,6 @@
     "java.compile.nullAnalysis.mode": "disabled",
     "java.configuration.annotationProcessing.enabled": true,
     "typescript.tsdk": "frontend/node_modules/typescript/lib",
-    "typescript.enablePromptUseWorkspaceTsdk": true
+    "typescript.enablePromptUseWorkspaceTsdk": true,
+    "java.configuration.updateBuildConfiguration": "interactive"
 }
