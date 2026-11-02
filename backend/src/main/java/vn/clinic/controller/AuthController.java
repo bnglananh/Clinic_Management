@@ -8,16 +8,56 @@ import vn.clinic.dto.ForgotPasswordRequest;
 import vn.clinic.dto.OtpResponse;
 import vn.clinic.dto.ResetPasswordWithOtpRequest;
 import vn.clinic.dto.VerifyOtpRequest;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
+import vn.clinic.dto.LoginRequest;
+import vn.clinic.dto.LoginResponse;
+import vn.clinic.security.LoginService;
 import vn.clinic.service.AuthService;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
 
     private final AuthService authService;
+    private final LoginService loginService;
 
-    public AuthController(AuthService authService) {
+    public AuthController(AuthService authService, LoginService loginService) {
         this.authService = authService;
+        this.loginService = loginService;
+    }
+
+    /** Đăng nhập bằng tên đăng nhập / email / SĐT và mật khẩu, trả về JWT. */
+    @PostMapping("/login")
+    public ResponseEntity<ApiResponse<LoginResponse>> login(@Valid @RequestBody LoginRequest request) {
+        return ResponseEntity.ok(ApiResponse.success(loginService.login(request), "Đăng nhập thành công"));
+    }
+
+    /** Bệnh nhân tự đăng ký tài khoản, trả về JWT để vào hệ thống ngay. */
+    @PostMapping("/register")
+    public ResponseEntity<ApiResponse<LoginResponse>> register(@Valid @RequestBody vn.clinic.dto.RegisterPatientRequest request) {
+        return ResponseEntity.status(org.springframework.http.HttpStatus.CREATED)
+                .body(ApiResponse.success(loginService.registerPatient(request), "Đăng ký tài khoản thành công"));
+    }
+
+    /** Đăng xuất: thu hồi token hiện tại (đưa vào blacklist Redis). */
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse<Void>> logout(@AuthenticationPrincipal Jwt jwt) {
+        loginService.logout(jwt);
+        return ResponseEntity.ok(ApiResponse.success(null, "Đã đăng xuất"));
+    }
+
+    /** Thông tin người dùng trong token hiện tại. */
+    @GetMapping("/me")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> me(@AuthenticationPrincipal Jwt jwt) {
+        return ResponseEntity.ok(ApiResponse.success(Map.of(
+                "id", String.valueOf(jwt.getClaimAsString("uid")),
+                "username", jwt.getSubject(),
+                "fullName", String.valueOf(jwt.getClaimAsString("name")),
+                "role", String.valueOf(jwt.getClaimAsString("role")),
+                "expiresAt", String.valueOf(jwt.getExpiresAt())), "OK"));
     }
 
     /**

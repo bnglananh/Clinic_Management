@@ -1,4 +1,5 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, OnInit, effect } from '@angular/core';
+import { NzMessageService } from 'ng-zorro-antd/message';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -2611,6 +2612,12 @@ export class DoctorWorkspaceComponent implements OnInit {
   private medicalService = inject(MedicalService);
   private queueService = inject(QueueService);
   private notifService = inject(NotificationService);
+  private message = inject(NzMessageService);
+
+  /** Bác sĩ đã xem và xác nhận các cảnh báo tương tác hiện tại (cho phép hoàn tất bệnh án). */
+  private ddiAcknowledged = signal(false);
+  private lastInteractionKey = '';
+  isCompleting = signal(false);
 
   readonly record = this.medicalService.activeRecord;
   readonly icdCatalog = this.medicalService.icd10List;
@@ -2618,6 +2625,17 @@ export class DoctorWorkspaceComponent implements OnInit {
   readonly availableServices = this.medicalService.availableServices;
   readonly currentInteractions = this.medicalService.currentInteractions;
   readonly allergyAlerts = this.medicalService.allergyWarnings;
+
+  private readonly ddiWatcher = effect(() => {
+    const key = this.currentInteractions().map((i) => `${i.drugA}|${i.drugB}|${i.severity}`).join(';');
+    if (key !== this.lastInteractionKey) {
+      this.lastInteractionKey = key;
+      this.ddiAcknowledged.set(false);
+      if (key && !this.record().isLocked) {
+        this.showDdiModal.set(true);
+      }
+    }
+  });
 
   // Tabs state
   activeTab = signal<'vitals' | 'diagnosis' | 'services' | 'prescription'>('vitals');
@@ -2640,6 +2658,17 @@ export class DoctorWorkspaceComponent implements OnInit {
   ngOnInit(): void {
     this.loadVitalTrends();
   }
+
+  /** Khi hàng đợi tải xong, mở bệnh án của bệnh nhân đang khám (thay cho bản ghi mẫu ban đầu). */
+  private autoOpened = false;
+  private readonly openInProgressTicket = effect(() => {
+    const inProgress = this.queueService.queueTickets().find((t) => t.status === 'IN_PROGRESS');
+    if (this.autoOpened || !inProgress) return;
+    this.autoOpened = true;
+    if (this.record().patientId !== inProgress.patientId) {
+      queueMicrotask(() => this.selectPatient(inProgress.ticketNumber, inProgress.patientName, inProgress.patientId));
+    }
+  });
 
   loadVitalTrends(): void {
     this.medicalService.getVitalHistory(this.record().patientId).subscribe((data) => {
@@ -2834,10 +2863,7 @@ export class DoctorWorkspaceComponent implements OnInit {
     // Reset input
     this.newRxMedicineId = '';
 
-    // Check if new addition triggered DDI
-    if (this.currentInteractions().length > 0) {
-      this.showDdiModal.set(true);
-    }
+    // Cảnh báo tương tác được kiểm tra trên đồ thị Neo4j (bất đồng bộ); modal tự mở khi có kết quả
   }
 
   removePrescription(id: string): void {
@@ -2845,26 +2871,38 @@ export class DoctorWorkspaceComponent implements OnInit {
   }
 
   onConfirmDdiOverride(): void {
+    this.ddiAcknowledged.set(true);
     this.showDdiModal.set(false);
   }
 
   // Complete and Lock Record
   handleCompleteClick(): void {
     // If there are unconfirmed DDI interactions, prompt warning modal first
-    if (this.currentInteractions().length > 0) {
+    if (this.currentInteractions().length > 0 && !this.ddiAcknowledged()) {
       this.showDdiModal.set(true);
       return;
     }
-    this.medicalService.completeAndLockRecord();
+    if (this.isCompleting()) return;
+    this.isCompleting.set(true);
 
-    // Thông báo cho bệnh nhân và thu ngân khi bệnh án được hoàn tất và khóa
-    this.notifService.sendNotification({
-      userId: this.record().patientId || 'usr-pat-01',
-      title: 'Hồ sơ bệnh án điện tử (EMR) đã hoàn tất',
-      content: `TS.BS ${this.record().doctorName} đã hoàn tất và ký số khóa bệnh án (Số phiếu: ${this.record().ticketNumber}). Bạn có thể xem kết luận và đơn thuốc.`,
-      type: 'MEDICAL_RECORD',
-      referenceId: this.record().id,
-      channel: 'IN_APP',
+    this.medicalService.completeAndLockRecord().subscribe({
+      next: (saved) => {
+        this.isCompleting.set(false);
+        this.message.success(`Đã lưu và khóa bệnh án ${saved.id}.`);
+        // Thông báo cho bệnh nhân khi bệnh án được hoàn tất và khóa
+        this.notifService.sendNotification({
+          userId: saved.patientId,
+          title: 'Hồ sơ bệnh án điện tử (EMR) đã hoàn tất',
+          content: `${saved.doctorName} đã hoàn tất và khóa bệnh án (Số phiếu: ${saved.ticketNumber}). Bạn có thể xem kết luận và đơn thuốc.`,
+          type: 'MEDICAL_RECORD',
+          referenceId: saved.id,
+          channel: 'IN_APP',
+        });
+      },
+      error: (err: Error) => {
+        this.isCompleting.set(false);
+        this.message.error(err.message);
+      },
     });
   }
 

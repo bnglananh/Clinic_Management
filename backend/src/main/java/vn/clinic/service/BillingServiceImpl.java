@@ -1,5 +1,7 @@
 package vn.clinic.service;
 
+import vn.clinic.audit.Audited;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import vn.clinic.dto.*;
@@ -78,6 +80,7 @@ public class BillingServiceImpl implements BillingService {
         return mapToDto(bill);
     }
 
+    @Audited(entity = "BILL", action = "CREATE", summary = "Lập hóa đơn viện phí")
     @Override
     public BillDto createBill(CreateBillRequest request) {
         String patientCode = "BN-" + (int)(Math.random() * 9000 + 1000);
@@ -198,6 +201,7 @@ public class BillingServiceImpl implements BillingService {
                 .build();
     }
 
+    @Audited(entity = "BILL", action = "PAY_CASH", id = "billId", summary = "Thu tiền mặt")
     @Override
     public BillDto processCashPayment(String billId, ProcessPaymentRequest request) {
         Bill bill = billRepository.findById(billId)
@@ -236,6 +240,7 @@ public class BillingServiceImpl implements BillingService {
         return mapToDto(saved);
     }
 
+    @Audited(entity = "BILL", action = "PAY_VIETQR", id = "billId", summary = "Xác nhận thanh toán VietQR")
     @Override
     public BillDto confirmVietQrPayment(String billId, ConfirmVietQrRequest request) {
         Bill bill = billRepository.findById(billId)
@@ -318,6 +323,7 @@ public class BillingServiceImpl implements BillingService {
                 .build();
     }
 
+    @Audited(entity = "BILL", action = "CANCEL", id = "billId", summary = "Hủy hóa đơn")
     @Override
     public BillDto cancelBill(String billId, String reason) {
         Bill bill = billRepository.findById(billId)

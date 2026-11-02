@@ -1,5 +1,7 @@
 package vn.clinic.service;
 
+import vn.clinic.audit.Audited;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import vn.clinic.dto.*;
@@ -56,6 +58,7 @@ public class PharmacyServiceImpl implements PharmacyService {
         return mapToDto(drug);
     }
 
+    @Audited(entity = "PHARMACY", action = "CREATE", summary = "Thêm thuốc vào danh mục")
     @Override
     public PharmacyDrugDto createDrug(CreateDrugRequest request) {
         // Kiểm tra trùng mã thuốc
@@ -128,6 +131,7 @@ public class PharmacyServiceImpl implements PharmacyService {
         return mapToDto(updated);
     }
 
+    @Audited(entity = "PHARMACY", action = "UPDATE_PRICE", id = "id", summary = "Cập nhật giá thuốc")
     @Override
     public PharmacyDrugDto updatePrice(String id, BigDecimal importPrice, BigDecimal salePrice) {
         PharmacyDrug drug = findDrugOrThrow(id);
@@ -140,6 +144,7 @@ public class PharmacyServiceImpl implements PharmacyService {
         return mapToDto(updated);
     }
 
+    @Audited(entity = "PHARMACY", action = "TOGGLE_STATUS", id = "id", summary = "Ngừng/mở lại kinh doanh thuốc")
     @Override
     public PharmacyDrugDto toggleDrugStatus(String id) {
         PharmacyDrug drug = findDrugOrThrow(id);
@@ -157,6 +162,7 @@ public class PharmacyServiceImpl implements PharmacyService {
     // Quản lý tồn kho thuốc
     // =========================================================================
 
+    @Audited(entity = "PHARMACY", action = "ADJUST_STOCK", id = "id", summary = "Điều chỉnh tồn kho")
     @Override
     public PharmacyDrugDto adjustStock(String id, StockAdjustmentRequest request) {
         PharmacyDrug drug = findDrugOrThrow(id);
@@ -230,6 +236,7 @@ public class PharmacyServiceImpl implements PharmacyService {
         return mapToDto(updated);
     }
 
+    @Audited(entity = "PHARMACY", action = "DEDUCT_STOCK", id = "request.invoiceId", summary = "Trừ kho theo đơn thuốc")
     @Override
     public void batchDeductStock(BatchDeductStockRequest request) {
         // Kiểm tra tồn kho của toàn bộ danh sách trước để đảm bảo tính nguyên tử (All or Nothing)

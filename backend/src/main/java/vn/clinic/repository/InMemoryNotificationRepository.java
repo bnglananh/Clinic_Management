@@ -1,5 +1,6 @@
 package vn.clinic.repository;
 
+import vn.clinic.config.StorageMode;
 import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Repository;
 import vn.clinic.model.Notification;
@@ -10,6 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Repository
+@StorageMode.Memory
 public class InMemoryNotificationRepository implements NotificationRepository {
 
     private final Map<String, Notification> storage = new ConcurrentHashMap<>();

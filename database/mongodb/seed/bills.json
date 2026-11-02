@@ -1,0 +1,197 @@
+[{
+	"_id": "bill-001",
+	"billCode": "HD-2026-0041",
+	"visitId": "vis-001",
+	"ticketNumber": "A-011",
+	"patientId": "p-004",
+	"patientCode": "BN-2026-0885",
+	"patientName": "Đặng Kim Chi",
+	"phone": "0977 445 678",
+	"roomName": "Phòng Khám Nội 101",
+	"doctorName": "TS.BS Trần Minh Hoàng",
+	"items": [
+		{
+			"_id": "bi-01",
+			"type": "CONSULTATION",
+			"name": "Khám chuyên khoa Tim Mạch (TS.BS)",
+			"unit": "Lượt",
+			"quantity": 1,
+			"unitPrice": 250000.0,
+			"amount": 250000.0
+		},
+		{
+			"_id": "bi-02",
+			"type": "SERVICE",
+			"name": "Điện tâm đồ vi tính (ECG 12 cần)",
+			"unit": "Lần",
+			"quantity": 1,
+			"unitPrice": 150000.0,
+			"amount": 150000.0
+		},
+		{
+			"_id": "bi-03",
+			"type": "SERVICE",
+			"name": "Siêu âm tim màu Doppler tim",
+			"unit": "Lần",
+			"quantity": 1,
+			"unitPrice": 200000.0,
+			"amount": 200000.0
+		},
+		{
+			"_id": "bi-04",
+			"type": "MEDICINE",
+			"name": "Amlodipine 5mg (Amlor)",
+			"unit": "Viên",
+			"quantity": 30,
+			"unitPrice": 4000.0,
+			"amount": 120000.0,
+			"drugId": "DRUG-04"
+		},
+		{
+			"_id": "bi-05",
+			"type": "MEDICINE",
+			"name": "Glucophage 850mg (Metformin)",
+			"unit": "Viên",
+			"quantity": 30,
+			"unitPrice": 10000.0,
+			"amount": 300000.0,
+			"drugId": "DRUG-05"
+		}
+	],
+	"consultationFee": 250000.0,
+	"serviceFee": 350000.0,
+	"medicineFee": 420000.0,
+	"discountAmount": 0.0,
+	"totalAmount": 1.02E+06,
+	"paymentStatus": "UNPAID",
+	"notes": "Bệnh nhân chờ thanh toán tại quầy thu ngân",
+	"stockDeducted": false,
+	"createdAt": "2026-10-05T08:25:00Z",
+	"updatedAt": "2026-10-05T08:25:00Z",
+	"_class": "vn.clinic.model.Bill"
+},
+{
+	"_id": "bill-002",
+	"billCode": "HD-2026-0040",
+	"visitId": "vis-000",
+	"ticketNumber": "A-010",
+	"patientId": "p-002",
+	"patientCode": "BN-2026-0892",
+	"patientName": "Lê Thị Thu Thảo",
+	"phone": "0918 334 556",
+	"roomName": "Phòng Khám Nội 101",
+	"doctorName": "TS.BS Trần Minh Hoàng",
+	"items": [
+		{
+			"_id": "bi-10",
+			"type": "CONSULTATION",
+			"name": "Khám tổng quát định kỳ",
+			"unit": "Lượt",
+			"quantity": 1,
+			"unitPrice": 200000.0,
+			"amount": 200000.0
+		},
+		{
+			"_id": "bi-11",
+			"type": "SERVICE",
+			"name": "Xét nghiệm Tổng phân tích tế bào máu ngoại vi",
+			"unit": "Lần",
+			"quantity": 1,
+			"unitPrice": 250000.0,
+			"amount": 250000.0
+		},
+		{
+			"_id": "bi-12",
+			"type": "SERVICE",
+			"name": "Siêu âm ổ bụng tổng quát",
+			"unit": "Lần",
+			"quantity": 1,
+			"unitPrice": 300000.0,
+			"amount": 300000.0
+		},
+		{
+			"_id": "bi-13",
+			"type": "MEDICINE",
+			"name": "Panadol Extra 500mg",
+			"unit": "Hộp 15 vỉ",
+			"quantity": 1,
+			"unitPrice": 180000.0,
+			"amount": 180000.0,
+			"drugId": "DRUG-02"
+		}
+	],
+	"consultationFee": 200000.0,
+	"serviceFee": 550000.0,
+	"medicineFee": 180000.0,
+	"discountAmount": 50000.0,
+	"totalAmount": 880000.0,
+	"paymentMethod": "VIETQR",
+	"paymentStatus": "PAID",
+	"vietQrReference": "VCB-MB-202610058823",
+	"paidAt": "2026-10-05T08:05:00Z",
+	"cashierName": "Nguyễn Thị Mai",
+	"notes": "Đã xuất hóa đơn VAT điện tử",
+	"stockDeducted": true,
+	"createdAt": "2026-10-05T07:50:00Z",
+	"updatedAt": "2026-10-05T08:05:00Z",
+	"_class": "vn.clinic.model.Bill"
+},
+{
+	"_id": "bill-003",
+	"billCode": "HD-2026-0039",
+	"visitId": "vis-old-01",
+	"ticketNumber": "B-004",
+	"patientId": "p-003",
+	"patientCode": "BN-2026-0888",
+	"patientName": "Trần Đại Nghĩa",
+	"phone": "0988 122 345",
+	"roomName": "Phòng Tai Mũi Họng 104",
+	"doctorName": "ThS.BS Vũ Hải Đăng",
+	"items": [
+		{
+			"_id": "bi-20",
+			"type": "CONSULTATION",
+			"name": "Khám chuyên khoa Tai Mũi Họng",
+			"unit": "Lượt",
+			"quantity": 1,
+			"unitPrice": 200000.0,
+			"amount": 200000.0
+		},
+		{
+			"_id": "bi-21",
+			"type": "SERVICE",
+			"name": "Nội soi tai mũi họng ống mềm",
+			"unit": "Lần",
+			"quantity": 1,
+			"unitPrice": 150000.0,
+			"amount": 150000.0
+		},
+		{
+			"_id": "bi-22",
+			"type": "MEDICINE",
+			"name": "Augmentin 1g",
+			"unit": "Hộp 14 viên",
+			"quantity": 1,
+			"unitPrice": 290000.0,
+			"amount": 290000.0,
+			"drugId": "DRUG-01"
+		}
+	],
+	"consultationFee": 200000.0,
+	"serviceFee": 150000.0,
+	"medicineFee": 290000.0,
+	"discountAmount": 0.0,
+	"totalAmount": 640000.0,
+	"paymentMethod": "CASH",
+	"paymentStatus": "PAID",
+	"cashReceived": 700000.0,
+	"cashChange": 60000.0,
+	"paidAt": "2026-10-05T07:40:00Z",
+	"cashierName": "Nguyễn Thị Mai",
+	"notes": "Khách thanh toán đủ tiền mặt tại quầy",
+	"stockDeducted": true,
+	"createdAt": "2026-10-05T07:30:00Z",
+	"updatedAt": "2026-10-05T07:40:00Z",
+	"_class": "vn.clinic.model.Bill"
+}]
+

@@ -1,5 +1,7 @@
 package vn.clinic.service;
 
+import vn.clinic.audit.Audited;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import vn.clinic.dto.CheckinReceptionRequest;
@@ -13,7 +15,9 @@ import vn.clinic.model.*;
 import vn.clinic.repository.AppointmentRepository;
 import vn.clinic.repository.PatientProfileRepository;
 import vn.clinic.repository.QueueTicketRepository;
+import vn.clinic.store.TicketCounter;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -27,18 +31,22 @@ public class QueueServiceImpl implements QueueService {
     private final AppointmentRepository appointmentRepository;
     private final PatientProfileRepository patientProfileRepository;
     private final NotificationService notificationService;
+    private final TicketCounter ticketCounter;
 
     public QueueServiceImpl(
             QueueTicketRepository queueTicketRepository,
             AppointmentRepository appointmentRepository,
             PatientProfileRepository patientProfileRepository,
-            NotificationService notificationService) {
+            NotificationService notificationService,
+            TicketCounter ticketCounter) {
         this.queueTicketRepository = queueTicketRepository;
         this.appointmentRepository = appointmentRepository;
         this.patientProfileRepository = patientProfileRepository;
         this.notificationService = notificationService;
+        this.ticketCounter = ticketCounter;
     }
 
+    @Audited(entity = "QUEUE", action = "CHECKIN", summary = "Tiếp đón và cấp số thứ tự")
     @Override
     public QueueTicketDto checkinAndIssueTicket(CheckinReceptionRequest request) {
         String patientId = request.getPatientId();
@@ -77,8 +85,13 @@ public class QueueServiceImpl implements QueueService {
         // Sinh mã số thứ tự theo buồng khám (A-xxx, B-xxx, C-xxx)
         String room = request.getRoomName().trim();
         String prefix = room.contains("Tai Mũi Họng") ? "B" : room.contains("Tiêu Hóa") ? "C" : "A";
-        long roomCount = queueTicketRepository.countByRoomPrefix(prefix);
-        String ticketNumber = String.format("%s-%03d", prefix, roomCount + 10);
+        // Redis INCR counter:ticket:{prefix}:{ngày} – nguyên tử, không cấp trùng số khi nhiều quầy cùng tiếp đón.
+        // Số thứ tự đánh lại mỗi ngày, bắt đầu từ 010; nếu hôm nay đã có phiếu (ví dụ Redis bị xóa)
+        // thì khởi tạo từ số lớn nhất đã cấp trong ngày để không trùng.
+        String today = LocalDate.now().toString();
+        long sequence = ticketCounter.next(prefix, today, () -> maxSequenceToday(prefix, today));
+        long roomCount = sequence - 10;
+        String ticketNumber = String.format("%s-%03d", prefix, sequence);
 
         String nowIso = LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
         String estimatedTime = LocalTime.now().plusMinutes(25).format(DateTimeFormatter.ofPattern("HH:mm"));
@@ -146,6 +159,7 @@ public class QueueServiceImpl implements QueueService {
                 .build();
     }
 
+    @Audited(entity = "QUEUE", action = "PROMOTE", id = "ticketId", summary = "Điều phối ưu tiên lên đầu hàng")
     @Override
     public QueueTicketDto promoteToTop(String ticketId) {
         QueueTicket ticket = findOrThrow(ticketId);
@@ -163,6 +177,7 @@ public class QueueServiceImpl implements QueueService {
         return QueueTicketDto.fromEntity(updated);
     }
 
+    @Audited(entity = "QUEUE", action = "CALL_NEXT", summary = "Gọi bệnh nhân kế tiếp")
     @Override
     public QueueTicketDto callNextPatient(String roomName, String doctorId) {
         QueueTicket nextTicket = queueTicketRepository.findNextWaitingTicket(roomName)
@@ -194,6 +209,7 @@ public class QueueServiceImpl implements QueueService {
         return QueueTicketDto.fromEntity(saved);
     }
 
+    @Audited(entity = "QUEUE", action = "UPDATE_STATUS", id = "ticketId", summary = "Cập nhật trạng thái lượt khám")
     @Override
     public QueueTicketDto updateTicketStatus(String ticketId, QueueStatus newStatus) {
         QueueTicket ticket = findOrThrow(ticketId);
@@ -291,9 +307,7 @@ public class QueueServiceImpl implements QueueService {
 
     @Override
     public vn.clinic.dto.PatientQueueTrackingDto trackTicketByNumber(String ticketNumber) {
-        QueueTicket ticket = queueTicketRepository.findAll().stream()
-                .filter(t -> ticketNumber.equalsIgnoreCase(t.getTicketNumber()))
-                .findFirst()
+        QueueTicket ticket = queueTicketRepository.findByTicketNumber(ticketNumber)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy số thứ tự: " + ticketNumber));
 
         return buildTrackingDto(ticket);
@@ -345,5 +359,20 @@ public class QueueServiceImpl implements QueueService {
     private QueueTicket findOrThrow(String id) {
         return queueTicketRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy số thứ tự/vé khám ID: " + id));
+    }
+
+    private long maxSequenceToday(String prefix, String today) {
+        return queueTicketRepository.search(null, null, null, today).stream()
+                .map(QueueTicket::getTicketNumber)
+                .filter(n -> n != null && n.startsWith(prefix + "-"))
+                .mapToLong(n -> {
+                    try {
+                        return Long.parseLong(n.substring(prefix.length() + 1));
+                    } catch (NumberFormatException e) {
+                        return 0;
+                    }
+                })
+                .max()
+                .orElse(9);
     }
 }

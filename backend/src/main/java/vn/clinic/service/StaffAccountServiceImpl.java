@@ -1,5 +1,7 @@
 package vn.clinic.service;
 
+import vn.clinic.audit.Audited;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import vn.clinic.dto.*;
@@ -58,6 +60,7 @@ public class StaffAccountServiceImpl implements StaffAccountService {
         return StaffAccountDto.fromEntity(account);
     }
 
+    @Audited(entity = "ACCOUNT", action = "CREATE", summary = "Tạo tài khoản nhân viên")
     @Override
     public StaffAccountDto createAccount(CreateStaffRequest request) {
         log.info("Creating new staff account: username={}, email={}", request.getUsername(), request.getEmail());
@@ -89,7 +92,8 @@ public class StaffAccountServiceImpl implements StaffAccountService {
 
         StaffAccount newAccount = StaffAccount.builder()
                 .username(request.getUsername().trim())
-                .password("$2a$10$defaultMockHashedPassword") // Mock encrypted password
+                .password(vn.clinic.security.Passwords.hash(
+                        request.getPassword() != null && !request.getPassword().isBlank() ? request.getPassword() : "123456"))
                 .fullName(request.getFullName().trim())
                 .email(request.getEmail().trim().toLowerCase())
                 .phone(request.getPhone().trim())
@@ -107,6 +111,7 @@ public class StaffAccountServiceImpl implements StaffAccountService {
         return StaffAccountDto.fromEntity(saved);
     }
 
+    @Audited(entity = "ACCOUNT", action = "UPDATE", id = "id", summary = "Cập nhật tài khoản nhân viên")
     @Override
     public StaffAccountDto updateAccount(String id, UpdateStaffRequest request) {
         StaffAccount account = repository.findById(id)
@@ -142,6 +147,7 @@ public class StaffAccountServiceImpl implements StaffAccountService {
         return StaffAccountDto.fromEntity(updated);
     }
 
+    @Audited(entity = "ACCOUNT", action = "TOGGLE_STATUS", id = "id", summary = "Khóa/mở khóa tài khoản")
     @Override
     public StaffAccountDto toggleStatus(String id) {
         StaffAccount account = repository.findById(id)
@@ -168,6 +174,7 @@ public class StaffAccountServiceImpl implements StaffAccountService {
         return StaffAccountDto.fromEntity(saved);
     }
 
+    @Audited(entity = "ACCOUNT", action = "ASSIGN_PERMISSIONS", id = "id", summary = "Phân quyền RBAC")
     @Override
     public StaffAccountDto assignRoleAndPermissions(String id, AssignRolePermissionsRequest request) {
         StaffAccount account = repository.findById(id)
@@ -190,13 +197,13 @@ public class StaffAccountServiceImpl implements StaffAccountService {
         return StaffAccountDto.fromEntity(saved);
     }
 
+    @Audited(entity = "ACCOUNT", action = "RESET_PASSWORD", id = "id", summary = "Quản trị viên đặt lại mật khẩu")
     @Override
     public void resetPassword(String id, String newPassword) {
         StaffAccount account = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy tài khoản nhân viên có mã: " + id));
 
-        // Cập nhật mật khẩu mới (mã hóa mock)
-        account.setPassword("$2a$10$newResetMockPassword");
+        account.setPassword(vn.clinic.security.Passwords.hash(newPassword));
         account.setUpdatedAt(LocalDate.now().format(DateTimeFormatter.ISO_DATE));
         repository.save(account);
         log.info("Reset password for account: id={}", id);

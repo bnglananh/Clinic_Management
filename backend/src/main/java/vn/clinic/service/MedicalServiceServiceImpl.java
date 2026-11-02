@@ -1,5 +1,7 @@
 package vn.clinic.service;
 
+import vn.clinic.audit.Audited;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import vn.clinic.dto.CreateMedicalServiceRequest;
@@ -44,6 +46,7 @@ public class MedicalServiceServiceImpl implements MedicalServiceService {
         return mapToDto(service);
     }
 
+    @Audited(entity = "SERVICE", action = "CREATE", summary = "Thêm dịch vụ kỹ thuật")
     @Override
     public MedicalServiceDto createService(CreateMedicalServiceRequest request) {
         // Kiểm tra tính duy nhất của mã dịch vụ
@@ -88,6 +91,7 @@ public class MedicalServiceServiceImpl implements MedicalServiceService {
         return mapToDto(updated);
     }
 
+    @Audited(entity = "SERVICE", action = "UPDATE_PRICE", id = "id", summary = "Cập nhật giá dịch vụ")
     @Override
     public MedicalServiceDto updatePrice(String id, BigDecimal newPrice) {
         MedicalService service = findServiceOrThrow(id);
@@ -97,6 +101,7 @@ public class MedicalServiceServiceImpl implements MedicalServiceService {
         return mapToDto(updated);
     }
 
+    @Audited(entity = "SERVICE", action = "TOGGLE_STATUS", id = "id", summary = "Ngừng/mở lại dịch vụ")
     @Override
     public MedicalServiceDto toggleServiceStatus(String id) {
         MedicalService service = findServiceOrThrow(id);

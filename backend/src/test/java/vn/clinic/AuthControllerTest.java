@@ -1,5 +1,6 @@
 package vn.clinic;
 
+import vn.clinic.store.memory.InMemoryStores;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -40,8 +41,8 @@ class AuthControllerTest {
             capturedOtp = otpCode;
         };
 
-        AuthServiceImpl authService = new AuthServiceImpl(patientRepo, staffRepo, mockEmailService);
-        AuthController authController = new AuthController(authService);
+        AuthServiceImpl authService = new AuthServiceImpl(patientRepo, staffRepo, mockEmailService, new InMemoryStores.InMemoryOtpStore(), false);
+        AuthController authController = new AuthController(authService, null); // LoginService không dùng trong các test OTP này
 
         mockMvc = MockMvcBuilders.standaloneSetup(authController)
                 .setControllerAdvice(new GlobalExceptionHandler())
@@ -62,7 +63,7 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.success", is(true)))
                 .andExpect(jsonPath("$.data.email", is("an.pham@gmail.com")))
                 .andExpect(jsonPath("$.data.expiresInSeconds", is(300)))
-                .andExpect(jsonPath("$.data.devOtp", notNullValue()));
+                .andExpect(jsonPath("$.data.devOtp").doesNotExist());
     }
 
     @Test

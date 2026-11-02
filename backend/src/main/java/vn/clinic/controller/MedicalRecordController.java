@@ -70,4 +70,13 @@ public class MedicalRecordController {
         MedicalRecordDto locked = medicalRecordService.lockRecord(id);
         return ResponseEntity.ok(ApiResponse.success(locked, "Khóa hồ sơ bệnh án thành công"));
     }
+
+    @GetMapping("/patient/{patientId}/vitals-history")
+    public ResponseEntity<ApiResponse<List<vn.clinic.dto.VitalSignsPointDto>>> getVitalSignsHistory(
+            @PathVariable String patientId,
+            @RequestParam(defaultValue = "20") int limit) {
+        return ResponseEntity.ok(ApiResponse.success(
+                medicalRecordService.getVitalSignsHistory(patientId, limit),
+                "Lấy lịch sử sinh hiệu thành công"));
+    }
 }

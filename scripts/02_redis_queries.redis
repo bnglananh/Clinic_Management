@@ -1,0 +1,118 @@
+# ==============================================================================================
+# DỰ ÁN SMART CLINIC EMR - TẬP LỆNH TRUY VẤN REDIS THEO TÍNH NĂNG TỐC ĐỘ CAO
+# Database: Redis v7.4 In-Memory Key-Value Store (Port 6379)
+#
+# Cách chạy:
+#   1. Chạy tương tác với redis-cli:
+#      redis-cli < scripts/redis/queries_by_feature.redis
+#   2. Chạy qua Docker Container:
+#      docker exec -i clinic-redis redis-cli < scripts/redis/queries_by_feature.redis
+#   3. Xem trực quan: Sử dụng Redis Insight (http://localhost:5540)
+# ==============================================================================================
+
+# ==============================================================================================
+# TÍNH NĂNG 1: KHÓA GIỮ CHỖ LỊCH KHÁM CHỐNG ĐẶT TRÙNG (SLOT LOCKING - UC-03, BR-02)
+# Khóa phân tán ngắn hạn (10 phút = 600s) chống tình trạng hai bệnh nhân cùng bấm chọn một khung giờ.
+# ==============================================================================================
+
+# 1.1 Khóa giữ chỗ slot giờ khám: Nếu chưa ai giữ (NX), đặt thời hạn hết hạn 600 giây (EX)
+SET slot:lock:usr-doc-01:2026-12-25:08:30-09:00 usr-pat-01 NX EX 600
+
+# 1.2 Trường hợp bệnh nhân thứ hai cố gắng đặt cùng khung giờ trên -> Trả về (nil) (Thất bại)
+SET slot:lock:usr-doc-01:2026-12-25:08:30-09:00 usr-pat-99 NX EX 600
+
+# 1.3 Kiểm tra ai đang giữ khóa khung giờ này
+GET slot:lock:usr-doc-01:2026-12-25:08:30-09:00
+
+# 1.4 Kiểm tra số giây còn hiệu lực của khóa giữ chỗ (TTL)
+TTL slot:lock:usr-doc-01:2026-12-25:08:30-09:00
+
+# 1.5 Giải phóng khóa khi bệnh nhân đã thanh toán/xác nhận xong hoặc bấm nút Hủy
+DEL slot:lock:usr-doc-01:2026-12-25:08:30-09:00
+
+
+# ==============================================================================================
+# TÍNH NĂNG 2: BỘ ĐẾM SỐ THỨ TỰ CẤP VÉ KHÁM THỜI GIAN THỰC (TICKET COUNTER - UC-06, BR-05)
+# Sử dụng lệnh INCR nguyên tử, an toàn tuyệt đối khi hàng trăm kiosk/quầy bấm cùng lúc.
+# ==============================================================================================
+
+# 2.1 Tăng số thứ tự buồng khám Nội tổng quát (Phân hệ A) ngày 2026-12-20
+INCR counter:ticket:A:2026-12-20
+INCR counter:ticket:A:2026-12-20
+INCR counter:ticket:A:2026-12-20
+
+# 2.2 Tăng số thứ tự phòng Cấp cứu / Ưu tiên (Phân hệ B)
+INCR counter:ticket:B:2026-12-20
+
+# 2.3 Đặt thời gian hết hạn sang 23:59:59 cùng ngày để tự động giải phóng bộ nhớ (TTL: 86400s)
+EXPIRE counter:ticket:A:2026-12-20 86400
+
+# 2.4 Đọc số thứ tự hiện tại đang được cấp đến số mấy
+GET counter:ticket:A:2026-12-20
+
+# 2.5 Liệt kê danh sách tất cả các bộ đếm vé đang chạy trong ngày bằng SCAN (không chặn Redis)
+SCAN 0 MATCH counter:ticket:* COUNT 100
+
+
+# ==============================================================================================
+# TÍNH NĂNG 3: MÃ XÁC THỰC OTP & GIỚI HẠN NHẬP SAI (OTP & RATE LIMITING - UC-02, BR-17)
+# Lưu Hash cấu trúc: code, failedAttempts, createdAt, giới hạn sống 300s (5 phút).
+# ==============================================================================================
+
+# 3.1 Khởi tạo mã OTP 6 chữ số gửi qua SMS/Email khi bệnh nhân yêu cầu reset mật khẩu
+HSET otp:reset:patient.demo@gmail.com code "654321" failedAttempts 0 createdAt "2026-12-20T08:00:00Z"
+
+# 3.2 Đặt thời hạn tự hủy sau 5 phút (300 giây)
+EXPIRE otp:reset:patient.demo@gmail.com 300
+
+# 3.3 Tra cứu toàn bộ thông tin mã OTP để xác thực
+HGETALL otp:reset:patient.demo@gmail.com
+
+# 3.4 Nếu người dùng nhập sai, tăng số lần thử sai lên 1 (HINCRBY)
+HINCRBY otp:reset:patient.demo@gmail.com failedAttempts 1
+
+# 3.5 Kiểm tra số lần nhập sai: Nếu >= 3 thì thu hồi mã OTP ngay lập tức
+HGET otp:reset:patient.demo@gmail.com failedAttempts
+
+# 3.6 Xóa mã OTP khi người dùng xác thực thành công hoặc bị khóa
+DEL otp:reset:patient.demo@gmail.com
+
+
+# ==============================================================================================
+# TÍNH NĂNG 4: BẢNG XẾP HẠNG & HIỆU SUẤT KHÁM CỦA BÁC SĨ (LEADERBOARD - UC-16, BR-26)
+# Sử dụng Sorted Set (ZSET) sắp xếp điểm số tức thì với độ phức tạp O(log(N)).
+# ==============================================================================================
+
+# 4.1 Khởi tạo bảng xếp hạng số ca khám của các bác sĩ trong tháng 12/2026
+ZADD leaderboard:doctors:2026-12 45 "TS.BS Trần Minh Hoàng"
+ZADD leaderboard:doctors:2026-12 52 "BS.CKI Lê Thị Mai"
+ZADD leaderboard:doctors:2026-12 39 "ThS.BS Vũ Hải Đăng"
+ZADD leaderboard:doctors:2026-12 61 "BS.CKII Phạm Thị Hoa"
+
+# 4.2 Tăng 1 lượt khám cho bác sĩ Trần Minh Hoàng ngay khi hoàn thành 1 bệnh án
+ZINCRBY leaderboard:doctors:2026-12 1 "TS.BS Trần Minh Hoàng"
+
+# 4.3 Xem Top 3 bác sĩ có số lượt khám cao nhất tháng kèm số ca (WITHSCORES)
+ZREVRANGE leaderboard:doctors:2026-12 0 2 WITHSCORES
+
+# 4.4 Kiểm tra thứ hạng hiện tại của bác sĩ Vũ Hải Đăng (0-based index từ cao xuống thấp)
+ZREVRANK leaderboard:doctors:2026-12 "ThS.BS Vũ Hải Đăng"
+
+# 4.5 Lấy tổng số ca khám của bác sĩ Trần Minh Hoàng
+ZSCORE leaderboard:doctors:2026-12 "TS.BS Trần Minh Hoàng"
+
+
+# ==============================================================================================
+# TÍNH NĂNG 5: THU HỒI PHIÊN ĐĂNG NHẬP & BLACKLIST TOKEN JWT (SECURITY & AUTH - BR-18)
+# Lưu danh sách đen các JWT Token bị hủy hiệu lực khi người dùng bấm Đăng Xuất.
+# ==============================================================================================
+
+# 5.1 Đưa JWT Token vào Blacklist với TTL bằng đúng thời hạn còn lại của Token (ví dụ: 12 giờ = 43200s)
+SET blacklist:token:eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.demo-token-signature "revoked" EX 43200
+
+# 5.2 Kiểm tra xem Token gửi lên trong Request Header có nằm trong danh sách đen không (O(1))
+# Trả về 1 nếu đã bị thu hồi (từ chối 401 Unauthorized), trả về 0 nếu hợp lệ
+EXISTS blacklist:token:eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.demo-token-signature
+
+# 5.3 Kiểm tra tình trạng bộ nhớ và kết nối của Redis
+INFO keyspace

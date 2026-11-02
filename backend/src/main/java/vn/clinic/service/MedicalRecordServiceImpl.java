@@ -1,5 +1,11 @@
 package vn.clinic.service;
 
+import vn.clinic.audit.Audited;
+
+import vn.clinic.dto.VitalSignsPointDto;
+import vn.clinic.store.VitalSignsHistoryStore;
+import java.time.Instant;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import vn.clinic.dto.CreateMedicalRecordRequest;
@@ -25,12 +31,15 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
 
     private final MedicalRecordRepository medicalRecordRepository;
     private final PatientProfileRepository patientProfileRepository;
+    private final VitalSignsHistoryStore vitalSignsHistoryStore;
 
     public MedicalRecordServiceImpl(
             MedicalRecordRepository medicalRecordRepository,
-            PatientProfileRepository patientProfileRepository) {
+            PatientProfileRepository patientProfileRepository,
+            VitalSignsHistoryStore vitalSignsHistoryStore) {
         this.medicalRecordRepository = medicalRecordRepository;
         this.patientProfileRepository = patientProfileRepository;
+        this.vitalSignsHistoryStore = vitalSignsHistoryStore;
     }
 
     @Override
@@ -60,6 +69,7 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
         return mapToDto(record);
     }
 
+    @Audited(entity = "EMR", action = "CREATE", summary = "Tạo bệnh án điện tử")
     @Override
     public MedicalRecordDto createRecord(CreateMedicalRecordRequest request) {
         String patientCode = "BN-2026-0001";
@@ -120,10 +130,32 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
                 .build();
 
         MedicalRecord saved = medicalRecordRepository.save(record);
+
+        // Bệnh án (document) lưu ở MongoDB; riêng sinh hiệu ghi thêm vào chuỗi thời gian Cassandra
+        // để vẽ biểu đồ xu hướng qua nhiều lần khám mà không phải đọc lại toàn bộ bệnh án.
+        if (saved.getVitals() != null && saved.getPatientId() != null) {
+            try {
+                vitalSignsHistoryStore.record(new VitalSignsHistoryStore.VitalSignsPoint(
+                        saved.getPatientId(), Instant.now(), saved.getVisitId(), saved.getId(),
+                        saved.getDoctorName(), saved.getVitals()));
+            } catch (RuntimeException e) {
+                log.warn("Không ghi được sinh hiệu vào chuỗi thời gian cho bệnh án {}: {}", saved.getId(), e.getMessage());
+            }
+        }
+
         log.info("Created medical record: visitCode={}, patient={}", saved.getVisitCode(), saved.getPatientName());
         return mapToDto(saved);
     }
 
+    @Override
+    public List<VitalSignsPointDto> getVitalSignsHistory(String patientId, int limit) {
+        int safeLimit = Math.max(1, Math.min(limit, 100));
+        return vitalSignsHistoryStore.latest(patientId, safeLimit).stream()
+                .map(VitalSignsPointDto::from)
+                .collect(Collectors.toList());
+    }
+
+    @Audited(entity = "EMR", action = "LOCK", id = "id", summary = "Khóa bệnh án (không cho sửa)")
     @Override
     public MedicalRecordDto lockRecord(String id) {
         MedicalRecord record = medicalRecordRepository.findById(id)

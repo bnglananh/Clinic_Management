@@ -34,7 +34,10 @@
                 "output": "/assets/"
               }
             ],
-            "styles": ["src/theme.less", "src/styles.scss"]
+            "styles": [
+              "src/theme.less",
+              "src/styles.scss"
+            ]
           },
           "configurations": {
             "production": {
@@ -70,7 +73,10 @@
               "buildTarget": "clinic-frontend:build:development"
             }
           },
-          "defaultConfiguration": "development"
+          "defaultConfiguration": "development",
+          "options": {
+            "proxyConfig": "proxy.conf.json"
+          }
         },
         "test": {
           "builder": "@angular/build:unit-test"

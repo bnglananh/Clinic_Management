@@ -1,0 +1,46 @@
+[{
+	"_id": "TX-002",
+	"drugId": "DRUG-01",
+	"drugName": "Augmentin 1g",
+	"type": "PRESCRIPTION_DISPENSE",
+	"quantityChange": -46,
+	"balanceAfter": 4,
+	"reason": "Xuất bán theo đơn thuốc phòng khám (Tồn nguy cấp <= 10)",
+	"batchNumber": "AG-2025-09",
+	"performedBy": "cashier",
+	"timestamp": {
+		"$date": "2026-10-29T01:08:49.777Z"
+	},
+	"_class": "vn.clinic.model.StockTransaction"
+},
+{
+	"_id": "TX-003",
+	"drugId": "DRUG-02",
+	"drugName": "Panadol Extra",
+	"type": "IMPORT",
+	"quantityChange": 100,
+	"balanceAfter": 100,
+	"reason": "Nhập kho bổ sung từ Sanofi",
+	"batchNumber": "PD-2026-01",
+	"performedBy": "admin",
+	"timestamp": {
+		"$date": "2026-10-11T01:08:49.777Z"
+	},
+	"_class": "vn.clinic.model.StockTransaction"
+},
+{
+	"_id": "TX-001",
+	"drugId": "DRUG-01",
+	"drugName": "Augmentin 1g",
+	"type": "IMPORT",
+	"quantityChange": 50,
+	"balanceAfter": 50,
+	"reason": "Nhập hàng định kỳ Quý III từ GSK Pháp",
+	"batchNumber": "AG-2025-09",
+	"performedBy": "admin",
+	"timestamp": {
+		"$date": "2026-10-01T01:08:49.777Z"
+	},
+	"_class": "vn.clinic.model.StockTransaction"
+}]
+

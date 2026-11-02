@@ -1,5 +1,6 @@
 package vn.clinic.repository;
 
+import vn.clinic.config.StorageMode;
 import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Repository;
 import vn.clinic.model.Appointment;
@@ -12,6 +13,7 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Repository
+@StorageMode.Memory
 public class InMemoryAppointmentRepository implements AppointmentRepository {
 
     private final Map<String, Appointment> storage = new ConcurrentHashMap<>();

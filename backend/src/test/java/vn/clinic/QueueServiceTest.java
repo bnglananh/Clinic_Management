@@ -1,5 +1,6 @@
 package vn.clinic;
 
+import vn.clinic.store.memory.InMemoryStores;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -44,7 +45,7 @@ class QueueServiceTest {
         notifRepo.initMockData();
         NotificationServiceImpl notifService = new NotificationServiceImpl(notifRepo);
 
-        queueService = new QueueServiceImpl(queueRepo, appointmentRepo, patientRepo, notifService);
+        queueService = new QueueServiceImpl(queueRepo, appointmentRepo, patientRepo, notifService, new InMemoryStores.InMemoryTicketCounter());
     }
 
     @Test

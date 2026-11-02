@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { QueueService } from '../../../core/services/queue.service';
 import { AuthService } from '../../../core/services/auth.service';
-import { NotificationService } from '../../../core/services/notification.service';
+import { NzMessageService } from 'ng-zorro-antd/message';
 import { VndCurrencyPipe } from '../../../shared/pipes/vnd-currency.pipe';
 import { ClinicIconComponent, ClinicIconName } from '../../../shared/components/clinic-icon/clinic-icon.component';
 
@@ -227,7 +227,7 @@ interface TimeSlotOption {
                     class="slot-btn"
                     [class.selected]="selectedSlot()?.id === slot.id"
                     [disabled]="slot.availableSeats === 0"
-                    (click)="selectedSlot.set(slot)"
+                    (click)="selectSlot(slot)"
                   >
                     <span class="slot-time">{{ slot.time }}</span>
                     <span class="slot-seats" [class.full]="slot.availableSeats === 0">
@@ -247,7 +247,7 @@ interface TimeSlotOption {
                     class="slot-btn"
                     [class.selected]="selectedSlot()?.id === slot.id"
                     [disabled]="slot.availableSeats === 0"
-                    (click)="selectedSlot.set(slot)"
+                    (click)="selectSlot(slot)"
                   >
                     <span class="slot-time">{{ slot.time }}</span>
                     <span class="slot-seats" [class.full]="slot.availableSeats === 0">
@@ -1248,7 +1248,9 @@ interface TimeSlotOption {
 export class PatientBookingComponent implements OnInit {
   private queueService = inject(QueueService);
   private authService = inject(AuthService);
-  private notifService = inject(NotificationService);
+  private message = inject(NzMessageService);
+  /** Khung giờ đang giữ chỗ trên Redis (để nhả khi bệnh nhân đổi lựa chọn). */
+  private heldSlot: { doctorId: string; date: string; time: string } | null = null;
   private router = inject(Router);
   private route = inject(ActivatedRoute);
 
@@ -1324,7 +1326,7 @@ export class PatientBookingComponent implements OnInit {
 
   // Doctor list
   doctors: DoctorOption[] = [
-    { id: 'DOC-01', name: 'TS.BS Trần Minh Hoàng', title: 'Bác sĩ Chuyên khoa II', departmentId: 'DEP-CARDIO', departmentName: 'Khoa Tim Mạch', experienceYears: 18, rating: 4.9 },
+    { id: 'usr-doc-01', name: 'TS.BS Trần Minh Hoàng', title: 'Bác sĩ Chuyên khoa II', departmentId: 'DEP-CARDIO', departmentName: 'Khoa Tim Mạch', experienceYears: 18, rating: 4.9 },
     { id: 'DOC-02', name: 'ThS.BS Nguyễn Thị Mai Lan', title: 'Thạc sĩ Bác sĩ', departmentId: 'DEP-INTERNAL', departmentName: 'Khoa Nội Tổng Quát', experienceYears: 12, rating: 4.8 },
     { id: 'DOC-03', name: 'BS.CKI Lê Quốc Hưng', title: 'Bác sĩ CKI', departmentId: 'DEP-DIGEST', departmentName: 'Khoa Tiêu Hóa', experienceYears: 15, rating: 4.9 },
     { id: 'DOC-04', name: 'TS.BS Phạm Đức Trí', title: 'Tiến sĩ Y Khoa', departmentId: 'DEP-ENT', departmentName: 'Khoa Tai Mũi Họng', experienceYears: 20, rating: 4.95 },
@@ -1391,33 +1393,70 @@ export class PatientBookingComponent implements OnInit {
     const dept = this.selectedDept()!;
     const user = this.authService.currentUser();
 
+    const slot = this.selectedSlot();
+    if (!user || !slot) {
+      this.isSubmitting.set(false);
+      this.message.warning('Vui lòng chọn khung giờ khám.');
+      return;
+    }
+
+    // Backend tự lấy mã bệnh nhân từ hồ sơ, nhả khóa giữ chỗ và gửi thông báo xác nhận
     this.queueService
       .createAppointment({
-        patientId: user?.id || 'usr-pat-01',
-        patientCode: 'BN-2026-0891',
+        patientId: user.id,
+        patientCode: '',
         patientName: this.patientFullName,
-        phone: this.patientPhone,
+        phone: this.patientPhone.replace(/\s+/g, ''),
         department: dept.name,
         doctorId: doc.id,
         doctorName: doc.name,
-        appointmentDate: this.selectedDate(),
-        timeSlot: this.selectedSlot()?.time || '08:30 - 09:00',
+        appointmentDate: this.toIsoDate(this.selectedDate()),
+        timeSlot: slot.time,
         reasonForVisit: this.patientReason,
       })
-      .subscribe((apt) => {
-        this.isSubmitting.set(false);
-        this.bookedAppointment.set(apt);
-        this.isSuccess.set(true);
-
-        // Gửi thông báo xác nhận đặt lịch hẹn thành công
-        this.notifService.sendNotification({
-          userId: user?.id || 'usr-pat-01',
-          title: 'Đặt lịch hẹn khám thành công',
-          content: `Lịch hẹn ${dept.name} với ${doc.name} vào ngày ${this.selectedDate()} (${this.selectedSlot()?.time || '08:30 - 09:00'}) đã được ghi nhận. Mã lịch hẹn: ${apt.id}.`,
-          type: 'APPOINTMENT',
-          referenceId: apt.id,
-          channel: 'IN_APP',
-        });
+      .subscribe({
+        next: (apt) => {
+          this.isSubmitting.set(false);
+          this.heldSlot = null;
+          this.bookedAppointment.set(apt);
+          this.isSuccess.set(true);
+        },
+        error: (err: Error) => {
+          this.isSubmitting.set(false);
+          this.message.error(err.message);
+        },
       });
+  }
+
+  /** Chọn khung giờ: giữ chỗ 10 phút trên Redis để người khác không đặt trùng trong lúc điền thông tin. */
+  selectSlot(slot: TimeSlotOption): void {
+    const doc = this.selectedDoctor();
+    const user = this.authService.currentUser();
+    if (!doc || !user) {
+      this.selectedSlot.set(slot);
+      return;
+    }
+    const date = this.toIsoDate(this.selectedDate());
+    if (this.heldSlot) {
+      this.queueService.releaseSlot(this.heldSlot.doctorId, this.heldSlot.date, this.heldSlot.time, user.id);
+      this.heldSlot = null;
+    }
+    this.queueService.lockSlot(doc.id, date, slot.time, user.id).subscribe({
+      next: (lock) => {
+        this.heldSlot = { doctorId: doc.id, date, time: slot.time };
+        this.selectedSlot.set(slot);
+        this.message.success(`Đã giữ chỗ khung giờ ${slot.time} trong ${Math.round(lock.expiresInSeconds / 60)} phút.`);
+      },
+      error: (err: Error) => {
+        this.selectedSlot.set(null);
+        this.message.error(err.message);
+      },
+    });
+  }
+
+  /** "06/10/2026" → "2026-10-06" (định dạng backend lưu trữ); chuỗi đã là ISO thì giữ nguyên. */
+  private toIsoDate(value: string): string {
+    const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(value?.trim() ?? '');
+    return m ? `${m[3]}-${m[2]}-${m[1]}` : value;
   }
 }

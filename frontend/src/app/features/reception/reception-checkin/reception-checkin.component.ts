@@ -2,6 +2,7 @@ import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { PatientService } from '../../../core/services/patient.service';
+import { NzMessageService } from 'ng-zorro-antd/message';
 import { QueueService } from '../../../core/services/queue.service';
 import { Patient } from '../../../core/models/patient.model';
 import { Appointment } from '../../../core/models/appointment.model';
@@ -1080,6 +1081,7 @@ import { ClinicIconComponent } from '../../../shared/components/clinic-icon/clin
 })
 export class ReceptionCheckinComponent {
   private patientService = inject(PatientService);
+  private message = inject(NzMessageService);
   private queueService = inject(QueueService);
   private fb = inject(FormBuilder);
 
@@ -1155,9 +1157,15 @@ export class ReceptionCheckinComponent {
         appointmentId: apt.id,
         notes: apt.reasonForVisit,
       })
-      .subscribe((ticket) => {
-        this.isSubmitting.set(false);
-        this.currentIssuedTicket.set(ticket);
+      .subscribe({
+        next: (ticket) => {
+          this.isSubmitting.set(false);
+          this.currentIssuedTicket.set(ticket);
+        },
+        error: (err: Error) => {
+          this.isSubmitting.set(false);
+          this.message.error(err.message);
+        },
       });
   }
 
@@ -1180,12 +1188,18 @@ export class ReceptionCheckinComponent {
         priority: formVal.priority || 'NORMAL',
         notes: formVal.notes || undefined,
       })
-      .subscribe((ticket) => {
-        this.isSubmitting.set(false);
-        this.currentIssuedTicket.set(ticket);
-        this.selectedWalkinPatient.set(null);
-        this.walkinSearchQuery = '';
-        this.foundPatients.set([]);
+      .subscribe({
+        next: (ticket) => {
+          this.isSubmitting.set(false);
+          this.currentIssuedTicket.set(ticket);
+          this.selectedWalkinPatient.set(null);
+          this.walkinSearchQuery = '';
+          this.foundPatients.set([]);
+        },
+        error: (err: Error) => {
+          this.isSubmitting.set(false);
+          this.message.error(err.message);
+        },
       });
   }
 

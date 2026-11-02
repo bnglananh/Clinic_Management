@@ -1,5 +1,7 @@
 package vn.clinic.service;
 
+import vn.clinic.audit.Audited;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import vn.clinic.dto.*;
@@ -10,10 +12,16 @@ import vn.clinic.model.AppointmentStatus;
 import vn.clinic.model.NotificationType;
 import vn.clinic.repository.AppointmentRepository;
 import vn.clinic.repository.PatientProfileRepository;
+import vn.clinic.store.Leaderboard;
+import vn.clinic.store.SlotLockStore;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -22,14 +30,22 @@ public class AppointmentServiceImpl implements AppointmentService {
     private final AppointmentRepository appointmentRepository;
     private final PatientProfileRepository patientProfileRepository;
     private final NotificationService notificationService;
+    private final SlotLockStore slotLockStore;
+    private final Leaderboard leaderboard;
+
+    static final Duration SLOT_HOLD_TTL = Duration.ofMinutes(10);
 
     public AppointmentServiceImpl(
             AppointmentRepository appointmentRepository,
             PatientProfileRepository patientProfileRepository,
-            NotificationService notificationService) {
+            NotificationService notificationService,
+            SlotLockStore slotLockStore,
+            Leaderboard leaderboard) {
         this.appointmentRepository = appointmentRepository;
         this.patientProfileRepository = patientProfileRepository;
         this.notificationService = notificationService;
+        this.slotLockStore = slotLockStore;
+        this.leaderboard = leaderboard;
     }
 
     @Override
@@ -59,6 +75,7 @@ public class AppointmentServiceImpl implements AppointmentService {
                 .toList();
     }
 
+    @Audited(entity = "APPOINTMENT", action = "CREATE", summary = "Đặt lịch hẹn khám")
     @Override
     public AppointmentDto createAppointment(CreateAppointmentRequest request) {
         // Kiểm tra xung đột lịch làm việc và chống đặt trùng khung giờ
@@ -75,20 +92,25 @@ public class AppointmentServiceImpl implements AppointmentService {
             );
         }
 
-        // Tự động liên kết mã bệnh nhân nếu có sẵn
-        String patientId = request.getPatientId();
-        String patientCode = request.getPatientCode();
-        if ((patientId == null || patientId.isBlank()) && request.getPhone() != null) {
-            patientProfileRepository.findByPhone(request.getPhone()).ifPresent(p -> {
-                // Link profile
-            });
+        // Khung giờ đang được người khác giữ chỗ (khóa Redis 10 phút) thì không cho đặt
+        String owner = lockOwnerOf(request);
+        Optional<String> holder = slotLockStore.currentOwner(
+                request.getDoctorId(), request.getAppointmentDate(), request.getTimeSlot());
+        if (holder.isPresent() && !holder.get().equals(owner)) {
+            throw new BusinessRuleException(String.format(
+                    "Khung giờ %s ngày %s đang được một bệnh nhân khác giữ chỗ. Vui lòng chọn khung giờ khác hoặc thử lại sau ít phút.",
+                    request.getTimeSlot(), request.getAppointmentDate()));
         }
-        if (patientId != null && !patientId.isBlank()) {
-            patientProfileRepository.findById(patientId).ifPresent(p -> {
-                if (patientCode == null || patientCode.isBlank()) {
-                    // Set patientCode
-                }
-            });
+
+        // Liên kết hồ sơ bệnh nhân: theo mã nếu có, nếu không thì tìm theo số điện thoại
+        String patientId = blankToNull(request.getPatientId());
+        String patientCode = blankToNull(request.getPatientCode());
+        Optional<vn.clinic.model.PatientProfile> profile = patientId != null
+                ? patientProfileRepository.findById(patientId)
+                : patientProfileRepository.findByPhone(request.getPhone());
+        if (profile.isPresent()) {
+            patientId = profile.get().getId();
+            if (patientCode == null) patientCode = profile.get().getPatientCode();
         }
 
         long nextIndex = appointmentRepository.count() + 1;
@@ -114,6 +136,13 @@ public class AppointmentServiceImpl implements AppointmentService {
                 .build();
 
         Appointment saved = appointmentRepository.save(newApt);
+
+        // Đặt xong thì nhả khóa giữ chỗ và cộng điểm bảng xếp hạng bác sĩ của tháng
+        slotLockStore.release(saved.getDoctorId(), saved.getAppointmentDate(), saved.getTimeSlot(), owner);
+        if (saved.getAppointmentDate().length() >= 7) {
+            leaderboard.increment(Leaderboard.doctorBookings(saved.getAppointmentDate().substring(0, 7)),
+                    saved.getDoctorName(), 1);
+        }
         log.info("Created appointment: code={}, patient={}, doctor={}, date={}, slot={}",
                 saved.getAppointmentCode(), saved.getPatientName(), saved.getDoctorName(), saved.getAppointmentDate(), saved.getTimeSlot());
 
@@ -134,6 +163,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         return AppointmentDto.fromEntity(saved);
     }
 
+    @Audited(entity = "APPOINTMENT", action = "RESCHEDULE", id = "id", summary = "Dời lịch hẹn")
     @Override
     public AppointmentDto rescheduleAppointment(String id, RescheduleAppointmentRequest request) {
         Appointment apt = findOrThrow(id);
@@ -191,6 +221,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         return AppointmentDto.fromEntity(updated);
     }
 
+    @Audited(entity = "APPOINTMENT", action = "CANCEL", id = "id", summary = "Hủy lịch hẹn")
     @Override
     public AppointmentDto cancelAppointment(String id, CancelAppointmentRequest request) {
         Appointment apt = findOrThrow(id);
@@ -230,5 +261,56 @@ public class AppointmentServiceImpl implements AppointmentService {
     private Appointment findOrThrow(String id) {
         return appointmentRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy lịch hẹn với mã ID: " + id));
+    }
+
+    @Override
+    public SlotLockDto lockSlot(SlotLockRequest request) {
+        boolean booked = appointmentRepository.existsByDoctorIdAndAppointmentDateAndTimeSlotAndStatusNot(
+                request.getDoctorId(), request.getAppointmentDate(), request.getTimeSlot(), AppointmentStatus.CANCELLED);
+        if (booked) {
+            throw new BusinessRuleException("Khung giờ này đã có lịch hẹn. Vui lòng chọn khung giờ khác.");
+        }
+        boolean acquired = slotLockStore.tryLock(request.getDoctorId(), request.getAppointmentDate(),
+                request.getTimeSlot(), request.getOwnerId(), SLOT_HOLD_TTL);
+        if (!acquired) {
+            long wait = slotLockStore.remainingSeconds(request.getDoctorId(), request.getAppointmentDate(), request.getTimeSlot());
+            throw new BusinessRuleException(String.format(
+                    "Khung giờ đang được bệnh nhân khác giữ chỗ (còn khoảng %d giây). Vui lòng chọn khung giờ khác.", Math.max(wait, 0)));
+        }
+        return SlotLockDto.builder()
+                .doctorId(request.getDoctorId())
+                .appointmentDate(request.getAppointmentDate())
+                .timeSlot(request.getTimeSlot())
+                .ownerId(request.getOwnerId())
+                .expiresInSeconds(slotLockStore.remainingSeconds(
+                        request.getDoctorId(), request.getAppointmentDate(), request.getTimeSlot()))
+                .build();
+    }
+
+    @Override
+    public void releaseSlot(SlotLockRequest request) {
+        slotLockStore.release(request.getDoctorId(), request.getAppointmentDate(), request.getTimeSlot(), request.getOwnerId());
+    }
+
+    @Override
+    public List<LeaderboardEntryDto> getDoctorLeaderboard(String yearMonth, int limit) {
+        String month = (yearMonth == null || yearMonth.isBlank()) ? YearMonth.now().toString() : YearMonth.parse(yearMonth).toString();
+        List<Leaderboard.Entry> top = leaderboard.top(Leaderboard.doctorBookings(month), limit);
+        List<LeaderboardEntryDto> result = new ArrayList<>();
+        for (int i = 0; i < top.size(); i++) {
+            result.add(LeaderboardEntryDto.builder()
+                    .rank(i + 1).name(top.get(i).member()).score(Math.round(top.get(i).score())).build());
+        }
+        return result;
+    }
+
+    private static String blankToNull(String s) {
+        return s == null || s.isBlank() ? null : s.trim();
+    }
+
+    /** Người giữ chỗ = mã bệnh nhân, hoặc số điện thoại khi lễ tân đặt hộ khách chưa có hồ sơ. */
+    private static String lockOwnerOf(CreateAppointmentRequest request) {
+        return (request.getPatientId() != null && !request.getPatientId().isBlank())
+                ? request.getPatientId() : request.getPhone().trim();
     }
 }

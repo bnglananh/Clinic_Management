@@ -1,14 +1,19 @@
-import { Injectable, signal, computed } from '@angular/core';
-import { Observable, of } from 'rxjs';
-import { delay, tap } from 'rxjs/operators';
+import { Injectable, signal, computed, inject, effect } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable, ReplaySubject, of, catchError, map, switchMap, tap, throwError } from 'rxjs';
 import { Bill, PaymentMethod, PaymentStatus } from '../models/billing.model';
-import { MOCK_BILLS } from '../mock-data/reception-mock-data';
+import { ApiResponse, unwrap } from './api';
+import { AuthService, apiErrorMessage } from './auth.service';
 
+/** Hóa đơn viện phí (MongoDB collection bills); mỗi lần thu tiền được ghi audit log ở Cassandra. */
 @Injectable({
   providedIn: 'root',
 })
 export class BillingService {
-  private billsSignal = signal<Bill[]>(MOCK_BILLS);
+  private http = inject(HttpClient);
+  private auth = inject(AuthService);
+
+  private billsSignal = signal<Bill[]>([]);
   public readonly bills = this.billsSignal.asReadonly();
 
   public readonly pendingCount = computed(
@@ -20,19 +25,40 @@ export class BillingService {
       .reduce((sum, b) => sum + b.totalAmount, 0)
   );
 
+  constructor() {
+    effect(() => {
+      this.auth.currentUser();
+      this.getBills().subscribe();
+    });
+  }
+
   getBills(statusFilter?: PaymentStatus): Observable<Bill[]> {
-    let list = this.billsSignal();
-    if (statusFilter) {
-      list = list.filter((b) => b.paymentStatus === statusFilter);
+    const user = this.auth.currentUser();
+    if (!user || !this.auth.isAuthenticated()) {
+      this.billsSignal.set([]);
+      return of([]);
     }
-    return of(list).pipe(delay(200));
+    // Bệnh nhân chỉ xem hóa đơn của chính mình
+    const url = user.role === 'PATIENT' ? `/api/billing/patient/${user.id}` : '/api/billing';
+    return unwrap(this.http.get<ApiResponse<Bill[]>>(url)).pipe(
+      tap((list) => this.billsSignal.set(list)),
+      map((list) => (statusFilter ? list.filter((b) => b.paymentStatus === statusFilter) : list)),
+      catchError(() => of(this.billsSignal()))
+    );
   }
 
   getBillById(id: string): Observable<Bill | undefined> {
-    const found = this.billsSignal().find((b) => b.id === id);
-    return of(found).pipe(delay(150));
+    return unwrap(this.http.get<ApiResponse<Bill>>(`/api/billing/${id}`)).pipe(
+      map((b) => b ?? undefined),
+      catchError(() => of(this.billsSignal().find((b) => b.id === id)))
+    );
   }
 
+  /**
+   * Thu tiền mặt, hoặc thanh toán VietQR.
+   * Nhân viên: tạo mã QR rồi xác nhận đã nhận tiền. Bệnh nhân: chỉ tạo mã QR,
+   * hóa đơn chuyển sang PENDING_CONFIRMATION chờ thu ngân đối soát.
+   */
   processPayment(params: {
     billId: string;
     paymentMethod: PaymentMethod;
@@ -40,36 +66,47 @@ export class BillingService {
     cashChange?: number;
     cashierName?: string;
   }): Observable<Bill> {
-    let updatedBill: Bill | null = null;
+    const cashierName = params.cashierName || this.auth.currentUser()?.fullName;
+    const isPatient = this.auth.currentRole() === 'PATIENT';
 
-    this.billsSignal.update((current) =>
-      current.map((bill) => {
-        if (bill.id === params.billId) {
-          updatedBill = {
-            ...bill,
-            paymentStatus: 'PAID',
-            paymentMethod: params.paymentMethod,
-            cashReceived: params.cashReceived,
-            cashChange: params.cashChange,
-            paidAt: new Date().toISOString(),
-            cashierName: params.cashierName || 'Nguyễn Thị Mai',
-            vietQrReference:
-              params.paymentMethod === 'VIETQR'
-                ? `VCB-${Date.now().toString().slice(-8)}`
-                : undefined,
-          };
-          return updatedBill;
-        }
-        return bill;
-      })
-    );
+    let request: Observable<Bill>;
+    if (params.paymentMethod === 'CASH') {
+      request = unwrap(
+        this.http.post<ApiResponse<Bill>>(`/api/billing/${params.billId}/pay-cash`, {
+          paymentMethod: 'CASH',
+          cashReceived: params.cashReceived,
+          cashierName,
+        })
+      );
+    } else {
+      const generate = this.http.post<ApiResponse<unknown>>(`/api/billing/${params.billId}/vietqr`, {});
+      request = isPatient
+        ? generate.pipe(switchMap(() => unwrap(this.http.get<ApiResponse<Bill>>(`/api/billing/${params.billId}`))))
+        : generate.pipe(
+            switchMap(() =>
+              unwrap(
+                this.http.post<ApiResponse<Bill>>(`/api/billing/${params.billId}/confirm-vietqr`, {
+                  vietQrReference: `VCB-${Date.now().toString().slice(-8)}`,
+                  cashierName,
+                })
+              )
+            )
+          );
+    }
 
-    return of(updatedBill!).pipe(delay(350));
+    const result = new ReplaySubject<Bill>(1);
+    request
+      .pipe(
+        tap((bill) => this.billsSignal.update((list) => list.map((b) => (b.id === bill.id ? bill : b)))),
+        catchError((err) => throwError(() => new Error(apiErrorMessage(err, 'Thanh toán thất bại.'))))
+      )
+      .subscribe(result);
+    return result.asObservable();
   }
 
   generateVietQrUrl(bill: Bill): string {
     // VietQR quick format using Vietcombank mock clinic account
-    const bankCode = 'VCB'; // Vietcombank
+    const bankCode = 'VCB';
     const accountNo = '1040394574';
     const amount = bill.totalAmount;
     const desc = encodeURIComponent(`${bill.billCode} ${bill.patientCode}`);

@@ -1,5 +1,7 @@
 package vn.clinic.service;
 
+import vn.clinic.audit.Audited;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import vn.clinic.dto.CreateScheduleRequest;
@@ -46,6 +48,7 @@ public class DoctorScheduleServiceImpl implements DoctorScheduleService {
         return mapToDto(schedule);
     }
 
+    @Audited(entity = "SCHEDULE", action = "CREATE", summary = "Phân ca trực bác sĩ")
     @Override
     public DoctorScheduleDto createSchedule(CreateScheduleRequest request) {
         // Kiểm tra xung đột lịch - Bác sĩ đã có ca trực trong khung giờ ngày đó
@@ -128,6 +131,7 @@ public class DoctorScheduleServiceImpl implements DoctorScheduleService {
         return mapToDto(updated);
     }
 
+    @Audited(entity = "SCHEDULE", action = "DELETE", id = "id", summary = "Xóa ca trực")
     @Override
     public void deleteSchedule(String id) {
         DoctorSchedule schedule = findScheduleOrThrow(id);

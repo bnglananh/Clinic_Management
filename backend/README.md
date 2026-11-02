@@ -20,18 +20,36 @@
 - **Java Development Kit (JDK)**: **Java 17 LTS** (Khuyến nghị OpenJDK 17 hoặc Oracle JDK 17).
   - *Ví dụ đường dẫn cài đặt trên Windows*: `C:\Program Files\Java\jdk-17`
 - **Maven**: Dự án tích hợp sẵn Maven Wrapper (`mvnw.cmd` / `mvnw`), **không cần cài đặt Maven toàn cục**.
+- **Cụm CSDL NoSQL (Docker Compose)**: Khởi động 4 dịch vụ trước khi chạy Backend:
+  ```powershell
+  # Tại thư mục gốc clinic-management:
+  docker compose up -d
+  ```
 
 ---
 
 ## 2. HƯỚNG DẪN CẤU HÌNH & KHỞI CHẠY
 
-### Bước 1: Mở Terminal tại thư mục `backend`
+### 2.1. Cấu hình tầng lưu trữ (`clinic.storage`)
+
+Trong `application.properties`:
+- **Chế độ `nosql` (Mặc định)**: Kết nối đồng thời cả 4 hệ CSDL:
+  - MongoDB: `spring.mongodb.uri=mongodb://localhost:27017/clinic_db`
+  - Redis: `spring.data.redis.host=localhost`, `port=6379`
+  - Cassandra: `spring.cassandra.contact-points=localhost:9042`, keyspace `clinic_keyspace`
+  - Neo4j: `spring.neo4j.uri=bolt://localhost:7687`, user `neo4j` / `clinic12345`
+- **Chế độ `memory` (Fallback)**: Lưu trữ tạm trong RAM, không cần Docker:
+  Thêm cờ `-Dspring-boot.run.profiles=memory` khi khởi chạy.
+
+### 2.2. Các bước khởi chạy chi tiết
+
+#### Bước 1: Mở Terminal tại thư mục `backend`
 ```powershell
 cd backend
 ```
 
-### Bước 2: Thiết lập biến môi trường JDK 17
-Nếu máy tính của bạn có Java 8 làm mặc định trong hệ thống, bạn cần chuyển sang JDK 17 trước khi chạy:
+#### Bước 2: Thiết lập biến môi trường JDK 17
+Nếu máy tính của bạn có Java 8 làm mặc định trong hệ thống, bạn bắt buộc phải chuyển sang JDK 17 trước khi chạy:
 
 - **Windows PowerShell**:
   ```powershell
@@ -49,14 +67,19 @@ Nếu máy tính của bạn có Java 8 làm mặc định trong hệ thống, b
   export PATH=$JAVA_HOME/bin:$PATH
   ```
 
-### Bước 3: Khởi chạy ứng dụng Backend
-```powershell
-# Windows:
-.\mvnw.cmd spring-boot:run
+#### Bước 3: Khởi chạy ứng dụng Backend
+- **Chế độ NoSQL (Khuyến nghị - kết nối 4 NoSQL)**:
+  ```powershell
+  # Windows:
+  .\mvnw.cmd spring-boot:run
 
-# Linux / macOS:
-./mvnw spring-boot:run
-```
+  # Linux / macOS:
+  ./mvnw spring-boot:run
+  ```
+- **Chế độ In-Memory (Khi máy yếu/không bật Docker)**:
+  ```powershell
+  .\mvnw.cmd spring-boot:run -Dspring-boot.run.profiles=memory
+  ```
 
 - **Địa chỉ dịch vụ**: `http://localhost:8080`
 - **CORS Configuration**: Cho phép truy cập từ `http://localhost:4200` và `http://localhost:3000`.

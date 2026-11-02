@@ -1,5 +1,6 @@
 package vn.clinic;
 
+import vn.clinic.store.memory.InMemoryStores;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -39,7 +40,7 @@ class AuthServiceTest {
             capturedOtp = otpCode;
         };
 
-        authService = new AuthServiceImpl(patientRepo, staffRepo, mockEmailService);
+        authService = new AuthServiceImpl(patientRepo, staffRepo, mockEmailService, new InMemoryStores.InMemoryOtpStore(), false);
     }
 
     @Test
@@ -118,7 +119,9 @@ class AuthServiceTest {
         assertDoesNotThrow(() -> authService.resetPasswordWithOtp(resetReq));
 
         PatientProfile updatedPatient = patientRepo.findByEmail("an.pham@gmail.com").orElseThrow();
-        assertEquals("newSecurePass2026", updatedPatient.getPassword());
+        // Mật khẩu mới được lưu dạng băm BCrypt, không lưu chữ thường
+        assertNotEquals("newSecurePass2026", updatedPatient.getPassword());
+        assertTrue(vn.clinic.security.Passwords.matches("newSecurePass2026", updatedPatient.getPassword()));
 
         // Sau khi đã đổi mật khẩu, mã OTP phải bị hủy
         assertThrows(BusinessRuleException.class, () -> authService.verifyOtp(new VerifyOtpRequest("an.pham@gmail.com", capturedOtp)));

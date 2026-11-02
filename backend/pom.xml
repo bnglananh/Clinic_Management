@@ -31,8 +31,7 @@
 	</properties>
 	<dependencies>
 		<!-- ========================================================================= -->
-		<!-- NoSQL Databases (Sẽ mở lại khi triển khai CSDL NoSQL phân tán ở giai đoạn sau) -->
-		<!--
+		<!-- NoSQL Databases (Polyglot Persistence)                                    -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-cassandra</artifactId>
@@ -49,11 +48,18 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-redis</artifactId>
 		</dependency>
-		-->
 		<!-- ========================================================================= -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-aspectj</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

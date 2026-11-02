@@ -159,6 +159,10 @@ import { ClinicIconComponent } from '../../../shared/components/clinic-icon/clin
           </label>
         </div>
 
+        @if (errorMessage()) {
+          <div class="login-error" role="alert">{{ errorMessage() }}</div>
+        }
+
         <button
           type="submit"
           class="submit-btn"
@@ -510,6 +514,16 @@ import { ClinicIconComponent } from '../../../shared/components/clinic-icon/clin
         }
       }
 
+      .login-error {
+        margin: 0 0 12px;
+        padding: 10px 14px;
+        border-radius: 10px;
+        background: #fdecec;
+        color: #8b1e2d;
+        font-size: 13.5px;
+        border: 1px solid #f3c2c8;
+      }
+
       .submit-btn {
         height: 46px;
         background: linear-gradient(135deg, #0E4A55 0%, #155764 100%);
@@ -634,6 +648,7 @@ export class LoginComponent implements OnInit {
 
   selectedRole = signal<UserRole>('RECEPTIONIST');
   isLoading = signal<boolean>(false);
+  errorMessage = signal<string>('');
   showPassword = signal<boolean>(false);
 
   loginForm = this.fb.group({
@@ -643,6 +658,9 @@ export class LoginComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    if (this.route.snapshot.queryParamMap.get('expired')) {
+      this.errorMessage.set('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+    }
     const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
     if (returnUrl && returnUrl.includes('/patient')) {
       this.selectRole('PATIENT');
@@ -684,13 +702,16 @@ export class LoginComponent implements OnInit {
     }
 
     this.isLoading.set(true);
+    this.errorMessage.set('');
     const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') || undefined;
-    this.authService.login(this.selectedRole(), returnUrl).subscribe({
+    const { username, password } = this.loginForm.getRawValue();
+    this.authService.login(username ?? '', password ?? '', returnUrl).subscribe({
       next: () => {
         this.isLoading.set(false);
       },
-      error: () => {
+      error: (err: Error) => {
         this.isLoading.set(false);
+        this.errorMessage.set(err.message);
       },
     });
   }
