@@ -40,3 +40,10 @@ frontend/.vscode/
 **/README_UC*.md
 docs/srs/
 *.docx
+
+# Python / Pytest / Playwright artifacts
+**/__pycache__/
+*.pyc
+**/.pytest_cache/
+tests/e2e/playwright-report/
+tests/e2e/test-results/

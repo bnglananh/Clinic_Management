@@ -78,6 +78,15 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Audited(entity = "APPOINTMENT", action = "CREATE", summary = "Đặt lịch hẹn khám")
     @Override
     public AppointmentDto createAppointment(CreateAppointmentRequest request) {
+        try {
+            java.time.LocalDate parsedDate = java.time.LocalDate.parse(request.getAppointmentDate());
+            if (parsedDate.isBefore(java.time.LocalDate.now())) {
+                throw new BusinessRuleException("Không thể đặt lịch hẹn cho ngày trong quá khứ.");
+            }
+        } catch (java.time.format.DateTimeParseException e) {
+            throw new BusinessRuleException("Định dạng ngày khám không hợp lệ (YYYY-MM-DD).");
+        }
+
         // Kiểm tra xung đột lịch làm việc và chống đặt trùng khung giờ
         boolean slotBusy = appointmentRepository.existsByDoctorIdAndAppointmentDateAndTimeSlotAndStatusNot(
                 request.getDoctorId(),

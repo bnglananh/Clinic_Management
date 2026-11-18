@@ -53,6 +53,7 @@ public class AppointmentController {
 
     @GetMapping("/patient/{patientId}")
     public ResponseEntity<ApiResponse<List<AppointmentDto>>> getPatientAppointments(@PathVariable String patientId) {
+        vn.clinic.security.AccessChecks.requirePatientSelfOrStaff(patientId);
         List<AppointmentDto> list = appointmentService.getAppointmentsByPatientId(patientId);
         return ResponseEntity.ok(ApiResponse.success(list, "Lấy danh sách lịch hẹn của bệnh nhân thành công"));
     }
@@ -77,6 +78,8 @@ public class AppointmentController {
     public ResponseEntity<ApiResponse<AppointmentDto>> rescheduleAppointment(
             @PathVariable String id,
             @Valid @RequestBody RescheduleAppointmentRequest request) {
+        AppointmentDto existing = appointmentService.getAppointmentById(id);
+        vn.clinic.security.AccessChecks.requirePatientSelfOrStaff(existing.getPatientId());
         AppointmentDto updated = appointmentService.rescheduleAppointment(id, request);
         return ResponseEntity.ok(ApiResponse.success(updated, "Dời lịch hẹn khám thành công"));
     }
@@ -89,6 +92,8 @@ public class AppointmentController {
     public ResponseEntity<ApiResponse<AppointmentDto>> cancelAppointment(
             @PathVariable String id,
             @RequestBody(required = false) CancelAppointmentRequest request) {
+        AppointmentDto existing = appointmentService.getAppointmentById(id);
+        vn.clinic.security.AccessChecks.requirePatientSelfOrStaff(existing.getPatientId());
         AppointmentDto updated = appointmentService.cancelAppointment(id, request);
         return ResponseEntity.ok(ApiResponse.success(updated, "Hủy lịch hẹn thành công"));
     }

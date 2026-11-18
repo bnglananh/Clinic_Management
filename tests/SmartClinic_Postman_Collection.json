@@ -1,0 +1,1290 @@
+{
+  "info": {
+    "name": "Smart Clinic EMR - Full Test Cases",
+    "description": "Bộ API Test Cases chuẩn hóa cho Smart Clinic EMR (4 vai trò, Redis Lock, Neo4j DDI, EMR Lock, RBAC)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "01. Auth & Bảo mật (UC01)",
+      "item": [
+        {
+          "name": "01.1 Đăng ký Bệnh nhân mới (201)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Nguyễn Văn Postman\",\n  \"phone\": \"0988112299\",\n  \"email\": \"postman.patient@smartclinic.test\",\n  \"dateOfBirth\": \"1995-05-15\",\n  \"gender\": \"Nam\",\n  \"identityCardNumber\": \"079095001199\",\n  \"password\": \"Password123@\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Đăng ký thành công (201) hoặc đã tồn tại (409)\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([201, 409]);",
+                  "});",
+                  "if (pm.response.code === 201) {",
+                  "    const data = pm.response.json().data;",
+                  "    pm.environment.set(\"patientToken\", data.accessToken);",
+                  "    pm.environment.set(\"patientId\", data.user.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "01.2 Đăng nhập Bác sĩ (200)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"bacsi\",\n  \"password\": \"123456\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code là 200 OK\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) {",
+                  "    pm.environment.set(\"doctorToken\", pm.response.json().data.accessToken);",
+                  "    pm.environment.set(\"token\", pm.response.json().data.accessToken);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "01.3 Đăng nhập Lễ tân (200)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"letan\",\n  \"password\": \"123456\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code là 200 OK\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) {",
+                  "    pm.environment.set(\"receptionToken\", pm.response.json().data.accessToken);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "01.4 Đăng nhập Admin (200)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"123456\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code là 200 OK\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) {",
+                  "    pm.environment.set(\"adminToken\", pm.response.json().data.accessToken);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "01.5 Negative - Sai mật khẩu (400/401)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"bacsi\",\n  \"password\": \"SaiMatKhau999\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Từ chối sai mật khẩu (400 hoặc 401)\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([400, 401]);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "01.6 Security - Không gắn Token bị chặn (401)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "me"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Chặn truy cập chưa đăng nhập (401)\", () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "01.7 Security - Bệnh nhân gọi API Admin bị chặn (403)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "users"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{patientToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"RBAC chặn vượt quyền (403 Forbidden)\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "02. Đặt lịch & Giữ chỗ Redis (UC02-UC03)",
+      "item": [
+        {
+          "name": "02.1 Giữ chỗ khung giờ Redis TTL 600s (200)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/appointments/slot-locks",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "appointments",
+                "slot-locks"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{patientToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"doctorId\": \"usr-doc-01\",\n  \"appointmentDate\": \"2026-12-20\",\n  \"timeSlot\": \"08:30\",\n  \"ownerId\": \"{{patientId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Giữ chỗ thành công (200)\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "02.2 Negative - Người khác giữ cùng slot bị từ chối",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/appointments/slot-locks",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "appointments",
+                "slot-locks"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{patientToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"doctorId\": \"usr-doc-01\",\n  \"appointmentDate\": \"2026-12-20\",\n  \"timeSlot\": \"08:30\",\n  \"ownerId\": \"other-patient-999\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Từ chối vì slot đang có người giữ (400/409 hoặc acquired=false)\", function () {",
+                  "    if (pm.response.code === 200) {",
+                  "        pm.expect(pm.response.json().data.acquired).to.eql(false);",
+                  "    } else {",
+                  "        pm.expect(pm.response.code).to.be.oneOf([400, 409]);",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "02.3 Nhả chỗ khung giờ (200)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/appointments/slot-locks/release",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "appointments",
+                "slot-locks",
+                "release"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{patientToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"doctorId\": \"usr-doc-01\",\n  \"appointmentDate\": \"2026-12-20\",\n  \"timeSlot\": \"08:30\",\n  \"ownerId\": \"{{patientId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Nhả khóa thành công (200/204)\", () => pm.expect(pm.response.code).to.be.oneOf([200, 204]));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "02.4 Negative - Đặt lịch ngày quá khứ bị chặn (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/appointments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "appointments"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{patientToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"patientId\": \"{{patientId}}\",\n  \"patientName\": \"Nguyễn Văn Postman\",\n  \"phone\": \"0988112299\",\n  \"department\": \"Khoa Tim Mạch\",\n  \"doctorId\": \"usr-doc-01\",\n  \"appointmentDate\": \"2024-01-01\",\n  \"timeSlot\": \"08:00\",\n  \"reasonForVisit\": \"Khám định kỳ\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Chặn đặt lịch ngày quá khứ (400)\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "03. Lễ tân & Hàng đợi (UC09-UC11)",
+      "item": [
+        {
+          "name": "03.1 Tiếp nhận vãng lai & Cấp STT Redis INCR (201)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/reception/checkin",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reception",
+                "checkin"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{receptionToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"patientName\": \"Trần Văn Tiếp Đón\",\n  \"phone\": \"0911223344\",\n  \"gender\": \"NAM\",\n  \"yearOfBirth\": 1992,\n  \"roomName\": \"Phòng Khám Nội 101\",\n  \"doctorId\": \"usr-doc-01\",\n  \"doctorName\": \"TS.BS Trần Minh Hoàng\",\n  \"priority\": \"NORMAL\",\n  \"notes\": \"Khám tổng quát\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Cấp số thứ tự thành công (200/201)\", () => pm.expect(pm.response.code).to.be.oneOf([200, 201]));",
+                  "if (pm.response.code === 200 || pm.response.code === 201) {",
+                  "    const ticket = pm.response.json().data;",
+                  "    pm.environment.set(\"ticketId\", ticket.id);",
+                  "    pm.environment.set(\"ticketNumber\", ticket.ticketNumber);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "03.2 Lấy dữ liệu in phiếu nhiệt K80 (200)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/reception/tickets/{{ticketId}}/print",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reception",
+                "tickets",
+                "{{ticketId}}",
+                "print"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{receptionToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Lấy dữ liệu in phiếu K80 (200)\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "03.3 Ưu tiên ca cấp cứu lên đầu hàng (200)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/queue/{{ticketId}}/promote",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "queue",
+                "{{ticketId}}",
+                "promote"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{receptionToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Đưa lên đầu hàng đợi thành công (200)\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "04. Bác sĩ, Khóa EMR & Neo4j DDI (UC14-UC18)",
+      "item": [
+        {
+          "name": "04.1 Gọi bệnh nhân tiếp theo (200)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/queue/call-next?roomName=Phòng Khám Nội 101&doctorId=usr-doc-01",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "queue",
+                "call-next"
+              ],
+              "query": [
+                {
+                  "key": "roomName",
+                  "value": "Phòng Khám Nội 101"
+                },
+                {
+                  "key": "doctorId",
+                  "value": "usr-doc-01"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{doctorToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Gọi số thành công (200)\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "04.2 Quét tương tác thuốc Neo4j DDI: ASP81 + Warfarin (200)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/prescriptions/safety-check",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "prescriptions",
+                "safety-check"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{doctorToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"drugs\": [\n    \"ASP81\",\n    \"Warfarin 5mg\"\n  ],\n  \"icdCodes\": [\n    \"I10\"\n  ],\n  \"allergies\": []\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Quét DDI thành công (200)\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Có trường interactions trong báo cáo\", () => {",
+                  "    pm.expect(pm.response.json().data).to.have.property(\"interactions\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "04.3 Quét chống chỉ định ICD-10: K25 + IBU400 (200)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/prescriptions/safety-check",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "prescriptions",
+                "safety-check"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{doctorToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"drugs\": [\n    \"IBU400\"\n  ],\n  \"icdCodes\": [\n    \"K25\"\n  ],\n  \"allergies\": []\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Quét chống chỉ định thành công (200)\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Có trường contraindications\", () => {",
+                  "    pm.expect(pm.response.json().data).to.have.property(\"contraindications\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "04.4 Tạo bệnh án EMR & Sinh hiệu (201)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/records",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "records"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{doctorToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"visitId\": \"{{ticketId}}\",\n  \"patientId\": \"PAT-01\",\n  \"department\": \"Khoa Tim Mạch\",\n  \"doctorName\": \"TS.BS Trần Minh Hoàng\",\n  \"roomName\": \"Phòng Khám Nội 101\",\n  \"chiefComplaint\": \"Đau đầu, chóng mặt\",\n  \"clinicalSymptoms\": \"Huyết áp tăng nhẹ\",\n  \"vitals\": {\n    \"bloodPressure\": \"135/85\",\n    \"heartRate\": 78,\n    \"temperature\": 37.0,\n    \"respiratoryRate\": 18,\n    \"spo2\": 98.0,\n    \"weight\": 65.0,\n    \"height\": 170.0\n  },\n  \"diagnoses\": [\n    {\n      \"icdCode\": \"I10\",\n      \"diseaseName\": \"Tăng huyết áp vô căn\",\n      \"primary\": true\n    }\n  ],\n  \"serviceOrders\": [],\n  \"prescriptions\": [],\n  \"doctorAdvice\": \"Hạn chế muối, tái khám sau 14 ngày\",\n  \"followUpDays\": 14\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Tạo bệnh án thành công (200/201)\", () => pm.expect(pm.response.code).to.be.oneOf([200, 201]));",
+                  "if (pm.response.code === 200 || pm.response.code === 201) {",
+                  "    pm.environment.set(\"recordId\", pm.response.json().data.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "04.5 Khóa bệnh án bất biến (200)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/records/{{recordId}}/lock",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "records",
+                "{{recordId}}",
+                "lock"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{doctorToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Khóa bệnh án thành công (200)\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"isLocked = true\", () => pm.expect(pm.response.json().data.isLocked).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "05. Thu ngân & Quản trị (UC13, UC19-UC24)",
+      "item": [
+        {
+          "name": "05.1 Xem danh sách hóa đơn chờ thanh toán (200)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/billing?status=UNPAID",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "billing"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "UNPAID"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{receptionToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Lấy danh sách hóa đơn thành công (200)\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "05.2 Dashboard thống kê doanh thu (200)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/reports/dashboard",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reports",
+                "dashboard"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Lấy số liệu Dashboard thành công (200)\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "05.3 Cảnh báo thuốc tồn kho thấp <= 10 (200)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/pharmacy/drugs/low-stock?threshold=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "pharmacy",
+                "drugs",
+                "low-stock"
+              ],
+              "query": [
+                {
+                  "key": "threshold",
+                  "value": "10"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Lấy danh sách thuốc sắp hết (200)\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "05.4 Tra cứu nhật ký kiểm toán Cassandra (200)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/audit-logs?action=LOCK",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "audit-logs"
+              ],
+              "query": [
+                {
+                  "key": "action",
+                  "value": "LOCK"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Tra cứu Audit Log Cassandra thành công (200)\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

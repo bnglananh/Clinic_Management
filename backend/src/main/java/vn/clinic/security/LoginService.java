@@ -90,35 +90,38 @@ public class LoginService {
     /** Bệnh nhân tự đăng ký: tạo hồ sơ (MongoDB, mật khẩu BCrypt) rồi đăng nhập luôn. */
     public LoginResponse registerPatient(RegisterPatientRequest request) {
         String phone = request.getPhone().trim();
-        if (patientRepository.existsByPhone(phone) || patientRepository.existsByUsername(phone)) {
-            throw new DuplicateResourceException("Số điện thoại " + phone + " đã được đăng ký. Vui lòng đăng nhập.");
+        PatientProfile saved;
+        synchronized (phone.intern()) {
+            if (patientRepository.existsByPhone(phone) || patientRepository.existsByUsername(phone)) {
+                throw new DuplicateResourceException("Số điện thoại " + phone + " đã được đăng ký. Vui lòng đăng nhập.");
+            }
+            String email = request.getEmail() == null || request.getEmail().isBlank() ? null : request.getEmail().trim();
+            if (email != null && patientRepository.existsByEmail(email)) {
+                throw new DuplicateResourceException("Email " + email + " đã được sử dụng.");
+            }
+            String cccd = request.getIdentityCardNumber();
+            if (cccd != null && !cccd.isBlank() && patientRepository.existsByIdentityCardNumber(cccd)) {
+                throw new DuplicateResourceException("Số CCCD đã tồn tại trong hệ thống.");
+            }
+            String today = java.time.LocalDate.now().toString();
+            saved = patientRepository.save(PatientProfile.builder()
+                    .patientCode(String.format("BN-%d-%05d", java.time.Year.now().getValue(),
+                            patientRepository.findAll().size() + 1001))
+                    .username(phone)
+                    .password(Passwords.hash(request.getPassword()))
+                    .fullName(request.getFullName().trim())
+                    .phone(phone)
+                    .email(email)
+                    .dateOfBirth(request.getDateOfBirth())
+                    .gender(request.getGender())
+                    .identityCardNumber(cccd == null || cccd.isBlank() ? null : cccd.trim())
+                    .role(UserRole.PATIENT)
+                    .membershipTier("Tiêu chuẩn")
+                    .totalVisits(0)
+                    .createdAt(today)
+                    .updatedAt(today)
+                    .build());
         }
-        String email = request.getEmail() == null || request.getEmail().isBlank() ? null : request.getEmail().trim();
-        if (email != null && patientRepository.existsByEmail(email)) {
-            throw new DuplicateResourceException("Email " + email + " đã được sử dụng.");
-        }
-        String cccd = request.getIdentityCardNumber();
-        if (cccd != null && !cccd.isBlank() && patientRepository.existsByIdentityCardNumber(cccd)) {
-            throw new DuplicateResourceException("Số CCCD đã tồn tại trong hệ thống.");
-        }
-        String today = java.time.LocalDate.now().toString();
-        PatientProfile saved = patientRepository.save(PatientProfile.builder()
-                .patientCode(String.format("BN-%d-%05d", java.time.Year.now().getValue(),
-                        patientRepository.findAll().size() + 1001))
-                .username(phone)
-                .password(Passwords.hash(request.getPassword()))
-                .fullName(request.getFullName().trim())
-                .phone(phone)
-                .email(email)
-                .dateOfBirth(request.getDateOfBirth())
-                .gender(request.getGender())
-                .identityCardNumber(cccd == null || cccd.isBlank() ? null : cccd.trim())
-                .role(UserRole.PATIENT)
-                .membershipTier("Tiêu chuẩn")
-                .totalVisits(0)
-                .createdAt(today)
-                .updatedAt(today)
-                .build());
         log.info("Bệnh nhân mới đăng ký: {} ({})", saved.getPatientCode(), phone);
         return login(LoginRequest.builder().username(phone).password(request.getPassword()).build());
     }
