@@ -73,6 +73,7 @@ public class PatientController {
 
     @GetMapping("/{id}/history")
     public ResponseEntity<ApiResponse<PatientHistorySummaryDto>> getPatientHistory(@PathVariable String id) {
+        vn.clinic.security.AccessChecks.requirePatientSelfOrStaff(id);
         PatientHistorySummaryDto history = patientService.getPatientHistory(id);
         return ResponseEntity.ok(ApiResponse.success(history, "Lấy lịch sử khám bệnh của bệnh nhân thành công"));
     }

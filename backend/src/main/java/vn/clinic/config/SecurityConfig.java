@@ -66,6 +66,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/records/**").hasRole(DOCTOR)
 
                         // Hồ sơ bệnh nhân
+                        .requestMatchers(HttpMethod.GET, "/api/patients/*/history").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/patients/**").hasAnyRole(RECEPTIONIST, DOCTOR, ADMIN)
                         .requestMatchers("/api/patients/**").hasAnyRole(RECEPTIONIST, ADMIN)
 

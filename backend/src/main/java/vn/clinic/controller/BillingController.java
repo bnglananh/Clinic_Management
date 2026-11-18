@@ -95,6 +95,7 @@ public class BillingController {
 
     @GetMapping("/patient/{patientId}")
     public ResponseEntity<ApiResponse<List<BillDto>>> getBillsByPatientId(@PathVariable String patientId) {
+        vn.clinic.security.AccessChecks.requirePatientSelfOrStaff(patientId);
         List<BillDto> patientBills = billingService.getBillsByPatientId(patientId);
         return ResponseEntity.ok(ApiResponse.success(patientBills, "Lấy danh sách hóa đơn của bệnh nhân thành công"));
     }

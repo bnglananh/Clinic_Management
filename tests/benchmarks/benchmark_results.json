@@ -1,0 +1,140 @@
+{
+  "metrics": [
+    {
+      "database": "Redis 7.4",
+      "operation": "INCR (Cấp số thứ tự)",
+      "iterations": 1000,
+      "mean_ms": 0.76,
+      "p50_ms": 0.519,
+      "p95_ms": 1.491,
+      "p99_ms": 3.621,
+      "ops_sec": 1316.3
+    },
+    {
+      "database": "Redis 7.4",
+      "operation": "SET NX EX (Khóa slot)",
+      "iterations": 1000,
+      "mean_ms": 0.944,
+      "p50_ms": 0.569,
+      "p95_ms": 1.484,
+      "p99_ms": 11.745,
+      "ops_sec": 1059.5
+    },
+    {
+      "database": "Redis 7.4",
+      "operation": "EXISTS (Check JWT Blacklist)",
+      "iterations": 1000,
+      "mean_ms": 0.756,
+      "p50_ms": 0.545,
+      "p95_ms": 1.109,
+      "p99_ms": 3.118,
+      "ops_sec": 1322.8
+    },
+    {
+      "database": "Redis 7.4",
+      "operation": "Concurrent INCR (20 luồng)",
+      "iterations": 2000,
+      "mean_ms": 1.174,
+      "p50_ms": "-",
+      "p95_ms": "-",
+      "p99_ms": "-",
+      "ops_sec": 851.9
+    },
+    {
+      "database": "MongoDB 7.0",
+      "operation": "Bulk Insert 2000 EMR nhúng",
+      "iterations": 1,
+      "mean_ms": 138.59,
+      "p50_ms": "-",
+      "p95_ms": "-",
+      "p99_ms": "-",
+      "ops_sec": 14431.3
+    },
+    {
+      "database": "MongoDB 7.0",
+      "operation": "Find EMR theo _id (IXSCAN)",
+      "iterations": 500,
+      "mean_ms": 0.96,
+      "p50_ms": 0.762,
+      "p95_ms": 1.807,
+      "p99_ms": 5.581,
+      "ops_sec": 1041.4
+    },
+    {
+      "database": "MongoDB 7.0",
+      "operation": "Aggregation Pipeline (2.000 bills)",
+      "iterations": 100,
+      "mean_ms": 4.391,
+      "p50_ms": 3.891,
+      "p95_ms": 6.207,
+      "p99_ms": 14.653,
+      "ops_sec": 227.7
+    },
+    {
+      "database": "Cassandra 4.1",
+      "operation": "Write Time-series Sinh hiệu (1.000 rows)",
+      "iterations": 1000,
+      "mean_ms": 2.973,
+      "p50_ms": 2.708,
+      "p95_ms": 4.755,
+      "p99_ms": 8.654,
+      "ops_sec": 336.4
+    },
+    {
+      "database": "Cassandra 4.1",
+      "operation": "Read 10 Sinh hiệu gần nhất O(1)",
+      "iterations": 500,
+      "mean_ms": 3.345,
+      "p50_ms": 3.04,
+      "p95_ms": 5.519,
+      "p99_ms": 7.61,
+      "ops_sec": 298.9
+    },
+    {
+      "database": "Cassandra 4.1",
+      "operation": "LOGGED BATCH 3 bảng Audit Log",
+      "iterations": 300,
+      "mean_ms": 3.576,
+      "p50_ms": 2.533,
+      "p95_ms": 10.484,
+      "p99_ms": 16.293,
+      "ops_sec": 279.7
+    },
+    {
+      "database": "Neo4j 5.26",
+      "operation": "Cypher Quét DDI (5 hoạt chất)",
+      "iterations": 200,
+      "mean_ms": 4.469,
+      "p50_ms": 3.493,
+      "p95_ms": 10.75,
+      "p99_ms": 25.857,
+      "ops_sec": 223.7
+    },
+    {
+      "database": "Neo4j 5.26",
+      "operation": "Cypher Chống chỉ định ICD-10",
+      "iterations": 200,
+      "mean_ms": 4.298,
+      "p50_ms": 3.324,
+      "p95_ms": 10.167,
+      "p99_ms": 17.453,
+      "ops_sec": 232.6
+    },
+    {
+      "database": "Neo4j 5.26",
+      "operation": "Cypher Gợi ý thuốc thay thế",
+      "iterations": 200,
+      "mean_ms": 5.885,
+      "p50_ms": 4.983,
+      "p95_ms": 10.731,
+      "p99_ms": 23.053,
+      "ops_sec": 169.9
+    }
+  ],
+  "mongo_explain": {
+    "ixscan_docs_examined": 1,
+    "ixscan_time_ms": 0,
+    "collscan_docs_examined": 1,
+    "collscan_time_ms": 2
+  }
+}

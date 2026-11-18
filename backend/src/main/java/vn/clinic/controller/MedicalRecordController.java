@@ -31,6 +31,7 @@ public class MedicalRecordController {
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String department,
             @RequestParam(required = false) Integer year) {
+        vn.clinic.security.AccessChecks.requirePatientSelfOrStaff(patientId);
         List<MedicalRecordDto> list = medicalRecordService.getPatientRecords(patientId, keyword, department, year);
         return ResponseEntity.ok(ApiResponse.success(list, "Lấy lịch sử khám bệnh thành công"));
     }
